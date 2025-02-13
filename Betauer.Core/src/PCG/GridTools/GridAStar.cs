@@ -7,7 +7,7 @@ namespace Betauer.Core.PCG.GridTools;
 
 public class GridAStar {
     private readonly Dictionary<Vector2I, float> _gScore = new();
-    private readonly Dictionary<Vector2I, Array2DEdge?> _edgeTo = new();
+    private readonly Dictionary<Vector2I, GridGraphEdge?> _edgeTo = new();
     private readonly IndexMinPriorityQueue<float> _pq;
     private readonly GridGraph _graph;
 
@@ -76,7 +76,7 @@ public class GridAStar {
         return GetGScore(pos) + GetHScore(pos);
     }
 
-    private void Relax(Array2DEdge edge) {
+    private void Relax(GridGraphEdge edge) {
         var to = edge.To;
         var newGScore = GetGScore(edge.From) + edge.Weight;
         var toIndex = ToIndex(to);

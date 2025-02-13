@@ -851,4 +851,80 @@ public class GridPathFinderTests {
                 "Path should only use orthogonal moves when diagonals are disabled");
         }
     }
+
+    [Test]
+    public void BasicDiagonalMovement() {
+        // Create a grid with diagonals enabled from the start
+        var grid = new Array2D<bool>(5, 5, true);
+        var graph = new GridGraph(grid.Width, grid.Height, _ => false);
+        graph.EnableDiagonalMovement();
+
+        // Test path from corner to corner
+        var path = graph.FindPath(new Vector2I(0, 0), new Vector2I(4, 4));
+
+        Assert.That(path, Has.Count.EqualTo(5)); // Should be a direct diagonal path
+
+        // Verify it's a pure diagonal path
+        for (var i = 0; i < path.Count; i++) {
+            Assert.That(path[i], Is.EqualTo(new Vector2I(i, i)),
+                "Path should follow diagonal line");
+        }
+    }
+
+    [Test]
+    public void GetReachableZoneWithDiagonalsEnabled() {
+        var grid = new Array2D<bool>(3, 3, true);
+        var graph = new GridGraph(grid.Width, grid.Height, _ => false);
+        graph.EnableDiagonalMovement();
+
+        var center = new Vector2I(1, 1);
+        var zone = graph.GetReachableZoneInRange(center, 1);
+
+        // Should include center + 4 orthogonal + 4 diagonal = 9 cells
+        Assert.That(zone, Has.Count.EqualTo(9));
+
+        // Check orthogonal neighbors
+        Assert.That(zone, Contains.Item(center)); // Center
+        Assert.That(zone, Contains.Item(new Vector2I(0, 1))); // Left
+        Assert.That(zone, Contains.Item(new Vector2I(2, 1))); // Right
+        Assert.That(zone, Contains.Item(new Vector2I(1, 0))); // Up
+        Assert.That(zone, Contains.Item(new Vector2I(1, 2))); // Down
+
+        // Check diagonal neighbors
+        Assert.That(zone, Contains.Item(new Vector2I(0, 0))); // Up-Left
+        Assert.That(zone, Contains.Item(new Vector2I(2, 0))); // Up-Right
+        Assert.That(zone, Contains.Item(new Vector2I(0, 2))); // Down-Left
+        Assert.That(zone, Contains.Item(new Vector2I(2, 2))); // Down-Right
+    }
+
+    [Test]
+    public void DiagonalPathWithObstacles() {
+        // Create a 4x4 grid with an L-shaped obstacle
+        var grid = new Array2D<bool>(4, 4, true);
+        grid[1, 1] = false; // Part of L
+        grid[1, 2] = false; // Part of L
+        grid[2, 1] = false; // Part of L
+
+        var graph = new GridGraph(grid.Width, grid.Height, cell => !grid[cell]);
+        graph.EnableDiagonalMovement();
+
+        // Try to find a path that would normally go through the L obstacle
+        var path = graph.FindPath(new Vector2I(0, 0), new Vector2I(3, 3));
+
+        // Path should exist but should go around the obstacle
+        Assert.That(path, Is.Not.Empty);
+        Assert.That(path, Has.None.EqualTo(new Vector2I(1, 1))); // Should not pass through obstacles
+        Assert.That(path, Has.None.EqualTo(new Vector2I(1, 2)));
+        Assert.That(path, Has.None.EqualTo(new Vector2I(2, 1)));
+
+        // Verify start and end points
+        Assert.That(path[0], Is.EqualTo(new Vector2I(0, 0)));
+        Assert.That(path[^1], Is.EqualTo(new Vector2I(3, 3)));
+
+        // Print path for debugging
+        Console.WriteLine("Path found:");
+        foreach (var pos in path) {
+            Console.WriteLine($"Position: {pos}");
+        }
+    }
 }

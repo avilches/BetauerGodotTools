@@ -11,7 +11,7 @@ namespace Betauer.Core.PCG.GridTools;
 /// <summary>
 /// The Array2DEdge struct represents a weighted edge in an edge-weighted grid graph. 
 /// </summary>
-public readonly record struct Array2DEdge(Vector2I From, Vector2I To, float Weight) {
+public readonly record struct GridGraphEdge(Vector2I From, Vector2I To, float Weight) {
     public override string ToString() {
         return $"From: {From}, To: {To}, Weight: {Weight}";
     }
@@ -111,13 +111,13 @@ public class GridGraph {
     /// </summary>
     /// <param name="vertex">The vertex to find incident Array2DEdges from</param>
     /// <returns>IEnumerable of the Array2DEdges incident from the specified vertex</returns>
-    public IEnumerable<Array2DEdge> Adjacent(Vector2I vertex) {
+    public IEnumerable<GridGraphEdge> Adjacent(Vector2I vertex) {
         if (IsBlocked(vertex)) yield break;
 
         // Orthogonal movements
         foreach (var neighbor in Array2D.VonNeumannDirections.Select(pos => vertex + pos).Where(IsAccesible)) {
             var weight = GetWeight(neighbor);
-            yield return new Array2DEdge(vertex, neighbor, weight);
+            yield return new GridGraphEdge(vertex, neighbor, weight);
         }
 
         // Diagonal movements
@@ -125,7 +125,7 @@ public class GridGraph {
             foreach (var neighbor in Array2D.DiagonalDirections.Select(pos => vertex + pos).Where(IsAccesible)) {
                 var cellWeight = GetWeight(neighbor);
                 var finalWeight = cellWeight * DiagonalWeight;
-                yield return new Array2DEdge(vertex, neighbor, finalWeight);
+                yield return new GridGraphEdge(vertex, neighbor, finalWeight);
             }
         }
     }
@@ -170,84 +170,66 @@ public class GridGraph {
     }
 
     /// <summary>
-    /// Finds a path to the closest target based on Euclidean distance. Note that this method only considers
-    /// the direct (straight line) distance to the targets, not the actual path length.
-    /// 
-    /// IMPORTANT: The selected target might not result in the shortest actual path! For example:
-    /// - Target A might be closer in direct distance (e.g., 5 units away)
-    /// - But requires a long path around obstacles (e.g., 20 steps to reach it)
-    /// - While Target B might be further away (e.g., 8 units)
-    /// - But has a clear path (e.g., only 8 steps to reach it)
-    /// 
-    /// For weighted targets, use the overload that accepts List<(Vector2I pos, float weight)>.
-    /// If you need the truly shortest path, use FindShortestPath instead.
-    /// </summary>
+    /// Finds a path to the closest target based on Euclidean distance.
+    ///
+    /// 1) Calculate the Euclidean distance to every target, no matter if they are blocked or not
+    /// 2) Get the closest target by distance.
+    /// 3) Returns the path to this target, following a walkable path (non blocked cells)
+    ///
     /// <param name="start">Starting position</param>
     /// <param name="targets">List of potential target positions</param>
     /// <param name="onNodeVisited">Optional callback that is invoked for each node visited during pathfinding</param>
     /// <returns>A path to the closest target by Euclidean distance, or an empty list if no path is found</returns>
-    public IReadOnlyList<Vector2I> FindNearestPath(Vector2I start, List<Vector2I> targets, Action<Vector2I>? onNodeVisited = null) {
-        if (targets.Count == 0) return Array.Empty<Vector2I>();
-
+    public IReadOnlyList<Vector2I> FindNearestPath(Vector2I start, IEnumerable<Vector2I> targets, Action<Vector2I>? onNodeVisited = null) {
         // Encontrar el mejor target basado en distancia solo
         var bestTarget = targets
             .OrderBy(t => Heuristics.Euclidean(start, t))
-            .First();
+            .FirstOrDefault();
 
-        return FindPath(start, bestTarget, Heuristics.Euclidean, onNodeVisited);
+        return bestTarget == default
+            ? Array.Empty<Vector2I>()
+            : FindPath(start, bestTarget, Heuristics.Euclidean, onNodeVisited);
     }
 
 
     /// <summary>
-    /// Finds a path to the closest target based on Euclidean distance and target weights. 
-    /// Higher weights make targets more attractive (shorter effective distance).
-    /// The effective distance is calculated as: actual_distance / weight
-    /// 
-    /// For example, with two targets:
-    /// - Target A: distance = 10, weight = 1.0 → effective distance = 10/1.0 = 10
-    /// - Target B: distance = 15, weight = 2.0 → effective distance = 15/2.0 = 7.5
-    /// In this case, Target B would be chosen despite being physically further away.
-    /// 
-    /// IMPORTANT: This method only considers the direct (straight line) distance and weights,
-    /// not the actual path length! For example:
-    /// - Target A might be closer (5 units, weight 1.0)
-    /// - But requires a long path around obstacles (20 steps)
-    /// - While Target B might be further (8 units, weight 1.0)
-    /// - But has a clear path (8 steps)
-    /// 
-    /// For unweighted pathfinding, use the overload that accepts List<Vector2I>.
-    /// If you need the truly shortest path considering weights, use FindShortestPath instead.
+    /// Finds a path to the closest target based on Euclidean distance and target weights.
+    ///
+    /// 1) Calculate the Euclidean distance to every target, no matter if they are blocked or not
+    /// 2) Get the closest target by effective distance (distance/weight)
+    /// 3) Returns the path to this target, following a walkable path (non blocked cells)
+    ///
     /// </summary>
     /// <param name="start">Starting position</param>
     /// <param name="targets">List of target positions and their weights. Higher weights make targets more attractive</param>
     /// <param name="onNodeVisited">Optional callback that is invoked for each node visited during pathfinding</param>
     /// <returns>A path to the target with the lowest effective distance (distance/weight), or an empty list if no path is found</returns>
-    public IReadOnlyList<Vector2I> FindNearestPath(Vector2I start, List<(Vector2I pos, float weight)> targets, Action<Vector2I>? onNodeVisited = null) {
-        if (targets.Count == 0) return Array.Empty<Vector2I>();
-
+    public IReadOnlyList<Vector2I> FindNearestPath(Vector2I start, IEnumerable<(Vector2I pos, float weight)> targets, Action<Vector2I>? onNodeVisited = null) {
         // Encontrar el mejor target basado en distancia y peso
         var bestTarget = targets
             .OrderBy(t => {
                 var distance = Heuristics.Euclidean(start, t.pos);
                 return distance / t.weight; // Menor distancia y mayor peso = mejor
             })
-            .First();
+            .FirstOrDefault();
 
-        return FindPath(start, bestTarget.pos, Heuristics.Euclidean, onNodeVisited);
+        return bestTarget == default
+            ? Array.Empty<Vector2I>()
+            : FindPath(start, bestTarget.pos, Heuristics.Euclidean, onNodeVisited);
     }
 
     /// <summary>
-    /// Finds the shortest actual path to any of the weighted targets
-    /// Unlike FindNearestPath, this method calculates complete paths to all targets
-    /// to find the truly shortest path, not just the closest target by distance
+    /// Finds the shortest path to any of the targets
+    ///
+    /// 1) Calculate the path to every target using A* algorithm
+    /// 2) Returns the shortest one
+    ///
     /// </summary>
     /// <param name="start">Starting position</param>
     /// <param name="targets">List of potential target positions and their weights</param>
     /// <param name="onNodeVisited">Optional callback that is invoked for each node visited during pathfinding</param>
     /// <returns>The shortest possible path to any target, or an empty list if no path is found</returns>
-    public IReadOnlyList<Vector2I> FindShortestPath(Vector2I start, List<Vector2I> targets, Action<Vector2I>? onNodeVisited = null) {
-        if (targets.Count == 0) return Array.Empty<Vector2I>();
-
+    public IReadOnlyList<Vector2I> FindClosestTarget(Vector2I start, IEnumerable<Vector2I> targets, Action<Vector2I>? onNodeVisited = null) {
         IReadOnlyList<Vector2I>? shortestPath = null;
         var shortestPathLength = float.MaxValue;
 
@@ -269,20 +251,11 @@ public class GridGraph {
     }
 
     /// <summary>
-    /// Finds the shortest actual path to any of the weighted targets, considering both path length and target weights.
-    /// Unlike FindNearestPath, this method calculates complete paths to all targets
-    /// to find the truly shortest effective path, not just the closest target by straight-line distance.
-    /// 
-    /// The effective path length is calculated as: actual_path_length / weight
-    /// Higher weights make targets more attractive (shorter effective length).
-    /// 
-    /// For example, with two targets:
-    /// - Target A: path length = 10 steps, weight = 1.0 → effective length = 10/1.0 = 10
-    /// - Target B: path length = 15 steps, weight = 2.0 → effective length = 15/2.0 = 7.5
-    /// In this case, the path to Target B would be chosen as it has the shortest effective length.
-    /// 
-    /// When two paths have the same effective length, the one with the higher weight is chosen.
-    /// For unweighted pathfinding, use the overload that accepts List<Vector2I>.
+    /// Finds the shortest path to any of the weighted targets
+    ///
+    /// 1) Calculate the path to every target using A* algorithm
+    /// 2) Returns the shortest by effective distance (distance/weight)
+    ///
     /// </summary>
     /// <param name="start">Starting position</param>
     /// <param name="targets">List of target positions and their weights. Higher weights make targets more attractive</param>
@@ -319,66 +292,15 @@ public class GridGraph {
     }
 
     /// <summary>
-    /// Returns all connected nodes that can be reached from the starting position,
-    /// expanding in a circular pattern up to a maximum number of nodes.
-    /// 
-    /// The search uses a breadth-first approach, which means it will find all nodes
-    /// at distance 1 before moving to distance 2, and so on, creating a circular-like expansion pattern.
-    /// 
-    /// If maxNodes is reached, the method will return only the nodes found so far.
-    /// A value of -1 for maxNodes means no limit.
-    /// 
+    /// Base method for getting reachable zones with a custom stop condition.
+    /// The search uses a breadth-first approach, expanding in a circular pattern.
     /// Note: The starting position is included in the result if it's walkable.
     /// </summary>
     /// <param name="start">The starting position for the search</param>
-    /// <param name="maxNodes">Maximum number of nodes to return. Use -1 for unlimited</param>
+    /// <param name="stopCondition">A function that takes the current distance and visited nodes, and returns true if the search should stop</param>
     /// <param name="onNodeVisited">Optional callback that is invoked for each node visited during pathfinding</param>
-    /// <returns>A HashSet containing all reachable positions within the limit</returns>
-    public HashSet<Vector2I> GetReachableZone(Vector2I start, int maxNodes = -1, Action<Vector2I>? onNodeVisited = null) {
-        var visited = new HashSet<Vector2I>();
-        if (IsBlocked(start)) return visited;
-
-        var queue = new Queue<Vector2I>();
-        queue.Enqueue(start);
-        visited.Add(start);
-        onNodeVisited?.Invoke(start);
-
-        while (queue.Count > 0 && (maxNodes == -1 || visited.Count < maxNodes)) {
-            var current = queue.Dequeue();
-
-            foreach (var edge in Adjacent(current)) {
-                var neighbor = edge.To;
-                if (visited.Add(neighbor)) {
-                    queue.Enqueue(neighbor);
-                    onNodeVisited?.Invoke(neighbor);
-
-                    // Check limit after adding each node
-                    if (maxNodes != -1 && visited.Count >= maxNodes) {
-                        return visited;
-                    }
-                }
-            }
-        }
-
-        return visited;
-    }
-
-    /// <summary>
-    /// Returns all connected nodes that can be reached from the starting position within a specific distance.
-    /// The distance is measured in steps (grid movements) from the starting position.
-    /// 
-    /// The search uses a breadth-first approach, which means it will find all nodes
-    /// at distance 1 before moving to distance 2, and so on, creating a circular-like expansion pattern.
-    /// 
-    /// Note: The starting position is included in the result if it's walkable.
-    /// </summary>
-    /// <param name="start">The starting position for the search</param>
-    /// <param name="maxDistance">Maximum distance (in steps) from the starting position</param>
-    /// <param name="onNodeVisited">Optional callback that is invoked for each node visited during pathfinding</param>
-    /// <returns>A HashSet containing all reachable positions within the distance limit</returns>
-    public HashSet<Vector2I> GetReachableZoneInRange(Vector2I start, int maxDistance, Action<Vector2I>? onNodeVisited = null) {
-        if (maxDistance < 0) throw new ArgumentException("maxDistance must be non-negative", nameof(maxDistance));
-
+    /// <returns>A HashSet containing all reachable positions until the stop condition is met</returns>
+    private HashSet<Vector2I> GetReachableZone(Vector2I start, Func<int, HashSet<Vector2I>, bool> stopCondition, Action<Vector2I>? onNodeVisited = null) {
         var visited = new HashSet<Vector2I>();
         if (IsBlocked(start)) return visited;
 
@@ -390,18 +312,65 @@ public class GridGraph {
         while (queue.Count > 0) {
             var (current, distance) = queue.Dequeue();
 
-            // If we're at max distance, don't explore neighbors
-            if (distance >= maxDistance) continue;
+            if (stopCondition(distance, visited)) break;
 
             foreach (var edge in Adjacent(current)) {
                 var neighbor = edge.To;
                 if (visited.Add(neighbor)) {
                     queue.Enqueue((neighbor, distance + 1));
                     onNodeVisited?.Invoke(neighbor);
+                    if (stopCondition(distance, visited)) return visited;
                 }
             }
         }
 
         return visited;
+    }
+
+    /// <summary>
+    /// Returns all connected nodes that can be reached from the starting position,
+    /// expanding in a circular pattern up to a maximum number of nodes.
+    ///
+    /// The search uses a breadth-first approach, which means it will find all nodes
+    /// at distance 1 before moving to distance 2, and so on, creating a circular-like expansion pattern.
+    ///
+    /// If maxNodes is reached, the method will return only the nodes found so far.
+    /// A value of -1 for maxNodes means no limit.
+    ///
+    /// Note: The starting position is included in the result if it's walkable.
+    /// </summary>
+    /// <param name="start">The starting position for the search</param>
+    /// <param name="maxNodes">Maximum number of nodes to return. Use -1 for unlimited</param>
+    /// <param name="onNodeVisited">Optional callback that is invoked for each node visited during pathfinding</param>
+    /// <returns>A HashSet containing all reachable positions within the limit</returns>
+    public HashSet<Vector2I> GetReachableZone(Vector2I start, int maxNodes = -1, Action<Vector2I>? onNodeVisited = null) {
+        return GetReachableZone(
+            start,
+            (_, visited) => maxNodes != -1 && visited.Count >= maxNodes,
+            onNodeVisited
+        );
+    }
+
+    /// <summary>
+    /// Returns all connected nodes that can be reached from the starting position within a specific distance.
+    /// The distance is measured in steps (grid movements) from the starting position.
+    ///
+    /// The search uses a breadth-first approach, which means it will find all nodes
+    /// at distance 1 before moving to distance 2, and so on, creating a circular-like expansion pattern.
+    ///
+    /// Note: The starting position is included in the result if it's walkable.
+    /// </summary>
+    /// <param name="start">The starting position for the search</param>
+    /// <param name="maxDistance">Maximum distance (in steps) from the starting position</param>
+    /// <param name="onNodeVisited">Optional callback that is invoked for each node visited during pathfinding</param>
+    /// <returns>A HashSet containing all reachable positions within the distance limit</returns>
+    public HashSet<Vector2I> GetReachableZoneInRange(Vector2I start, int maxDistance, Action<Vector2I>? onNodeVisited = null) {
+        if (maxDistance < 0) throw new ArgumentException("maxDistance must be non-negative", nameof(maxDistance));
+
+        return GetReachableZone(
+            start,
+            (distance, _) => distance >= maxDistance,
+            onNodeVisited
+        );
     }
 }
