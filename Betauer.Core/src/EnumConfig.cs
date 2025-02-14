@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Veronenger.Game.Dungeon.World;
+namespace Betauer.Core;
 
 public abstract record EnumConfig<TEnum, TConfig>(TEnum Type) where TEnum : struct, Enum
     where TConfig : EnumConfig<TEnum, TConfig> {

@@ -1,4 +1,3 @@
-using System;
 using Godot;
 
 namespace Veronenger.Game.Dungeon.World;

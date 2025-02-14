@@ -15,10 +15,10 @@ public class Entity {
     public int CurrentEnergy { get; protected set; } = 0;
     public List<MultiplierEffect>? SpeedEffects { get; private set; } = null;
 
-    public Func<Task<EntityAction>> OnDecideAction { get; set; }
+    public Func<Task<ActionCommand>> OnDecideAction { get; set; }
     public Func<bool> OnCanAct { get; set; } = () => true;
 
-    public event Action<EntityAction>? OnExecute;
+    public event Action<ActionCommand>? OnExecute;
     public event Action? OnTickStart;
     public event Action? OnTickEnd;
     public event Action? OnWorldRemoved;
@@ -35,7 +35,7 @@ public class Entity {
     public Entity(string name, EntityStats stats) {
         Name = name;
         BaseStats = stats;
-        OnDecideAction = () => Task.FromResult(new EntityAction(ActionType.Wait, this));
+        OnDecideAction = () => Task.FromResult(new ActionCommand(ActionType.Wait, this));
     }
 
     public Entity Configure(Action<Entity> config) {
@@ -80,14 +80,14 @@ public class Entity {
 
     public bool CanAct() => CurrentEnergy >= 0 && OnCanAct.Invoke();
 
-    public Task<EntityAction> DecideAction() {
+    public Task<ActionCommand> DecideAction() {
         return OnDecideAction();
     }
 
-    public void Execute(EntityAction action) {
-        CurrentEnergy -= action.EnergyCost;
+    public void Execute(ActionCommand actionCommand) {
+        CurrentEnergy -= actionCommand.EnergyCost;
         // Console.WriteLine($"{Name} -{action.EnergyCost} = {CurrentEnergy} (action: {action.Config.Type})");
-        OnExecute?.Invoke(action);
+        OnExecute?.Invoke(actionCommand);
     }
 
     public void TickEnd() {

@@ -1,3 +1,4 @@
+using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Betauer.Application.Lifecycle.Attributes;
@@ -10,6 +11,7 @@ using Betauer.DI.Attributes;
 using Betauer.Input;
 using Betauer.Input.Joypad;
 using Godot;
+using Pcg;
 using Veronenger.Game.Platform.Character.Npc;
 using Veronenger.Game.Platform.Character.Player;
 using Veronenger.Game.Platform.HUD;
@@ -49,6 +51,8 @@ public interface IPlatformSaveObject : ISaveObject {
 
 [Configuration]
 public class PlatformGameConfig {
+    [Singleton] public Random Random => new PcgRandom();
+
 	[Singleton] public JsonGameLoader<PlatformSaveGameMetadata> PlatformGameObjectLoader() {
 		var loader = new JsonGameLoader<PlatformSaveGameMetadata>();
 		loader.WithJsonSerializerOptions(options => {

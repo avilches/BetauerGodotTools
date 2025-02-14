@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 namespace Veronenger.Game.Dungeon.World;
 
 public class EntityBlocking {
-    private TaskCompletionSource<EntityAction>? _promise;
-    public Queue<EntityAction> Queue { get; } = [];
+    private TaskCompletionSource<ActionCommand>? _promise;
+    public Queue<ActionCommand> Queue { get; } = [];
 
     public Entity Entity { get; }
 
@@ -17,7 +17,7 @@ public class EntityBlocking {
 
     public bool IsWaiting => _promise != null;
 
-    public void SetResult(EntityAction action) {
+    public void SetResult(ActionCommand actionCommand) {
         var promise = _promise;
         if (promise == null) {
             throw new Exception("No action to resolve");
@@ -26,19 +26,19 @@ public class EntityBlocking {
             throw new Exception("Player action already set");
         }
         _promise = null;
-        promise.TrySetResult(action);
+        promise.TrySetResult(actionCommand);
     }
 
-    public void ScheduleNextAction(EntityAction nextAction) {
-        Queue.Enqueue(nextAction);
+    public void ScheduleNextAction(ActionCommand nextActionCommand) {
+        Queue.Enqueue(nextActionCommand);
     }
 
-    public Task<EntityAction> DecideAction() {
+    public Task<ActionCommand> DecideAction() {
         if (Queue.Count > 0) {
             var action = Queue.Dequeue();
             return Task.FromResult(action);
         }
-        _promise ??= new TaskCompletionSource<EntityAction>();
+        _promise ??= new TaskCompletionSource<ActionCommand>();
         return _promise.Task;
     }
 }

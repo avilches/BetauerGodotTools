@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using Betauer.Core.DataMath;
@@ -114,14 +113,24 @@ public class TurnWorld {
         CurrentTick++;
         OnTick?.Invoke(CurrentTick);
     }
+
+    public TurnSystem CreateTurnSystem() {
+        return new TurnSystem(this);
+    }
 }
 
-public class TurnSystem(TurnWorld world) {
+public class TurnSystem {
+    private readonly TurnWorld _world;
+
+    internal TurnSystem(TurnWorld world) {
+        _world = world;
+    }
+
     public async Task ProcessTickAsync() {
-        world.NextTick();
+        _world.NextTick();
 
         // ToArray() to avoid concurrent modification
-        foreach (var entity in world.Entities.ToArray()) {
+        foreach (var entity in _world.Entities.ToArray()) {
             entity.TickStart();
             if (entity.CanAct()) {
                 var action = await entity.DecideAction();
@@ -130,12 +139,21 @@ public class TurnSystem(TurnWorld world) {
             entity.TickEnd();
         }
     }
+
+    public TurnSystemProcess CreateTurnSystemProcess() {
+        return new TurnSystemProcess(this);
+    }
 }
 
-public class TurnSystemProcess(TurnSystem turnSystem) {
+public class TurnSystemProcess {
     public bool Busy { get; private set; } = false;
 
     private Exception? _exception = null;
+    private readonly TurnSystem _turnSystem;
+
+    internal TurnSystemProcess(TurnSystem turnSystem) {
+        _turnSystem = turnSystem;
+    }
 
     public void _Process() {
         if (_exception != null) {
@@ -145,7 +163,7 @@ public class TurnSystemProcess(TurnSystem turnSystem) {
         }
         if (Busy) return;
         Busy = true;
-        turnSystem.ProcessTickAsync().ContinueWith(t => {
+        _turnSystem.ProcessTickAsync().ContinueWith(t => {
             if (t.IsFaulted) {
                 _exception = t.Exception?.GetBaseException() ?? t.Exception;
             }

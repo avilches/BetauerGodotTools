@@ -9,9 +9,9 @@ public class EntityBuilder {
     private readonly EntityStats _stats;
     private readonly List<MultiplierEffect> _initialEffects = new();
 
-    private Func<Task<EntityAction>>? _onDecideAction;
+    private Func<Task<ActionCommand>>? _onDecideAction;
     private Func<bool>? _onCanAct;
-    private Action<EntityAction>? _onExecute;
+    private Action<ActionCommand>? _onExecute;
     private Action? _onTickStart;
     private Action? _onTickEnd;
 
@@ -30,23 +30,23 @@ public class EntityBuilder {
         return this;
     }
 
-    public EntityBuilder DecideAction(Func<Task<EntityAction>> action) {
+    public EntityBuilder DecideAction(Func<Task<ActionCommand>> action) {
         _onDecideAction = action;
         return this;
     }
 
-    public EntityBuilder DecideAction(Func<EntityAction> action) {
+    public EntityBuilder DecideAction(Func<ActionCommand> action) {
         _onDecideAction = () => Task.FromResult(action());
         return this;
     }
 
-    public EntityBuilder DecideAction(EntityAction action) {
-        _onDecideAction = () => Task.FromResult(action);
+    public EntityBuilder DecideAction(ActionCommand actionCommand) {
+        _onDecideAction = () => Task.FromResult(actionCommand);
         return this;
     }
 
     public EntityBuilder DecideAction(ActionType type) {
-        _onDecideAction = () => Task.FromResult(new EntityAction(type, null));
+        _onDecideAction = () => Task.FromResult(new ActionCommand(type, null));
         return this;
     }
 
@@ -55,7 +55,7 @@ public class EntityBuilder {
         return this;
     }
 
-    public EntityBuilder Execute(Action<EntityAction> execute) {
+    public EntityBuilder Execute(Action<ActionCommand> execute) {
         _onExecute = execute;
         return this;
     }
@@ -79,7 +79,7 @@ public class EntityBuilder {
         }
 
         // Set all handlers with null-safe defaults
-        entity.OnDecideAction = _onDecideAction ?? (() => Task.FromResult(new EntityAction(ActionType.Wait, entity)));
+        entity.OnDecideAction = _onDecideAction ?? (() => Task.FromResult(new ActionCommand(ActionType.Wait, entity)));
         entity.OnCanAct = _onCanAct ?? (() => true);
 
         if (_onExecute != null) entity.OnExecute += _onExecute;

@@ -20,7 +20,8 @@ public partial class DungeonGameView : IGameView {
 	[Inject] private SceneTree SceneTree { get; set; }
 	[Inject] private GameObjectRepository GameObjectRepository { get; set; }
 	// [Inject] private JsonGameLoader<RtsSaveGameMetadata> RtsGameObjectLoader { get; set; }
-	
+	[Inject] public DungeonPlayerActions DungeonPlayerActions { get; set; }
+
 	// [Inject] private MainBus MainBus { get; set; }
 	// [Inject] private ILazy<ProgressScreen> ProgressScreenLazy { get; set; }
 	[Inject] private GameLoader GameLoader { get; set; }
@@ -53,6 +54,8 @@ public partial class DungeonGameView : IGameView {
 		DungeonMap.Configure(_cameraController);
 
 		SceneTree.Root.AddChild(DungeonMap); // last step (it calls to all the _Ready method/events)
+		DungeonPlayerActions.Start();
+		DungeonPlayerActions.EnableAll();
 	}
 
 	public async Task End(bool unload) {
@@ -61,6 +64,9 @@ public partial class DungeonGameView : IGameView {
 			Container.ResolveAll<INodePool>().ForEach(p => p.FreeAll());
 			GameLoader.UnloadResources(DungeonGameResources.GameLoaderTag);
 		}
+		DungeonPlayerActions.DisableAll();
+		DungeonPlayerActions.Stop();
+
 		DungeonMap.Free();
 		// DebugOverlayManager.Overlay("Pool").Free();
 		GC.GetTotalMemory(true);

@@ -50,7 +50,7 @@ public class TurnSystemTests {
 
     [Test]
     public async Task ProcessTicks_CorrectEnergy() {
-        _player.ScheduleNextAction(new EntityAction(ActionType.Walk, _player.Entity));
+        _player.ScheduleNextAction(new ActionCommand(ActionType.Walk, _player.Entity));
         await _turnSystem.ProcessTickAsync();
         // 1 tick -> - (1*ActionCost) +(1*BaseEnergy)
         Assert.That(_player.Entity.CurrentEnergy, Is.EqualTo(-1000 + 100));
@@ -64,7 +64,7 @@ public class TurnSystemTests {
         // Process enough ticks to let entities act
         // We'll process 20 ticks which should be 2 full turns
         for (var i = 0; i < ticks; i++) {
-            _player.ScheduleNextAction(new EntityAction(ActionType.Run, _player.Entity));
+            _player.ScheduleNextAction(new ActionCommand(ActionType.Run, _player.Entity));
             await _turnSystem.ProcessTickAsync();
         }
 
@@ -78,15 +78,15 @@ public class TurnSystemTests {
         var ticks = 100;
         // Process enough ticks to let entities act
         // We'll process 100 ticks which should be 10 full turns
-        var playerHistory = new List<EntityAction>();
-        var fastWalkerHistory = new List<EntityAction>();
-        var slowAttackerHistory = new List<EntityAction>();
+        var playerHistory = new List<ActionCommand>();
+        var fastWalkerHistory = new List<ActionCommand>();
+        var slowAttackerHistory = new List<ActionCommand>();
 
         _player.Entity.OnExecute += (action) => playerHistory.Add(action);
         _fastWalker.OnExecute += (action) => fastWalkerHistory.Add(action);
         _slowAttacker.OnExecute += (action) => slowAttackerHistory.Add(action);
         for (var i = 0; i < ticks; i++) {
-            _player.ScheduleNextAction(new EntityAction(ActionType.Walk, _player.Entity));
+            _player.ScheduleNextAction(new ActionCommand(ActionType.Walk, _player.Entity));
             await _turnSystem.ProcessTickAsync();
         }
 
@@ -152,7 +152,7 @@ public class EntityEventsTests {
             .DecideAction(() => {
                 actualOrder.Add("DecideAction");
                 _decideActionCount++;
-                return new EntityAction(ActionType.Walk, _entity);
+                return new ActionCommand(ActionType.Walk, _entity);
             })
             .CanAct(() => {
                 actualOrder.Add("CanAct");
@@ -200,7 +200,7 @@ public class EntityEventsTests {
             .DecideAction(() => {
                 actualOrder.Add("DecideAction");
                 _decideActionCount++;
-                return new EntityAction(ActionType.Walk, _entity);
+                return new ActionCommand(ActionType.Walk, _entity);
             })
             .CanAct(() => {
                 actualOrder.Add("CanAct");
@@ -246,7 +246,7 @@ public class EntityEventsTests {
             .DecideAction(() => {
                 actualOrder.Add("DecideAction");
                 _decideActionCount++;
-                return new EntityAction(ActionType.Walk, _entity);
+                return new ActionCommand(ActionType.Walk, _entity);
             })
             .CanAct(() => {
                 actualOrder.Add("CanAct");
@@ -312,7 +312,7 @@ public class EntityEventsTests {
         var asyncEntity = EntityBuilder.Create("AsyncEntity", new EntityStats { BaseSpeed = 100 })
             .BuildAsync();
 
-        var history = new List<EntityAction>();
+        var history = new List<ActionCommand>();
         asyncEntity.Entity.OnExecute += (action) => {
             // Execute action immediately
             history.Add(action);
@@ -321,9 +321,9 @@ public class EntityEventsTests {
         _world.AddEntity(asyncEntity.Entity);
 
         // Schedule three actions
-        asyncEntity.ScheduleNextAction(new EntityAction(ActionType.Walk, asyncEntity.Entity));
-        asyncEntity.ScheduleNextAction(new EntityAction(ActionType.Attack, asyncEntity.Entity));
-        asyncEntity.ScheduleNextAction(new EntityAction(ActionType.Run, asyncEntity.Entity));
+        asyncEntity.ScheduleNextAction(new ActionCommand(ActionType.Walk, asyncEntity.Entity));
+        asyncEntity.ScheduleNextAction(new ActionCommand(ActionType.Attack, asyncEntity.Entity));
+        asyncEntity.ScheduleNextAction(new ActionCommand(ActionType.Run, asyncEntity.Entity));
 
         // Process three ticks
         while (asyncEntity.Queue.Count > 0) {

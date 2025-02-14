@@ -5,6 +5,7 @@ using Betauer.Core.Nodes.Events;
 using Betauer.DI;
 using Betauer.DI.Attributes;
 using Betauer.NodePath;
+using Betauer.Nodes;
 
 namespace Veronenger.Game.Dungeon;
 
@@ -21,17 +22,35 @@ public partial class DungeonMap : Node2D, IInjectable {
     public void PostInject() {
     }
 
+    public Vector2I PlayerPos = Vector2I.Zero;
+
+    public enum TileSetSourceId {
+        SmAscii16x16 = 0
+    }
+
     public void Configure(CameraController cameraController) {
         CameraController = cameraController;
-        Ready += () => { CameraController.Follow(Player); };
+        Ready += () => {
+            // TileMapLayer.SetCell(new Vector2I(0, 0), (int)TileSetSourceId.SmAscii16x16, new Vector2I(3, 2));
+            Player.Position = TileMapLayer.MapToLocal(PlayerPos);
+            CameraController.Follow(Player);
+        };
 
         OnProcess += (d) => {
-            if (DungeonPlayerActions.Up.IsPressed) {
-                Player.Position += new Vector2(0, -1);
+            if (DungeonPlayerActions.Right.IsJustPressed) {
+                PlayerPos += Vector2I.Right;
+                Player.Position = TileMapLayer.MapToLocal(PlayerPos);
+            } else if (DungeonPlayerActions.Left.IsJustPressed) {
+                PlayerPos += Vector2I.Left;
+                Player.Position = TileMapLayer.MapToLocal(PlayerPos);
+            } else if (DungeonPlayerActions.Up.IsJustPressed) {
+                PlayerPos += Vector2I.Up;
+                Player.Position = TileMapLayer.MapToLocal(PlayerPos);
+            } else if (DungeonPlayerActions.Down.IsJustPressed) {
+                PlayerPos += Vector2I.Down;
+                Player.Position = TileMapLayer.MapToLocal(PlayerPos);
             }
         };
 
-        DungeonPlayerActions.Start();
-        DungeonPlayerActions.EnableAll();
     }
 }
