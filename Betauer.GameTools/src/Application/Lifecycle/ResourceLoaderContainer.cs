@@ -16,7 +16,7 @@ public class ResourceLoaderContainer {
     public List<ResourceLoad> ResourceFactories { get; } = [];
 
     public Func<Task>? Awaiter { get; private set; }
-    public event Action<ResourceProgress>? OnLoadResourceProgress;
+    public event Action<LoadProgress>? OnLoadResourceProgress;
     // public event Action? OnLoadFinished;
 
     // Use ResourceFactory.SetResourceLoaderContainer() instead
@@ -30,34 +30,41 @@ public class ResourceLoaderContainer {
         ResourceFactories.Remove(resourceLoad);
     }
                   
-    public Task<TimeSpan> LoadResources(Action<ResourceProgress>? progressAction = null) {
-        return LoadResources([ResourceLoad.DefaultTag], progressAction);
+    public Task<TimeSpan> LoadResources(bool multiThread, Action<LoadProgress>? progressAction = null) {
+        return LoadResources([ResourceLoad.DefaultTag], multiThread, progressAction);
     }
 
-    public Task<TimeSpan> LoadResources(string tag, Action<ResourceProgress>? progressAction = null) {
-        return LoadResources([tag], progressAction);
+    public Task<TimeSpan> LoadResources(string tag, bool multiThread, Action<LoadProgress>? progressAction = null) {
+        return LoadResources([tag], multiThread, progressAction);
     }
 
-    public async Task<TimeSpan> LoadResources(string[] tags, Action<ResourceProgress>? progressAction = null) {
+    public async Task<TimeSpan> LoadResources(string[] tags,  bool multiThread, Action<LoadProgress>? progressAction = null) {
         var x = Stopwatch.StartNew();
         Func<Task> awaiter = Awaiter ?? (async () => {
             await ((SceneTree)Engine.GetMainLoop()).AwaitProcessFrame();
         });
         var resources = GetResourceFactories(tags)
             .Where(sf => !sf.IsLoaded())
-            .Select(sf => new ResourceLoadingState(sf.Path, sf.Load))
+            .Select(sf => new ResourceLoadProgress(sf.Path, sf.Load))
             .ToList();
         
         Logger.Debug("Loading {0}", tags.Join(", "));
-        await LoadTools.Load(resources, awaiter, (rp) => {
-            Logger.Debug("{0:0.00}% | {1} ({2:0.00}%)", rp.TotalPercent * 100, rp.Resource, rp.ResourcePercent * 100);
-            OnLoadResourceProgress?.Invoke(rp);
-            progressAction?.Invoke(rp);
-        });
-        // OnLoadFinished?.Invoke();
+
+        if (multiThread) {
+            await LoadTools.LoadThreaded(resources, awaiter, OnLoad);
+        } else {
+            await LoadTools.LoadMonoThread(resources, awaiter, OnLoad);
+        }
+
         var timeSpan = x.Elapsed;
         Logger.Debug("Total load time: {0}s {1:D3}ms", timeSpan.Seconds, timeSpan.Milliseconds);
         return x.Elapsed;
+
+        void OnLoad(LoadProgress rp) {
+            Logger.Debug("{0:0.00}% | {1} ({2:0.00}%)", rp.TotalPercent * 100, rp.Resource, rp.ResourcePercent * 100);
+            OnLoadResourceProgress?.Invoke(rp);
+            progressAction?.Invoke(rp);
+        }
     }
 
     public void UnloadResources() {

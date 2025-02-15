@@ -28,8 +28,9 @@ public class ResourceLoaderTests {
     public class MainResources2 {
     }
 
-    [Test]
-    public async Task BasicTests() {
+    [TestCase(true)]
+    [TestCase(false)]
+    public async Task BasicTests(bool multiThread) {
         var c = new Container();
         c.Build(di => {
             di.Scan<MainResources>();
@@ -50,7 +51,7 @@ public class ResourceLoaderTests {
 
         // load default resources only
         var loader = c.Resolve<ResourceLoaderContainer>("GameLoader");
-        await loader.LoadResources();
+        await loader.LoadResources(multiThread);
 
         Assert.That(resource.Resource, Is.Not.Null);
         Assert.That(transient.Create(), Is.Not.EqualTo(transient.Create()));
@@ -61,7 +62,7 @@ public class ResourceLoaderTests {
         Assert.That(single.HasValue(), Is.False);
         Assert.That(singleLazy.HasValue(), Is.False);
 
-        await loader.LoadResources("main2");
+        await loader.LoadResources("main2", multiThread);
         
         Assert.That(single.HasValue(), Is.True);
         Assert.That(singleLazy.HasValue(), Is.False);
