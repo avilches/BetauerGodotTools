@@ -10,11 +10,20 @@ namespace Veronenger.Game;
 public class GameLoader : ResourceLoaderContainer {
     [Inject] private ILazy<BottomBar> BottomBarLazy { get; set; }
     [Inject] private ILazy<ProgressScreen> ProgressScreenLazy { get; set; }
+
+    public bool MultiThreaded { get; set; } = true;
 	
     public async Task Load(string tag, Action<LoadProgress>? progressAction = null) {
         LoadStart();
-        await LoadResources(tag, progressAction);
+        await LoadResources(tag, MultiThreaded, progressAction);
         LoadEnd();
+    }
+
+    public async Task LoadMainResources(Action<LoadProgress>? progressAction = null) {
+        // Main resources don't use LoadStart/LoadEnd because BottomBarLazy is not loaded yet!
+        await LoadResources(BottomBarResources.GameLoaderTag, MultiThreaded);
+        await Load(MainResources.GameLoaderTag, progressAction);
+
     }
 
     private void LoadStart() {

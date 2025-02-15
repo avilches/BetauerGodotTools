@@ -21,19 +21,19 @@ public class DungeonMainResources {
 
 [Configuration]
 [Loader("GameLoader", Tag = GameLoaderTag)]
-[Scene.Transient<DungeonMap>(Name="DungeonMapFactory", Path="res://Game/Dungeon/DungeonMap.tscn")]
+[Scene.Transient<DungeonMap>(Name = "DungeonMapFactory", Path = "res://Game/Dungeon/DungeonMap.tscn")]
 [Resource<TextResource>("Templates", "res://Game/Dungeon/MazeTemplateDemos.txt")]
 public class DungeonGameResources {
     public const string GameLoaderTag = "dungeon";
 }
-
 
 public interface IDungeonSaveObject : ISaveObject {
 }
 
 [Configuration]
 public class DungeonGameConfig {
-    [Singleton] public JsonGameLoader<DungeonSaveGameMetadata> DungeonGameObjectLoader() {
+    [Singleton]
+    public JsonGameLoader<DungeonSaveGameMetadata> DungeonGameObjectLoader() {
         var loader = new JsonGameLoader<DungeonSaveGameMetadata>();
         loader.WithJsonSerializerOptions(options => {
             options.AllowTrailingCommas = true;
@@ -112,4 +112,3 @@ public class DungeonPlayerActions : SingleJoypadActionsContainer {
         .Buttons(JoyButton.B)
         .Build();
 }
-

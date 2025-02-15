@@ -24,6 +24,7 @@ public partial class BottomBar : CanvasLayer {
 		_actionHintList.Add(_actionHint2);
 		_actionHintList.Add(_actionHint3);
 		_actionHintList.Add(_actionHint4);
+		HideAll();
 	}
 
 	public BottomBar HideAll() {
