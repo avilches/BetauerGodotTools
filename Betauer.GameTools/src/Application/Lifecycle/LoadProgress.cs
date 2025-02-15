@@ -2,7 +2,7 @@ using System;
 
 namespace Betauer.Application.Lifecycle;
 
-public class LoadProgress(Action<LoadProgress>? action) {
+public class LoadProgress(Action<LoadProgress>? onUpdate) {
     public float TotalPercent { get; private set; }
     public float ResourcePercent { get; private set; }
     public string? Resource { get; private set; }
@@ -11,6 +11,6 @@ public class LoadProgress(Action<LoadProgress>? action) {
         TotalPercent = totalPercent;
         ResourcePercent = resourcePercent;
         Resource = resource;
-        action?.Invoke(this);
+        onUpdate?.Invoke(this);
     }
 }

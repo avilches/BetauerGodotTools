@@ -34,7 +34,9 @@ public abstract class ResourceLoad {
         OnLoad?.Invoke();
     }
 
-    public bool IsLoaded() => Resource != null && Resource.IsInstanceValid();
+    public bool IsLoaded() {
+        return Resource != null && Resource.IsInstanceValid();
+    }
 
     public void Unload() {
         Resource?.Dispose();

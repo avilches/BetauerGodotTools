@@ -9,80 +9,98 @@ using FileAccess = Godot.FileAccess;
 namespace Betauer.Application.Lifecycle;
 
 public static class LoadTools {
-    public static async Task LoadMonoThread(List<ResourceLoadProgress> resources, Func<Task> awaiter, Action<LoadProgress>? progressAction = null) {
-        var globalProgress = new LoadProgress(progressAction);
-        globalProgress.Update(0f, 0f, null);
-        for (var i = 0; i < resources.Count; i++) {
-            await awaiter();
-            var resourceProgress = resources[i];
-            var totalProgress = (float)(i+1) / resources.Count;
-
-            if (ResourceLoader.Exists(resourceProgress.Path)) {
-                var resource = ResourceLoader.Load(resourceProgress.Path);
-                resourceProgress.Load(resource);
-                globalProgress.Update(totalProgress, 1f, resourceProgress.Path);
-
-            } else if (FileAccess.FileExists(resourceProgress.Path)) {
-                var bytes = await LoadResourceAsync(resourceProgress.Path, async (progress) => {
-                    resourceProgress.Progress = progress;
-                    globalProgress.Update(totalProgress, progress, resourceProgress.Path);
-                    await awaiter();
-                });
-                resourceProgress.Load(bytes);
-                globalProgress.Update(totalProgress, 1f, resourceProgress.Path);
-
-            } else {
-                throw new ResourceLoaderException($"Resource doesn't exist {resourceProgress.Path}");
-            }
-        }
+    public static async Task<Dictionary<string, Resource>> LoadMonoThread(
+        List<string> resourcesPaths, Func<Task> awaiter, Action<LoadProgress>? progressAction = null) {
+        var resources = resourcesPaths.Select(path => new ResourceLoadProgress(path)).ToList();
+        await LoadMonoThread(resources, awaiter, progressAction);
+        return resources.Select(r => r.Resource!).ToDictionary(r => r.ResourcePath);
     }
 
-    public static async Task<Dictionary<string, Resource>> LoadThreaded(List<string> resourcesPaths,
-        Func<Task> awaiter, Action<LoadProgress>? progressAction = null) {
+    public static async Task<Dictionary<string, Resource>> LoadThreaded(
+        List<string> resourcesPaths, Func<Task> awaiter, Action<LoadProgress>? progressAction = null) {
         var resources = resourcesPaths.Select(path => new ResourceLoadProgress(path)).ToList();
         await LoadThreaded(resources, awaiter, progressAction);
         return resources.Select(r => r.Resource!).ToDictionary(r => r.ResourcePath);
     }
 
+    public static async Task LoadMonoThread(List<ResourceLoadProgress> resources, Func<Task> awaiter, Action<LoadProgress>? progressAction = null) {
+        ArgumentNullException.ThrowIfNull(awaiter);
+
+        // Start the progress at 0%
+        var progress = new LoadProgress(progressAction);
+        progress.Update(0f, 0f, null);
+
+        for (var i = 0; i < resources.Count; i++) {
+
+            await awaiter();
+
+            var resourceLoad = resources[i];
+            var totalProgress = (float)(i + 1) / resources.Count;
+
+            if (ResourceLoader.Exists(resourceLoad.Path)) {
+                var resource = ResourceLoader.Load(resourceLoad.Path);
+                resourceLoad.Load(resource);
+                progress.Update(totalProgress, 1f, resourceLoad.Path);
+            } else if (FileAccess.FileExists(resourceLoad.Path)) {
+                var bytes = await LoadResourceAsync(resourceLoad.Path, percent => {
+                    resourceLoad.Progress = percent;
+                    progress.Update(totalProgress, percent, resourceLoad.Path);
+
+                    return awaiter();
+                });
+                resourceLoad.Load(bytes);
+                progress.Update(totalProgress, 1f, resourceLoad.Path);
+            } else {
+                throw new ResourceLoaderException($"Resource doesn't exist {resourceLoad.Path}");
+            }
+        }
+    }
+
     public static async Task LoadThreaded(List<ResourceLoadProgress> resources, Func<Task> awaiter, Action<LoadProgress>? progressAction = null) {
         ArgumentNullException.ThrowIfNull(awaiter);
-        var globalProgress = new LoadProgress(progressAction);
-        globalProgress.Update(0f, 0f, null);
+
+        // Start the progress at 0%
+        var progress = new LoadProgress(progressAction);
+        progress.Update(0f, 0f, null);
+
+        // Request all resources or validate native resources
         resources.ForEach(resourceProgress => {
             if (ResourceLoader.Exists(resourceProgress.Path)) {
                 var error = ResourceLoader.LoadThreadedRequest(resourceProgress.Path);
                 if (error != Error.Ok) throw new ResourceLoaderException($"Error requesting load {resourceProgress.Path}: {error}");
-
             } else if (!FileAccess.FileExists(resourceProgress.Path)) {
                 throw new ResourceLoaderException($"Resource doesn't exist {resourceProgress.Path}");
             }
         });
 
         while (true) {
+
+            await awaiter();
+
             foreach (var resourceProgress in resources.Where(r => r.Resource == null)) {
                 if (!ResourceLoader.Exists(resourceProgress.Path)) {
-                    var bytes = await LoadResourceAsync(resourceProgress.Path, async (progress) => {
-                        resourceProgress.Progress = progress;
-                        globalProgress.Update(TotalProgress(), progress, resourceProgress.Path);
-                        await awaiter();
+                    var bytes = await LoadResourceAsync(resourceProgress.Path, percent => {
+                        resourceProgress.Progress = percent;
+                        progress.Update(TotalProgress(), percent, resourceProgress.Path);
+
+                        return awaiter();
                     });
                     resourceProgress.Load(bytes);
-                    globalProgress.Update(TotalProgress(), 1f, resourceProgress.Path);
-
+                    progress.Update(TotalProgress(), 1f, resourceProgress.Path);
                 } else {
-                    var (status, progress) = ThreadLoadStatus(resourceProgress);
+                    var (status, percent) = ThreadLoadStatus(resourceProgress);
                     if (status == ResourceLoader.ThreadLoadStatus.Loaded) {
                         resourceProgress.Load(ResourceLoader.LoadThreadedGet(resourceProgress.Path));
-                        globalProgress.Update(TotalProgress(), 1f, resourceProgress.Path);
+                        progress.Update(TotalProgress(), 1f, resourceProgress.Path);
                     } else if (status == ResourceLoader.ThreadLoadStatus.InProgress) {
-                        resourceProgress.Progress = progress;
-                        globalProgress.Update(TotalProgress(), progress, resourceProgress.Path);
+                        resourceProgress.Progress = percent;
+                        progress.Update(TotalProgress(), percent, resourceProgress.Path);
                     } else {
                         throw new ResourceLoaderException($"Error getting load status {resourceProgress.Path}: {status}");
                     }
                 }
             }
-            globalProgress.Update(TotalProgress(), 0, null);
+            progress.Update(TotalProgress(), 0, null);
             if (resources.All(r => r.Resource != null)) { // pending
                 // No more pending
                 break;
@@ -104,47 +122,9 @@ public static class LoadTools {
     };
 
     public static async Task<Resource> LoadResourceAsync(string path, Func<float, Task>? progressCallback = null, int bufferSize = 4096, int progressIntervalMs = 250) {
-        var bytes = await ReadResourceAsync(path, progressCallback, bufferSize, progressIntervalMs);
         if (!TextFileExtensions.Contains(Path.GetExtension(path).ToLowerInvariant())) {
-            return new BinaryResource(bytes);
+            return await BinaryResource.ReadBinaryResourceAsync(path, progressCallback, bufferSize, progressIntervalMs);
         }
-        var text = System.Text.Encoding.UTF8.GetString(bytes);
-        return new TextResource(text);
-    }
-
-    public static async Task<byte[]> ReadResourceAsync(string path, Func<float, Task>? progressCallback = null, int bufferSize = 4096, int progressIntervalMs = 250) {
-        // Check if the resource exists
-        if (!FileAccess.FileExists(path)) {
-            throw new FileNotFoundException($"Resource not found: {path}");
-        }
-
-        using var file = FileAccess.Open(path, FileAccess.ModeFlags.Read);
-        var fileLength = file.GetLength();
-        var result = new byte[fileLength];
-        ulong bytesRead = 0L;
-        var lastProgressUpdate = DateTime.UtcNow;
-
-        while (bytesRead < fileLength) {
-            // Calculate how many bytes to read in this iteration
-            var remainingBytes = fileLength - bytesRead;
-            var bytesToRead = (int)Math.Min((ulong)bufferSize, remainingBytes);
-
-            // Read the chunk
-            var chunk = file.GetBuffer(bytesToRead);
-
-            // Copy to the result array
-            Array.Copy(chunk, 0, result, (long)bytesRead, chunk.Length);
-            bytesRead += (ulong)chunk.Length;
-
-            // Check if we should notify progress
-            var now = DateTime.UtcNow;
-            if (progressCallback != null && (now - lastProgressUpdate).TotalMilliseconds >= progressIntervalMs) {
-                var progress = (float)bytesRead / fileLength;
-                await progressCallback(progress);
-                lastProgressUpdate = now;
-            }
-        }
-
-        return result;
+        return await TextResource.ReadTextResourceAsync(path, progressCallback, bufferSize, progressIntervalMs);
     }
 }
