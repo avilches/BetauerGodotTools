@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Betauer.Application.Lifecycle;
 using Betauer.Application.Lifecycle.Attributes;
 using Betauer.Application.Persistent;
 using Betauer.Application.Persistent.Json;
@@ -21,6 +22,7 @@ public class DungeonMainResources {
 [Configuration]
 [Loader("GameLoader", Tag = GameLoaderTag)]
 [Scene.Transient<DungeonMap>(Name="DungeonMapFactory", Path="res://Game/Dungeon/DungeonMap.tscn")]
+[Resource<TextResource>("Templates", "res://Game/Dungeon/MazeTemplateDemos.txt")]
 public class DungeonGameResources {
     public const string GameLoaderTag = "dungeon";
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Betauer.Application.Lifecycle;
 using Betauer.Application.Monitor;
 using Betauer.Application.Persistent;
 using Betauer.Application.Persistent.Json;
@@ -8,6 +9,7 @@ using Betauer.Core.Pool;
 using Betauer.DI.Attributes;
 using Betauer.DI.Factory;
 using Godot;
+using Veronenger.Game.Dungeon.World;
 using Veronenger.Game.RTS;
 using Veronenger.Game.UI;
 
@@ -30,7 +32,11 @@ public partial class DungeonGameView : IGameView {
 	[Inject] private ITransient<DungeonMap> DungeonMapFactory { get; set; }
 	[Inject] public CameraContainer CameraContainer { get; private set; }
 
+	[Inject("Templates")] private ResourceHolder<TextResource> Templates { get; set; }
+
+
 	public DungeonMap DungeonMap;
+	public RogueWorld RogueWorld;
 
 	private CameraController _cameraController;
 
@@ -47,15 +53,29 @@ public partial class DungeonGameView : IGameView {
 		GameObjectRepository.Initialize(); // Singleton, so it must be initialized every time this class is created
 
 		DungeonMap = DungeonMapFactory.Create();
+		ConfigureCamera();
+
+		CreateRogueWorld();
+
+		DungeonPlayerActions.Start();
+		DungeonPlayerActions.EnableAll();
+
+		SceneTree.Root.AddChild(DungeonMap); // last step (it calls to all the _Ready method/events)
+	}
+
+	private void CreateRogueWorld() {
+		RogueWorld = new RogueWorld();
+		var templateContent = Templates.Get();
+		RogueWorld.Configure(templateContent.Text);
+		RogueWorld.CreateMap();
+	}
+
+	private void ConfigureCamera() {
 		var camera = new Camera2D();
 		camera.Enabled = true;
 		DungeonMap.AddChild(camera);
 		_cameraController = CameraContainer.Camera(camera);
 		DungeonMap.Configure(_cameraController);
-
-		SceneTree.Root.AddChild(DungeonMap); // last step (it calls to all the _Ready method/events)
-		DungeonPlayerActions.Start();
-		DungeonPlayerActions.EnableAll();
 	}
 
 	public async Task End(bool unload) {

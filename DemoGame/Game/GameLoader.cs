@@ -11,7 +11,7 @@ public class GameLoader : ResourceLoaderContainer {
     [Inject] private ILazy<BottomBar> BottomBarLazy { get; set; }
     [Inject] private ILazy<ProgressScreen> ProgressScreenLazy { get; set; }
 	
-    public async Task Load(string tag, Action<ResourceProgress>? progressAction = null) {
+    public async Task Load(string tag, Action<LoadProgress>? progressAction = null) {
         LoadStart();
         await LoadResources(tag, progressAction);
         LoadEnd();
