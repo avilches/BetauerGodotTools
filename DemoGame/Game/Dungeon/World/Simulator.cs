@@ -10,6 +10,7 @@ using Betauer.Core.DataMath;
 using Betauer.Core.PCG.GridTemplate;
 using Betauer.Core.PCG.Maze;
 using Godot;
+using Environment = System.Environment;
 
 namespace Veronenger.Game.Dungeon.World;
 
@@ -29,18 +30,24 @@ public class Simulator {
 
     private RogueWorld _rogueWorld;
 
-    public void RunGameLoop(int turns) {
+    public void RunGameLoop(int turns, int millisecondsPerFrame = 16) {
         _rogueWorld = new RogueWorld();
         var templateContent = LoadTemplateContent(TemplatePath);
-        _rogueWorld.Configure(templateContent);
-        _rogueWorld.CreateMap();
+        RogueWorld.Configure(templateContent);
+        _rogueWorld.Create();
 
-        Task.Run(() => HandlePlayerInput(new EntityBlocking(_rogueWorld.Player)));
+        Task.Run(() => HandlePlayerInput(_rogueWorld.Player));
 
         var ticks = turns * _rogueWorld.TurnWorld.TicksPerTurn;
         var process = _rogueWorld.TurnWorld.CreateTurnSystem().CreateTurnSystemProcess();
+        var lastTick = Environment.TickCount;
         while (_running && _rogueWorld.TurnWorld.CurrentTick < ticks) {
-            process._Process();
+            var currentTick = Environment.TickCount;
+            var deltaMilliseconds = currentTick - lastTick;
+            var deltaSeconds = deltaMilliseconds / 1000f;
+            process._Process(deltaSeconds);
+            lastTick = currentTick;
+            Thread.Sleep(millisecondsPerFrame);
         }
         _running = false;
     }

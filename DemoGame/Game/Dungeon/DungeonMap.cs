@@ -6,6 +6,7 @@ using Betauer.DI;
 using Betauer.DI.Attributes;
 using Betauer.NodePath;
 using Betauer.Nodes;
+using Veronenger.Game.Dungeon.World;
 
 namespace Veronenger.Game.Dungeon;
 
@@ -23,6 +24,7 @@ public partial class DungeonMap : Node2D, IInjectable {
     }
 
     public Vector2I PlayerPos = Vector2I.Zero;
+    public RogueWorld RogueWorld;
 
     public enum TileSetSourceId {
         SmAscii16x16 = 0
@@ -32,11 +34,43 @@ public partial class DungeonMap : Node2D, IInjectable {
         CameraController = cameraController;
         Ready += () => {
             // TileMapLayer.SetCell(new Vector2I(0, 0), (int)TileSetSourceId.SmAscii16x16, new Vector2I(3, 2));
-            Player.Position = TileMapLayer.MapToLocal(PlayerPos);
             CameraController.Follow(Player);
-        };
 
+            TileMapLayer.Clear();
+
+            RogueWorld.TurnWorld.Cells.ForEach((cell) => {
+                if (cell == null) return;
+                if (cell.Config.IsBlocked) {
+                    TileMapLayer.SetCell(cell.Position, (int)TileSetSourceId.SmAscii16x16, new Vector2I(3, 2));
+                }
+                if (PlayerPos == Vector2I.Zero && cell.Config.IsBlocked == false) {
+                    PlayerPos = cell.Position;
+                }
+            });
+            RogueWorld.TurnWorld.AddEntity(RogueWorld.Player.Entity, PlayerPos);
+            Player.Position = TileMapLayer.MapToLocal(PlayerPos);
+
+            // TileMapLayer.SetCell();
+        };
+    }
+
+    public void Configure(RogueWorld rogueWorld) {
+        RogueWorld = rogueWorld;
         OnProcess += (d) => {
+            if (!RogueWorld.Player.IsWaiting) {
+                return;
+            }
+            if (DungeonPlayerActions.Right.IsJustPressed) {
+                MoveTo(PlayerPos + Vector2I.Right);
+            } else if (DungeonPlayerActions.Left.IsJustPressed) {
+                MoveTo(PlayerPos + Vector2I.Left);
+            } else if (DungeonPlayerActions.Up.IsJustPressed) {
+                MoveTo(PlayerPos + Vector2I.Up);
+            } else if (DungeonPlayerActions.Down.IsJustPressed) {
+                MoveTo(PlayerPos + Vector2I.Down);
+            }
+
+            /*
             if (DungeonPlayerActions.Right.IsJustPressed) {
                 PlayerPos += Vector2I.Right;
                 Player.Position = TileMapLayer.MapToLocal(PlayerPos);
@@ -50,7 +84,15 @@ public partial class DungeonMap : Node2D, IInjectable {
                 PlayerPos += Vector2I.Down;
                 Player.Position = TileMapLayer.MapToLocal(PlayerPos);
             }
+        */
         };
+    }
 
+    private void MoveTo(Vector2I targetPosition) {
+        if (!RogueWorld.TurnWorld.IsBlocked(targetPosition)) {
+            PlayerPos = targetPosition;
+            RogueWorld.Player.SetResult(new ActionCommand(ActionType.Walk, targetPosition: targetPosition));
+            Player.Position = TileMapLayer.MapToLocal(targetPosition);
+        }
     }
 }

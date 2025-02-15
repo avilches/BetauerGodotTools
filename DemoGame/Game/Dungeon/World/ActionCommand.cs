@@ -8,15 +8,16 @@ namespace Veronenger.Game.Dungeon.World;
 public class ActionCommand {
     public ActionType Type { get; }
     public ActionTypeConfig Config => ActionTypeConfig.Get(Type);
-    public Entity Actor { get; }
+
     public Entity? Target { get; }
+    public Vector2I? TargetPosition { get; set; }
 
     public int EnergyCost { get; set; }
 
-    public ActionCommand(ActionType type, Entity actor, Entity? target = null) {
+    public ActionCommand(ActionType type, Entity? target = null, Vector2I? targetPosition = null) {
         Type = type;
-        Actor = actor;
         Target = target;
+        TargetPosition = targetPosition;
         EnergyCost = Config.EnergyCost;
     }
 

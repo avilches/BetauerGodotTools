@@ -22,7 +22,9 @@ public class TurnWorldEventTests {
 
     [SetUp]
     public void Setup() {
+        CellTypeConfig.DefaultConfig();
         _world = new TurnWorld(5, 5);
+        _world.Cells.Load((p) => new WorldCell(CellType.Floor, p));
         _entity = EntityBuilder.Create("TestEntity", new EntityStats { BaseSpeed = 100 })
             .Build();
 
@@ -49,7 +51,7 @@ public class TurnWorldEventTests {
     [Test]
     public void AddEntity_ShouldTriggerCorrectEvents() {
         var position = new Vector2I(2, 2);
-        var cell = _world.GetOrCreate(position);
+        var cell = _world[position];
 
         // Subscribe to cell events
         cell.OnEntityAdded += (entity) => _cellEntityAddedCount++;
@@ -71,7 +73,7 @@ public class TurnWorldEventTests {
     [Test]
     public void RemoveEntity_ShouldTriggerCorrectEvents() {
         var position = new Vector2I(2, 2);
-        var cell = _world.GetOrCreate(position);
+        var cell = _world[position];
 
         // Add entity first
         _world.AddEntity(_entity, position);
@@ -103,8 +105,8 @@ public class TurnWorldEventTests {
 
         _world.AddEntity(_entity, startPosition);
 
-        var oldCell = _world.GetOrCreate(startPosition);
-        var newCell = _world.GetOrCreate(endPosition);
+        var oldCell = _world[startPosition];
+        var newCell = _world[endPosition];
 
         // Subscribe to cell events
         oldCell.OnEntityRemoved += (entity) => _cellEntityRemovedCount++;

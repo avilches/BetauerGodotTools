@@ -34,7 +34,6 @@ public partial class DungeonGameView : IGameView {
 
 	[Inject("Templates")] private ResourceHolder<TextResource> Templates { get; set; }
 
-
 	public DungeonMap DungeonMap;
 	public RogueWorld RogueWorld;
 
@@ -50,24 +49,30 @@ public partial class DungeonGameView : IGameView {
 	private void Configure() {
 		if (_initialized) throw new Exception("Already initialized, can't call it twice");
 		_initialized = true;
+		RogueWorld = CreateRogueWorld();
+
 		GameObjectRepository.Initialize(); // Singleton, so it must be initialized every time this class is created
 
 		DungeonMap = DungeonMapFactory.Create();
+		DungeonMap.Configure(RogueWorld);
+
 		ConfigureCamera();
 
-		CreateRogueWorld();
 
 		DungeonPlayerActions.Start();
 		DungeonPlayerActions.EnableAll();
 
 		SceneTree.Root.AddChild(DungeonMap); // last step (it calls to all the _Ready method/events)
+
+		DungeonMap.OnProcess += RogueWorld.TurnWorld.CreateTurnSystem().CreateTurnSystemProcess()._Process;
 	}
 
-	private void CreateRogueWorld() {
-		RogueWorld = new RogueWorld();
+	private RogueWorld CreateRogueWorld() {
+		var rogueWorld = new RogueWorld();
 		var templateContent = Templates.Get();
-		RogueWorld.Configure(templateContent.Text);
-		RogueWorld.CreateMap();
+        RogueWorld.Configure(templateContent.Text);
+		rogueWorld.Create();
+		return rogueWorld;
 	}
 
 	private void ConfigureCamera() {

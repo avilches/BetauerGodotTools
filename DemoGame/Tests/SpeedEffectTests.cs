@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Betauer.TestRunner;
+using Godot;
 using NUnit.Framework;
 using Veronenger.Game.Dungeon.World;
 
@@ -13,10 +14,12 @@ public class SpeedEffectTests {
 
     [SetUp]
     public void Setup() {
+        CellTypeConfig.DefaultConfig();
         _world = new TurnWorld(1, 1);
+        _world.Cells.Load((p) => new WorldCell(CellType.Floor, p));
         _turnSystem = new TurnSystem(_world);
         _walker = EntityBuilder.Create("Walker", new EntityStats { BaseSpeed = 100 }).DecideAction(ActionType.Walk).Build();
-        _world.AddEntity(_walker);
+        _world.AddEntity(_walker, Vector2I.Zero);
         ActionTypeConfig.RegisterAll(
             new ActionTypeConfig(ActionType.Wait) { EnergyCost = 500 },
             new ActionTypeConfig(ActionType.Walk) { EnergyCost = 1000 },

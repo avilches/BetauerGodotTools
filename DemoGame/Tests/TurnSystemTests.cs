@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Betauer.TestRunner;
+using Godot;
 using Veronenger.Game.Dungeon.World;
 
 namespace Veronenger.Tests;
@@ -19,7 +20,10 @@ public class TurnSystemTests {
 
     [SetUp]
     public void Setup() {
+        CellTypeConfig.DefaultConfig();
         _world = new TurnWorld(1, 1);
+        _world.Cells.Load((p) => new WorldCell(CellType.Floor, p));
+
         _turnSystem = new TurnSystem(_world);
 
         // Create player with default speed (100)
@@ -36,9 +40,9 @@ public class TurnSystemTests {
             .Build();
 
         // Add entities to the system
-        _world.AddEntity(_player.Entity);
-        _world.AddEntity(_fastWalker);
-        _world.AddEntity(_slowAttacker);
+        _world.AddEntity(_player.Entity, Vector2I.Zero);
+        _world.AddEntity(_fastWalker, Vector2I.Zero);
+        _world.AddEntity(_slowAttacker, Vector2I.Zero);
 
         ActionTypeConfig.RegisterAll(
             new ActionTypeConfig(ActionType.Wait) { EnergyCost = 500 },
@@ -113,6 +117,7 @@ public class EntityEventsTests {
     [SetUp]
     public void Setup() {
         _world = new TurnWorld(1, 1);
+        _world.Cells.Load((p) => new WorldCell(CellType.Floor, p));
         _turnSystem = new TurnSystem(_world);
         ActionTypeConfig.RegisterAll(
             new ActionTypeConfig(ActionType.Wait) { EnergyCost = 500 },
@@ -161,7 +166,7 @@ public class EntityEventsTests {
             })
             .Build();
 
-        _world.AddEntity(_entity);
+        _world.AddEntity(_entity, Vector2I.Zero);
 
         // Process one tick
         await _turnSystem.ProcessTickAsync();
@@ -209,7 +214,7 @@ public class EntityEventsTests {
             })
             .Build();
 
-        _world.AddEntity(_entity);
+        _world.AddEntity(_entity, Vector2I.Zero);
 
         await _turnSystem.ProcessTickAsync();
 
@@ -255,7 +260,7 @@ public class EntityEventsTests {
             })
             .Build();
 
-        _world.AddEntity(_entity);
+        _world.AddEntity(_entity, Vector2I.Zero);
 
         // First tick: entity acts normally
         await _turnSystem.ProcessTickAsync();
@@ -292,7 +297,7 @@ public class EntityEventsTests {
             .DecideAction(ActionType.Walk) // Always walk
             .Build();
 
-        _world.AddEntity(_entity);
+        _world.AddEntity(_entity, Vector2I.Zero);
 
         // First tick
         await _turnSystem.ProcessTickAsync();
@@ -318,7 +323,7 @@ public class EntityEventsTests {
             history.Add(action);
         };
 
-        _world.AddEntity(asyncEntity.Entity);
+        _world.AddEntity(asyncEntity.Entity, Vector2I.Zero);
 
         // Schedule three actions
         asyncEntity.ScheduleNextAction(new ActionCommand(ActionType.Walk, asyncEntity.Entity));

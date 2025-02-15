@@ -40,8 +40,8 @@ public class EntityBuilder {
         return this;
     }
 
-    public EntityBuilder DecideAction(ActionCommand actionCommand) {
-        _onDecideAction = () => Task.FromResult(actionCommand);
+    public EntityBuilder DecideAction(ActionCommand command) {
+        _onDecideAction = () => Task.FromResult(command);
         return this;
     }
 
@@ -55,18 +55,18 @@ public class EntityBuilder {
         return this;
     }
 
-    public EntityBuilder Execute(Action<ActionCommand> execute) {
-        _onExecute = execute;
+    public EntityBuilder Execute(Action<ActionCommand> onExecute) {
+        _onExecute = onExecute;
         return this;
     }
 
-    public EntityBuilder OnTickStart(Action tickStart) {
-        _onTickStart = tickStart;
+    public EntityBuilder OnTickStart(Action onTickStart) {
+        _onTickStart = onTickStart;
         return this;
     }
 
-    public EntityBuilder OnTickEnd(Action tickEnd) {
-        _onTickEnd = tickEnd;
+    public EntityBuilder OnTickEnd(Action onTickEnd) {
+        _onTickEnd = onTickEnd;
         return this;
     }
 

@@ -1,14 +1,17 @@
 using System;
 using System.Text;
 using Betauer.Core.Examples;
+using Godot;
 using Veronenger.Game.Dungeon.World.Generation;
 
 namespace Veronenger.Game.Dungeon.World;
 
 public class RogueWorld {
-    public TurnWorld TurnWorld;
 
-    public void Configure(string templateContent) {
+    public TurnWorld TurnWorld { get; private set; }
+    public EntityBlocking Player { get; private set; }
+
+    public static void Configure(string templateContent) {
         ActionTypeConfig.RegisterAll(
             new ActionTypeConfig(ActionType.Wait) { EnergyCost = 1000 },
             new ActionTypeConfig(ActionType.Walk) { EnergyCost = 1000 },
@@ -16,11 +19,7 @@ public class RogueWorld {
             new ActionTypeConfig(ActionType.Run) { EnergyCost = 500 }
         );
 
-        CellTypeConfig.RegisterAll(
-            new CellTypeConfig(CellType.Floor),
-            new CellTypeConfig(CellType.Wall),
-            new CellTypeConfig(CellType.Door)
-        );
+        CellTypeConfig.DefaultConfig();
 
         CellDefinitionConfig.InitializeDefaults();
 
@@ -35,23 +34,22 @@ public class RogueWorld {
 
     }
 
-    public void CreateMap() {
+    public void Create() {
         var seed = 1;
         var result = MapGenerator.CreateMap(MapType.OfficeEasy, seed);
 
         TurnWorld = new TurnWorld(result.WorldCellMap) {
             TicksPerTurn = 10,
-            DefaultCellType = CellType.Floor
         };
         CreatePlayer();
         CreateEntities();
     }
 
-    public Entity Player { get; private set; }
-
     private void CreateEntities() {
+        /*
         var goblin = EntityBuilder.Create("Goblin", new EntityStats { BaseSpeed = 80 })
             .Build();
+            */
 
         /*
     goblin.OnDecideAction = async () => {
@@ -63,19 +61,25 @@ public class RogueWorld {
     };
     */
 
+        /*
         var quickRat = EntityBuilder.Create("Goblin", new EntityStats { BaseSpeed = 80 })
             .DecideAction(ActionType.Walk)
             .Build();
 
-        TurnWorld.AddEntity(goblin);
-        TurnWorld.AddEntity(quickRat);
+        TurnWorld.AddEntity(goblin, Vector2I.Zero);
+        TurnWorld.AddEntity(quickRat, Vector2I.Zero);
+    */
     }
 
 
     private void CreatePlayer() {
-        var player = new Entity("Player", new EntityStats { BaseSpeed = 100 });
-        TurnWorld.AddEntity(player);
-        Player = player;
+        var player = EntityBuilder.Create("Player", new EntityStats { BaseSpeed = 100 })
+            .Execute(command => {
+                Console.WriteLine($"Player executed {command.Type}");
+
+            })
+            .Build();
+        Player = new EntityBlocking(player);
     }
 
 

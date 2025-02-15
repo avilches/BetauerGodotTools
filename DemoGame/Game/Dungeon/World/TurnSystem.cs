@@ -10,9 +10,8 @@ namespace Veronenger.Game.Dungeon.World;
 public class TurnWorld {
     private readonly List<Entity> _entities = [];
     private readonly Dictionary<string, Entity> _entitiesByName = [];
-    private readonly Array2D<WorldCell?> _cells;
 
-    public CellType DefaultCellType { get; set; } = CellType.Floor;
+    public Array2D<WorldCell?> Cells { get; private set; }
 
     public int TicksPerTurn { get; set; } = 10;
     public int CurrentTick { get; private set; } = 0;
@@ -23,37 +22,37 @@ public class TurnWorld {
     public event Action<int>? OnTick;
 
     public IReadOnlyList<Entity> Entities { get; }
-    public int Width => _cells.Width;
-    public int Height => _cells.Height;
-    public Rect2I Bounds => _cells.Bounds;
+    public int Width => Cells.Width;
+    public int Height => Cells.Height;
+    public Rect2I Bounds => Cells.Bounds;
 
     public TurnWorld(int width, int height) : this(new Array2D<WorldCell?>(width, height)) {
     }
 
     public TurnWorld(Array2D<WorldCell?> cells) {
-        _cells = cells;
+        Cells = cells;
         Entities = _entities.AsReadOnly();
     }
 
-    public WorldCell? this[Vector2I position] => _cells[position];
+    public WorldCell? this[Vector2I position] => Cells[position];
 
-    public WorldCell? this[int y, int x] => _cells[y, x];
+    public WorldCell? this[int y, int x] => Cells[y, x];
 
-    public WorldCell GetOrCreate(Vector2I position) =>
-        _cells.GetOrSet(position, () => new WorldCell(DefaultCellType, position))!;
+    // public WorldCell GetOrCreate(Vector2I position, CellType defaultCellType) =>
+    //     Cells.GetOrSet(position, () => new WorldCell(defaultCellType, position))!;
 
     public bool IsCellType(Vector2I position, CellType type) =>
-        _cells[position] != null && _cells[position]!.Type == type;
+        Cells[position] != null && Cells[position]!.Type == type;
 
     public bool HasCellEntity(Vector2I position, Entity entity) =>
-        _cells[position] != null && _cells[position]!.Entities.Contains(entity);
+        Cells[position] != null && Cells[position]!.Entities.Contains(entity);
 
     public bool IsValidPosition(Vector2I position) {
-        return _cells.IsInBounds(position);
+        return Cells.IsInBounds(position);
     }
 
-    public void AddEntity(Entity entity) {
-        AddEntity(entity, Vector2I.Zero);
+    public bool IsBlocked(Vector2I position) {
+        return !IsValidPosition(position) || Cells[position] != null && Cells[position]!.Config.IsBlocked;
     }
 
     public Entity GetEntity(string name) {
@@ -68,8 +67,12 @@ public class TurnWorld {
         if (Entities.Contains(entity)) {
             throw new InvalidOperationException($"Entity already added to world: {entity}");
         }
-        if (!_cells.IsInBounds(position)) {
+        if (!Cells.IsInBounds(position)) {
             throw new InvalidOperationException($"Invalid position: {position}");
+        }
+        var worldCell = Cells[position];
+        if (worldCell == null) {
+            throw new InvalidOperationException($"Cell is empty: {position}");
         }
 
         // Update the data
@@ -77,7 +80,7 @@ public class TurnWorld {
 
         _entities.Add(entity);
         _entitiesByName[entity.Name] = entity;
-        GetOrCreate(entity.Location.Position).AddEntity(entity);
+        worldCell.AddEntity(entity);
 
         // Trigger events
         entity.InvokeOnWorldAdded();
@@ -87,6 +90,7 @@ public class TurnWorld {
     public bool RemoveEntity(Entity entity) {
         if (!_entities.Contains(entity)) return false;
 
+
         // Trigger events where the data is still valid
         entity.InvokeOnWorldRemoved();
         OnEntityRemoved?.Invoke(entity);
@@ -94,14 +98,20 @@ public class TurnWorld {
         // Remove the data
         _entities.Remove(entity);
         _entitiesByName.Remove(entity.Name);
-        GetOrCreate(entity.Location.Position).RemoveEntity(entity);
+        Cells[entity.Location.Position]?.RemoveEntity(entity);
         entity.Location = null;
         return true;
     }
 
     internal void MoveEntity(Entity entity, Vector2I origin, Vector2I to) {
+        var worldCell = Cells[to];
+        if (worldCell == null) {
+            throw new InvalidOperationException($"Cell is empty: {to}");
+        }
+
+
         this[origin]!.RemoveEntity(entity);
-        GetOrCreate(to).AddEntity(entity);
+        worldCell.AddEntity(entity);
         entity.InvokeOnMoved(origin, to);
     }
 
@@ -155,7 +165,7 @@ public class TurnSystemProcess {
         _turnSystem = turnSystem;
     }
 
-    public void _Process() {
+    public void _Process(double delta) {
         if (_exception != null) {
             var e = _exception;
             _exception = null;

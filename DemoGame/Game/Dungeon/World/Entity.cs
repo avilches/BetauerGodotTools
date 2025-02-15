@@ -81,7 +81,7 @@ public class Entity {
     public bool CanAct() => CurrentEnergy >= 0 && OnCanAct.Invoke();
 
     public Task<ActionCommand> DecideAction() {
-        return OnDecideAction();
+        return OnDecideAction.Invoke();
     }
 
     public void Execute(ActionCommand actionCommand) {
