@@ -179,7 +179,7 @@ public class MapGenerator {
         ];
 
         TemplateSetTypeConfig.All.ForEach(mapConfig => {
-            mapConfig.TemplateSet.FindTemplates().ForEach((Template t) => {
+            foreach (var t in mapConfig.TemplateSet.FindTemplates()) {
                 var hasLootOrKey = t.Body.GetValues().Any(c => lootOrKeys.Contains(c));
                 if (!hasLootOrKey) {
                     // throw new InvalidDataException($"Template: {t}\n does not have a loot definition: {string.Join(",", lootOrKeys.Select(l => $"'{l}'"))}\n{t.Body}");
@@ -188,7 +188,7 @@ public class MapGenerator {
                 if (found != '\0') {
                     throw new InvalidDataException($"Template: {t}\n invalid character '{found}'. Valid characters are: {string.Join(",", CellDefinitionConfig.AllChars.Select(l => $"'{l}'"))}\n{t.Body}");
                 }
-            });
+            }
         });
     }
 }

@@ -68,18 +68,18 @@ public class RegionConnections {
         return _regionCells.Count;
     }
 
-    public IList<int> GetRegionsIds() {
+    public List<int> GetRegionsIds() {
         return _regionCells.Keys.ToList();
     }
 
-    public IList<Vector2I> GetRegionCells(int region) {
+    public List<Vector2I> GetRegionCells(int region) {
         if (region == 0) {
             return _noRegion;
         }
         if (_regionCells.TryGetValue(region, out List<Vector2I>? value)) {
             return value;
         }
-        return ImmutableList<Vector2I>.Empty;
+        return [];
     }
 
     /// <summary>

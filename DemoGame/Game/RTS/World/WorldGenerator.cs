@@ -26,6 +26,7 @@ public partial class WorldGenerator {
     [Inject] public SceneTree SceneTree { get; set; }
 
     public BiomeGenerator BiomeGenerator { get; }
+
     // public TileMap<BiomeType> TileMap { get; private set; }
     public TileMap GodotTileMap { get; private set; }
     public FastTexture FastFinalMap { get; private set; }
@@ -34,7 +35,7 @@ public partial class WorldGenerator {
 
     private const int Width = 800;
     private const int Height = 500;
-    
+
     public enum ViewMode {
         Massland,
         Height,
@@ -43,7 +44,7 @@ public partial class WorldGenerator {
         Humidity,
         Terrain,
     }
-    
+
     public ViewMode CurrentViewMode { get; set; } = ViewMode.Terrain;
 
     public int Seed { get; set; } = 0;
@@ -56,10 +57,9 @@ public partial class WorldGenerator {
     public void Configure(TileMap godotTileMap, FastTexture fastTexture) {
         GodotTileMap = godotTileMap;
 
-        
         // TileMap = new TileMap<BiomeType>(Layers, Width, Height);
         FastFinalMap = fastTexture;
-        
+
         GodotTileMap.Draw += () => {
             // Hack needed to draw on top of the tilemap:
             // https://www.reddit.com/r/godot/comments/w3l48f/does_anyone_know_how_to_set_the_draw_order_when/
@@ -72,11 +72,11 @@ public partial class WorldGenerator {
             subViewport.RenderTargetClearMode = SubViewport.ClearMode.Always;
         };
     }
-    
+
     public void Generate() {
         BiomeGenerator.Seed = Seed;
         BiomeGenerator.Generate();
-                
+
         // return;
         GenerateOld(GodotTileMap, BiomeGenerator.HeightNoise, BiomeGenerator.HumidityNoise);
         foreach (var (pos, cell) in BiomeGenerator.BiomeCells.GetIndexedValues()) {
@@ -157,9 +157,9 @@ public partial class WorldGenerator {
         public void SetCell(Godot.TileMap godotTileMap, int layer, int x, int y, int tileId) {
             var coords = TileSetLayouts.Blob47Godot.GetAtlasCoordsByTileId(tileId);
             godotTileMap.SetCell(0, new Vector2I(x, y), SourceId, coords);
-        } 
+        }
     }
-    
+
     public void GenerateOld(TileMap godotTileMap, FastNoiseLite noiseHeight, FastNoiseLite noiseMoisture) {
         godotTileMap.Clear();
         TreesInstance = TreesFactory.Create();
@@ -188,9 +188,9 @@ public partial class WorldGenerator {
 
     private void PlaceObjects(Node parent, FastNoiseLite FastNoiseHeight) {
         WeightValue<Trees.Id>[] stumps = [
-            new (Trees.Id.Trunk, 1f),
-            new (Trees.Id.Stump, 2f),
-            new (Trees.Id.MiniStump, 4f),
+            new(Trees.Id.Trunk, 1f),
+            new(Trees.Id.Stump, 2f),
+            new(Trees.Id.MiniStump, 4f),
         ];
 
         WeightValue<Trees.Id>[] bigTrees = [
@@ -214,21 +214,19 @@ public partial class WorldGenerator {
             var noise = 1f - FastNoiseHeight.GetNoise((int)x / 16, (int)y / 16);
             return Mathf.Lerp(minRadius, maxRadius, noise);
         }, minRadius, maxRadius);
-        
+
         var grid = SpatialGrid.FromAverageDistance(minRadius, maxRadius);
         grid.AddPointsAsCircles(points);
         grid.ExpandAll(1);
         grid.RemoveAll(s => Random.NextBool(0.5));
-        grid.FindShapes<Circle>().OrderBy(v => v.Y)
-            .ThenBy(v => v.X)
-            .ForEach(circle => {
-                var width = (int)circle.Width;
-                if (width <= 32) {
-                    LocateSprite(parent, Random.Pick(smallTrees).Value, (int)circle.X, (int)circle.Y);
-                } else {
-                    LocateSprite(parent, Random.Pick(bigTrees).Value, (int)circle.X, (int)circle.Y);
-                }
-            });
+        foreach (var circle in grid.FindShapes<Circle>().OrderBy(v => v.Y).ThenBy(v => v.X)) {
+            var width = (int)circle.Width;
+            if (width <= 32) {
+                LocateSprite(parent, Random.Pick(smallTrees).Value, (int)circle.X, (int)circle.Y);
+            } else {
+                LocateSprite(parent, Random.Pick(bigTrees).Value, (int)circle.X, (int)circle.Y);
+            }
+        }
         Console.WriteLine(grid.FindShapes().Select(s => s.Width).Min());
         Console.WriteLine(grid.FindShapes().Select(s => s.Width).Max());
     }

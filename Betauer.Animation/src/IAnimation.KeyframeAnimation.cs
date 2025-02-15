@@ -50,7 +50,7 @@ namespace Betauer.Animation {
             }
             
             var (_, sceneTreeTween) = ValidateAndCreateSceneTreeTween(targets.First(), durationPerTarget);
-            targets.ForEach(target => {
+            foreach (var target in targets) {
                 if (StartAction != null) {
                     sceneTreeTween.TweenCallback(Callable.From(() => StartAction?.Invoke(target))).SetDelay(initialDelay);
                 }
@@ -61,7 +61,7 @@ namespace Betauer.Animation {
                     sceneTreeTween.TweenCallback(Callable.From(() => FinishAction?.Invoke(target))).SetDelay(initialDelay + durationPerTarget);
                 }
                 initialDelay += delayPerTarget;
-            });
+            }
             AddOnFinishAllEvent(sceneTreeTween);
             ApplySceneTreeTweenConfiguration(sceneTreeTween);
             return sceneTreeTween;

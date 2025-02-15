@@ -19,19 +19,21 @@ public partial class InputActionsContainer {
     public void AddActionsFromProperties(object instance) {
         var propertyInfos = instance.GetType().GetProperties();
 
-        propertyInfos
-            .Where(p => typeof(InputAction).IsAssignableFrom(p.PropertyType))
-            .Select(p => p.GetValue(instance))
-            .Where(i => i != null)
-            .Cast<InputAction>()
-            .ForEach(Add);
+        foreach (var action in propertyInfos
+                     .Where(p => typeof(InputAction).IsAssignableFrom(p.PropertyType))
+                     .Select(p => p.GetValue(instance))
+                     .Where(i => i != null)
+                     .Cast<InputAction>()) {
+            Add(action);
+        }
 
-        propertyInfos
-            .Where(p => typeof(AxisAction).IsAssignableFrom(p.PropertyType))
-            .Select(p => p.GetValue(instance))
-            .Where(i => i != null)
-            .Cast<AxisAction>()
-            .ForEach(Add);
+        foreach (var action in propertyInfos
+                     .Where(p => typeof(AxisAction).IsAssignableFrom(p.PropertyType))
+                     .Select(p => p.GetValue(instance))
+                     .Where(i => i != null)
+                     .Cast<AxisAction>()) {
+            Add(action);
+        }
     }
 
     public void Add(AxisAction axisAction) {
@@ -76,9 +78,7 @@ public partial class InputActionsContainer {
     }
 
     public void EnableAll(bool enable = true) {
-        InputActions.ForEach(action => {
-            action.Enable(enable);
-        });
+        InputActions.ForEach(action => action.Enable(enable));
     }
 
     public void DisableAll() {

@@ -80,7 +80,7 @@ public class BspTreeDemo {
         return sp.FindShapes<Rectangle>().Select(shape => shape.ToRect2I()).ToList();
     }
 
-    private static void CarveRooms(int width, int height, IList<Rect2I> rooms, Array2D<char> map, bool showSize = false) {
+    private static void CarveRooms(int width, int height, List<Rect2I> rooms, Array2D<char> map, bool showSize = false) {
         rooms.ForEach(rect => {
             for (var x = rect.Position.X; x < rect.Position.X + rect.Size.X; x++) {
                 for (var y = rect.Position.Y; y < rect.Position.Y + rect.Size.Y; y++) {
@@ -110,7 +110,7 @@ public class BspTreeDemo {
         var a = PrimMst.GetConnections(centers);
         var cc = showPaths ? '·' : ' ';
         var f = new FastNoiseLite();
-        a.ForEach((connection, v2) => {
+        a.ForEach((connection) => {
                 var start = connection.Item1;
                 var end = connection.Item2;
                 var roadType = random.Next(5);
@@ -156,7 +156,7 @@ public class BspTreeDemo {
         }
     }
 
-    private static void Stats(IList<Rect2I> rooms, float bspMaxRatio, int bspMinWidth, int bspMinHeight) {
+    private static void Stats(List<Rect2I> rooms, float bspMaxRatio, int bspMinWidth, int bspMinHeight) {
         var ratioSum = 0f;
         var verticals = 0;
         var horizontals = 0;

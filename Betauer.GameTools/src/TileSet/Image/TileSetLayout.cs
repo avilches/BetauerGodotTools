@@ -32,7 +32,7 @@ public class TileSetLayout : ITileSetLayout {
         }
     }
 
-    public IReadOnlyCollection<int> GetTileIds() {
+    public ICollection<int> GetTileIds() {
         return Tiles.Keys;
     }
 

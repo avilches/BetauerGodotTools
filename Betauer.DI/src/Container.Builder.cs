@@ -37,7 +37,7 @@ public partial class Container {
             return this;
         }
 
-        public Builder Scan(IEnumerable<Assembly> assemblies, Func<Type, bool>? predicate = null) {
+        public Builder Scan(Assembly[] assemblies, Func<Type, bool>? predicate = null) {
             assemblies.ForEach(assembly => Scan(assembly, predicate));
             return this;
         }
@@ -47,12 +47,11 @@ public partial class Container {
             return this;
         }
 
-        public Builder Scan(IEnumerable<Type> types, Func<Type, bool>? predicate = null) {
-            if (predicate != null) types = types.Where(predicate);
-            types.ForEach(type => Scan(type));
+        public Builder Scan(Type[] types, Func<Type, bool>? predicate = null) {
+            var typesToScan = predicate != null ? types.Where(predicate).ToArray() : types;
+            typesToScan.ForEach(type => Scan(type));
             return this;
         }
-
         public Builder Scan<T>() => Scan(typeof(T));
 
         public Builder Scan(Type type) {

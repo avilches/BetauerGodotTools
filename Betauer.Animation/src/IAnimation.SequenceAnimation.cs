@@ -28,10 +28,10 @@ namespace Betauer.Animation {
         public Tween Play(IEnumerable<Node> nodes, float delayBetweenNodes = 0, float initialDelay = 0) {
             if (TweenList.Count == 0) throw new Exception("Can't start a sequence without animations");
             var (_, sceneTreeTween) = CreateSceneTreeTween(nodes.First());
-            nodes.ForEach(node => {
+            foreach (var node in nodes) {
                 ExecuteTweenList(sceneTreeTween, initialDelay, node);
                 initialDelay += delayBetweenNodes;
-            });
+            }
             AddOnFinishAllEvent(sceneTreeTween);
             ApplySceneTreeTweenConfiguration(sceneTreeTween);
             return sceneTreeTween;

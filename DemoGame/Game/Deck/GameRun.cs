@@ -19,7 +19,11 @@ public class GameRun(PokerGameConfig config, PokerHandsManager pokerHandsManager
     public GameHandler CreateGameHandler(int level, IEnumerable<Card>? cards = null) {
         var gameHandler = new GameHandler(State, Config, PokerHandsManager, level, Seed);
         GameStates.Add(gameHandler.State);
-        cards?.ForEach(gameHandler.State.AddCard);
+        if (cards != null) {
+            foreach (var card in cards) {
+                gameHandler.State.AddCard(card);
+            }
+        }
         return gameHandler;
     }
 

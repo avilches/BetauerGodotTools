@@ -10,7 +10,7 @@ public class ZonePart(Zone zone, int partId, MazeNode startNode, List<MazeNode> 
     public Zone Zone { get; internal set; } = zone;
     public int PartId { get; } = partId;
     public MazeNode StartNode { get; } = startNode;
-    public IReadOnlyList<MazeNode> Nodes { get; } = nodes.ToImmutableList();
+    public ImmutableList<MazeNode> Nodes { get; } = nodes.ToImmutableList();
     public int NodeCount => Nodes.Count;
 
     /// <summary>

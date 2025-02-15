@@ -49,7 +49,7 @@ public static partial class Geometry {
     /// <param name="bounds">The bounding rectangle within which the rect will be positioned.</param>
     /// <param name="random">An instance of the Random class used to generate random values.</param>
     /// <returns>A Rect2I object representing the randomly positioned rectangle.</returns>
-    public static Rect2I PositionRect2IRandomly(Rect2I rect, Rect2I bounds, Random random) {
+    public static Rect2I PositionRect2IRandomly(this Rect2I rect, Rect2I bounds, Random random) {
         var maxX = bounds.Size.X - rect.Size.X;
         var maxY = bounds.Size.Y - rect.Size.Y;
         var x = random.Next(bounds.Position.X, bounds.Position.X + maxX + 1);
@@ -95,7 +95,7 @@ public static partial class Geometry {
         }
     }
 
-    public static Rect2I ResizeRect2IByFactor(Rect2I rect, float factor) {
+    public static Rect2I ResizeRect2IByFactor(this Rect2I rect, float factor) {
         return ResizeRect2IByFactor(rect.Position.X, rect.Position.Y, rect.Size.X, rect.Size.Y, factor);
     }
 
@@ -123,7 +123,7 @@ public static partial class Geometry {
         return new Rect2I(newX, newY, newWidth, newHeight);
     }
 
-    public static IEnumerable<Vector2I> GetEnumerator(Rect2I rect) {
+    public static IEnumerable<Vector2I> GetPositions(this Rect2I rect) {
         for (var x = rect.Position.X; x < rect.End.X; x++) {
             for (var y = rect.Position.Y; y < rect.End.Y; y++) {
                 yield return new Vector2I(x, y);

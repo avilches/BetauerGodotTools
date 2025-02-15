@@ -33,7 +33,7 @@ public static partial class Geometry {
     /// <param name="bounds">The bounding rectangle within which the rect will be positioned.</param>
     /// <param name="random">An instance of the Random class used to generate random values.</param>
     /// <returns>A Rect2I object representing the randomly positioned rectangle.</returns>
-    public static Rect2 PositionRect2Randomly(Rect2 rect, Rect2 bounds, Random random) {
+    public static Rect2 PositionRect2Randomly(this Rect2 rect, Rect2 bounds, Random random) {
         var maxX = bounds.Size.X - rect.Size.X;
         var maxY = bounds.Size.Y - rect.Size.Y;
         var x = (float)(random.NextDouble() * (bounds.Position.X + maxX + 1));
@@ -79,7 +79,7 @@ public static partial class Geometry {
         }
     }
 
-    public static Rect2 ResizeRect2ByFactor(Rect2 rect, float factor) {
+    public static Rect2 ResizeRect2ByFactor(this Rect2 rect, float factor) {
         return ResizeRect2ByFactor(rect.Position.X, rect.Position.Y, rect.Size.X, rect.Size.Y, factor);
     }
 

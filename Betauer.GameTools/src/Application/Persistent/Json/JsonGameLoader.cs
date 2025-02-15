@@ -47,13 +47,16 @@ public class JsonGameLoader<TMetadata> : GameObjectLoader
                 // TypeDiscriminatorPropertyName = "_case",
                 // UnknownDerivedTypeHandling = JsonUnknownDerivedTypeHandling.FallBackToNearestAncestor,
             };
-            AppDomain.CurrentDomain.GetAssemblies()
+            var derivedTypes = AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(a => a.GetTypes())
                 .Where(t => t is { IsClass: true, IsAbstract: false } && t.IsSubclassOfOrImplements(typeof(TSaveObject)))
                 .Select(Activator.CreateInstance)
                 .Cast<SaveObject>()
-                .Select(t => new JsonDerivedType(t.GetType(), t.Discriminator()))
-                .ForEach(dt => jsonTypeInfo.PolymorphismOptions.DerivedTypes.Add(dt));
+                .Select(t => new JsonDerivedType(t.GetType(), t.Discriminator()));
+
+            foreach(var dt in derivedTypes) {
+                jsonTypeInfo.PolymorphismOptions.DerivedTypes.Add(dt);
+            }
         }
 
         WithDefaultJsonTypeInfoResolver(resolver => {

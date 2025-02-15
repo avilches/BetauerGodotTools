@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Betauer.Core.DataMath;
+using Betauer.Core.DataMath.Geometry;
 using Godot;
 
 namespace Betauer.Core.Examples.ThirdPartyCode.Hauberk;
@@ -168,7 +169,7 @@ public class MazeDungeon {
     }
 
     private bool CanCarve(Vector2I pos, Vector2I direction) {
-        return DataMath.Geometry.Geometry.IsPointInRectangle(pos + direction * 3, Bounds) && 
+        return Geometry.IsPointInRectangle(pos + direction * 3, Bounds) &&
                Stage[pos + direction * 2].Type == TileType.Wall;
     }
 
@@ -182,19 +183,14 @@ public class MazeDungeon {
         // stage[pos] = TileType.ClosedDoor;
     }
 
-    
+
     public void Carve(Rect2I rect, TileType type, int region) {
-        foreach (var pos in DataMath.Geometry.Geometry.GetEnumerator(rect)) {
+        foreach (var pos in rect.GetPositions()) {
             // start regions from 1, because 0 is reserved for walls (the whole grid is filled with walls in the beginning)
-            try {
-                Carve(pos, TileType.Floor, region);
-            } catch (Exception e) {
-                Console.WriteLine(e);
-                throw;
-            }
+            Carve(pos, TileType.Floor, region);
         }
     }
-        
+
     public void Carve(Vector2I pos, TileType type, int region) {
         Stage[pos].Type = type;
         Stage[pos].Region = region;

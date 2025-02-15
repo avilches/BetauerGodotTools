@@ -4,7 +4,7 @@ using System.Linq;
 using Betauer.Core;
 using Godot;
 
-namespace Betauer.Application.Settings; 
+namespace Betauer.Application.Settings;
 
 public class SettingsContainer {
     private ConfigFileWrapper _configFileWrapper;
@@ -18,6 +18,7 @@ public class SettingsContainer {
             if (_configFileWrapper.Exists()) Load();
         }
     }
+
     public bool Dirty => _configFileWrapper.Dirty;
     public string FilePath => _configFileWrapper.FilePath;
 
@@ -35,13 +36,14 @@ public class SettingsContainer {
     public void AddFromInstanceProperties(object instance) {
         var propertyInfos = instance.GetType().GetProperties();
 
-        propertyInfos
-            .Where(p => typeof(SaveSetting).IsAssignableFrom(p.PropertyType))
-            .Select(p => p.GetValue(instance) as SaveSetting)
-            .Where(i => i != null)
-            .ForEach(Add);
+        foreach (var setting in propertyInfos
+                     .Where(p => typeof(SaveSetting).IsAssignableFrom(p.PropertyType))
+                     .Select(p => p.GetValue(instance) as SaveSetting)
+                     .Where(i => i != null)) {
+            Add(setting);
+        }
     }
-    
+
     public SaveSetting? Find(string? saveAs) {
         return saveAs == null ? null : Settings.Find(setting => setting.SaveAs == saveAs);
     }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Betauer.Core.DataMath;
+using Betauer.Core.DataMath.Geometry;
 using Betauer.Core.PCG;
 using Betauer.Core.PCG.GridTools;
 using Betauer.Core.PCG.Maze;
@@ -18,7 +19,11 @@ public class DungeonDemo {
         var grid = new Array2D<bool>(width, height, false);
         const float ratio = 16 / 9f;
         var rooms = CreateRooms(10, 3, 9, ratio, width, height, random);
-        rooms.ForEach(room => DataMath.Geometry.Geometry.GetEnumerator(room).ForEach(pos => grid[pos] = true));
+        rooms.ForEach(room => {
+            foreach (var pos in room.GetPositions()) {
+                grid[pos] = true;
+            }
+        });
 
         // PrintMaze(grid);
 
@@ -65,8 +70,8 @@ public class DungeonDemo {
     }
 
     private static void PrintMazeConnections(Array2D<bool> grid, HashSet<Vector2I> doors) {
-        Console.WriteLine(grid.GetString(b => b.Value 
-            ? doors.Contains(b.Position) ? "d" : " " 
+        Console.WriteLine(grid.GetString(b => b.Value
+            ? doors.Contains(b.Position) ? "d" : " "
             : "█"));
     }
 

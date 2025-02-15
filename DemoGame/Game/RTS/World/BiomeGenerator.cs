@@ -289,24 +289,24 @@ public class BiomeGenerator {
         // RiverGeneratorPoint.GenerateRivers(PoissonPoints, BiomeCells, 30, 100, _random);
 
         var graph = new Graph<BiomeCell>();
-        delaunator.GetVoronoiEdges(Delaunator.VoronoiType.Centroid).ForEach((e) => {
+        foreach(var e in delaunator.GetVoronoiEdges(Delaunator.VoronoiType.Centroid)) {
             var from = BiomeCells[(int)e.P.Y, (int)e.P.X];
             var to = BiomeCells[(int)e.Q.Y, (int)e.Q.X];
             graph.Connect(from, to);
             graph.Connect(to, from);
-        });
+        }
 
         RiverGeneratorGraph.GenerateRivers(graph, BiomeCells, 30, 100, _random);
-        
+
         Console.WriteLine($"Generate6:{s.ElapsedMilliseconds}ms");
         s.Restart();
-        
+
         // var dict = list.Select(c => c.Biome.Type).GroupBy(x => x)
             // .ToDictionary(g => g.Key, g => g.Count());
         // dict.ForEach(pair => Console.WriteLine(pair.Key + ": " + pair.Value));
         Console.WriteLine($"Generate Total:{sa.ElapsedMilliseconds}ms");
     }
-    
+
     public List<BiomeCell> PoissonPoints { get; private set; }
 
     int radius = 10;
@@ -327,46 +327,54 @@ public class BiomeGenerator {
 
     public void FillMassland(FastImage fastTexture) {
         foreach (var ((x, y), val) in new Array2D<float>(Width, Height).LoadNormalized((x, y) => MassLands[y, x]).GetIndexedValues()) {
-            fastTexture.SetPixel(x, y, new Color(val, val, val), false);            
-        } 
+            fastTexture.SetPixel(x, y, new Color(val, val, val), false);
+        }
         fastTexture.Flush();
     }
 
     public void FillPoisson(FastImage fastImage) {
-        PoissonPoints.ForEach(v => fastImage.SetPixel(v.Position.X, v.Position.Y, Colors.Black));
+        foreach(var v in PoissonPoints) {
+            fastImage.SetPixel(v.Position.X, v.Position.Y, Colors.Black);
+        }
         fastImage.Flush();
     }
 
     public void FillDelaunatorEdgesBasedOnCentroids(FastImage fastImage) {
-        delaunator.GetVoronoiEdges(Delaunator.VoronoiType.Centroid).ForEach(e => {
-            fastImage.DrawLineAntialiasing((Vector2I)e.P, (Vector2I)e.Q, 1, Colors.Blue); 
-        });
-        PoissonPoints.ForEach(v => fastImage.SetPixel(v.Position.X, v.Position.Y, Colors.Black));
+        foreach(var e in delaunator.GetVoronoiEdges(Delaunator.VoronoiType.Centroid)) {
+            fastImage.DrawLineAntialiasing((Vector2I)e.P, (Vector2I)e.Q, 1, Colors.Blue);
+        }
+        foreach(var v in PoissonPoints) {
+            fastImage.SetPixel(v.Position.X, v.Position.Y, Colors.Black);
+        }
         fastImage.Flush();
     }
 
     public void FillDelaunatorPointsBasedOnCentroids(FastImage fastImage) {
-        delaunator.GetVoronoiVertices(Delaunator.VoronoiType.Centroid).ForEach(e => {
+        foreach(var e in delaunator.GetVoronoiVertices(Delaunator.VoronoiType.Centroid)) {
             fastImage.SetPixel((Vector2I)e, Colors.Black);
-        });
+        }
         fastImage.Flush();
     }
 
     public void FillDelaunatorEdgesBasedOnCircumCenter(FastImage fastImage) {
-        delaunator.GetVoronoiEdges(Delaunator.VoronoiType.Circumcenter).ForEach(e => {
-            fastImage.DrawLineAntialiasing((Vector2I)e.P, (Vector2I)e.Q, 1, Colors.Blue); 
-        });
-        PoissonPoints.ForEach(v => fastImage.SetPixel(v.Position.X, v.Position.Y, Colors.Black));
+        foreach(var e in delaunator.GetVoronoiEdges(Delaunator.VoronoiType.Circumcenter)) {
+            fastImage.DrawLineAntialiasing((Vector2I)e.P, (Vector2I)e.Q, 1, Colors.Blue);
+        }
+        foreach(var v in PoissonPoints) {
+            fastImage.SetPixel(v.Position.X, v.Position.Y, Colors.Black);
+        }
         fastImage.Flush();
     }
 
     public void FillDelaunatorTriangles(FastImage fastImage) {
-        delaunator.GetTriangles().ForEach(e => {
-            fastImage.DrawLineAntialiasing((Vector2I)e.Points[0],(Vector2I)e.Points[1], 1, Colors.Red); 
-            fastImage.DrawLineAntialiasing((Vector2I)e.Points[1],(Vector2I)e.Points[2], 1, Colors.Red); 
-            fastImage.DrawLineAntialiasing((Vector2I)e.Points[2],(Vector2I)e.Points[0], 1, Colors.Red); 
-        });
-        PoissonPoints.ForEach(v => fastImage.SetPixel(v.Position.X, v.Position.Y, Colors.Black));
+        foreach(var e in delaunator.GetTriangles()) {
+            fastImage.DrawLineAntialiasing((Vector2I)e.Points[0],(Vector2I)e.Points[1], 1, Colors.Red);
+            fastImage.DrawLineAntialiasing((Vector2I)e.Points[1],(Vector2I)e.Points[2], 1, Colors.Red);
+            fastImage.DrawLineAntialiasing((Vector2I)e.Points[2],(Vector2I)e.Points[0], 1, Colors.Red);
+        }
+        foreach(var v in PoissonPoints) {
+            fastImage.SetPixel(v.Position.X, v.Position.Y, Colors.Black);
+        }
         fastImage.Flush();
     }
 
@@ -377,11 +385,13 @@ public class BiomeGenerator {
 
         var e = delaunator.FindVoronoiCell(point, Delaunator.VoronoiType.Centroid);
         if (e != null) {
-            Delaunator.CreateHull(e.Value.Points).ForEach(p2 => {
+            foreach(var p2 in Delaunator.CreateHull(e.Value.Points)) {
                 fastImage.DrawLine((Vector2I)p2.P, (Vector2I)p2.Q, 1, Colors.Blue);
-            });
-        }        
-        PoissonPoints.ForEach(v => fastImage.SetPixel(v.Position.X, v.Position.Y, Colors.Black));
+            }
+        }
+        foreach(var v in PoissonPoints) {
+            fastImage.SetPixel(v.Position.X, v.Position.Y, Colors.Black);
+        }
         fastImage.Flush();
     }
 
@@ -393,14 +403,14 @@ public class BiomeGenerator {
 
         var set = new HashSet<Vector2I> { edgePoint };
         var graph = new Graph<Vector2I>();
-        delaunator.GetVoronoiEdges(Delaunator.VoronoiType.Centroid).ForEach(e => {
+        foreach(var e in delaunator.GetVoronoiEdges(Delaunator.VoronoiType.Centroid)) {
             graph.Connect((Vector2I)e.P, (Vector2I)e.Q);
             graph.Connect((Vector2I)e.Q, (Vector2I)e.P);
-        });
-        
+        }
+
         var candidates = graph.GetConnections(edgePoint);
         while (candidates.Count > 0) {
-            var next = candidates[_random.Next(candidates.Count)]; 
+            var next = candidates[_random.Next(candidates.Count)];
             fastImage.DrawLineNoise((Vector2I)edgePoint, (Vector2I)next, HeightNoise, scale, Colors.Blue);
             candidates = graph.GetConnections(next);
             candidates.RemoveAll((p) => set.Contains(p));
@@ -409,7 +419,6 @@ public class BiomeGenerator {
         }
         fastImage.Flush();
     }
-
     public void FillHeight(FastImage fastImage) {
         foreach (var ((x, y), val) in new Array2D<float>(Width, Height).LoadNormalized((x, y) => HeightNoise.GetNoise(x, y)).GetIndexedValues()) {
             fastImage.SetPixel(x, y, new Color(val, val, val), false);

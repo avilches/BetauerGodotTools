@@ -8,8 +8,9 @@ using Godot;
 namespace Betauer.Core.Examples;
 
 public class MazeGraphCatalog {
-    public static float KeyFormula(NodeScore score) => (score.DeadEndScore * 0.4f + score.EntryDistanceScore * 0.3f + score.ExitDistanceScore * 0.3f) * 0.5f + 
+    public static float KeyFormula(NodeScore score) => (score.DeadEndScore * 0.4f + score.EntryDistanceScore * 0.3f + score.ExitDistanceScore * 0.3f) * 0.5f +
                                                        (score.BelongsToEntryExitPath ? 0.0f : 0.5f);
+
     public static float LootFormula(NodeScore score) => score.DeadEndScore * 0.6f + score.EntryDistanceScore * 0.4f;
 
     public static MazeZones BigCycle(Random rng, Action<MazeGraph>? config = null) {
@@ -182,44 +183,41 @@ public class MazeGraphCatalog {
      * "+" = connects the node with the right, left, up and down nodes (if they exist)
      */
     private static void ConnectNodes(Array2D<char> template, MazeGraph mc) {
-        template
-            .GetIndexedValues()
-            .Where(dataCell => dataCell.Value == '-')
-            .Select(dataCell => mc.GetNodeAtOrNull(dataCell.Position)!)
-            .Where(node => node != null!)
-            .ForEach(from => {
-                from.TryConnectTowards(Vector2I.Left)?.SetAttribute("cycle", true);
-                from.Left?.TryConnectTowards(Vector2I.Right)?.SetAttribute("cycle", true);
-                from.TryConnectTowards(Vector2I.Right)?.SetAttribute("cycle", true);
-                from.Right?.TryConnectTowards(Vector2I.Left)?.SetAttribute("cycle", true);
-            });
+        foreach (var from in template
+                     .GetIndexedValues()
+                     .Where(dataCell => dataCell.Value == '-')
+                     .Select(dataCell => mc.GetNodeAtOrNull(dataCell.Position)!)
+                     .Where(node => node != null!)) {
+            from.TryConnectTowards(Vector2I.Left)?.SetAttribute("cycle", true);
+            from.Left?.TryConnectTowards(Vector2I.Right)?.SetAttribute("cycle", true);
+            from.TryConnectTowards(Vector2I.Right)?.SetAttribute("cycle", true);
+            from.Right?.TryConnectTowards(Vector2I.Left)?.SetAttribute("cycle", true);
+        }
 
-        template
-            .GetIndexedValues()
-            .Where(dataCell => dataCell.Value == '|')
-            .Select(dataCell => mc.GetNodeAtOrNull(dataCell.Position)!)
-            .Where(node => node != null!)
-            .ForEach(from => {
-                from.TryConnectTowards(Vector2I.Up)?.SetAttribute("cycle", true);
-                from.Up?.TryConnectTowards(Vector2I.Down)?.SetAttribute("cycle", true);
-                from.TryConnectTowards(Vector2I.Down)?.SetAttribute("cycle", true);
-                from.Down?.TryConnectTowards(Vector2I.Up)?.SetAttribute("cycle", true);
-            });
+        foreach (var from in template
+                     .GetIndexedValues()
+                     .Where(dataCell => dataCell.Value == '|')
+                     .Select(dataCell => mc.GetNodeAtOrNull(dataCell.Position)!)
+                     .Where(node => node != null!)) {
+            from.TryConnectTowards(Vector2I.Up)?.SetAttribute("cycle", true);
+            from.Up?.TryConnectTowards(Vector2I.Down)?.SetAttribute("cycle", true);
+            from.TryConnectTowards(Vector2I.Down)?.SetAttribute("cycle", true);
+            from.Down?.TryConnectTowards(Vector2I.Up)?.SetAttribute("cycle", true);
+        }
 
-        template
-            .GetIndexedValues()
-            .Where(dataCell => dataCell.Value == '+' || dataCell.Value == 'o')
-            .Select(dataCell => mc.GetNodeAt(dataCell.Position))
-            .Where(node => node != null!)
-            .ForEach(from => {
-                from.TryConnectTowards(Vector2I.Up)?.SetAttribute("cycle", true);
-                from.Up?.TryConnectTowards(Vector2I.Down)?.SetAttribute("cycle", true);
-                from.TryConnectTowards(Vector2I.Down)?.SetAttribute("cycle", true);
-                from.Down?.TryConnectTowards(Vector2I.Up)?.SetAttribute("cycle", true);
-                from.TryConnectTowards(Vector2I.Left)?.SetAttribute("cycle", true);
-                from.Left?.TryConnectTowards(Vector2I.Right)?.SetAttribute("cycle", true);
-                from.TryConnectTowards(Vector2I.Right)?.SetAttribute("cycle", true);
-                from.Right?.TryConnectTowards(Vector2I.Left)?.SetAttribute("cycle", true);
-            });
+        foreach (var from in template
+                     .GetIndexedValues()
+                     .Where(dataCell => dataCell.Value == '+' || dataCell.Value == 'o')
+                     .Select(dataCell => mc.GetNodeAt(dataCell.Position))
+                     .Where(node => node != null!)) {
+            from.TryConnectTowards(Vector2I.Up)?.SetAttribute("cycle", true);
+            from.Up?.TryConnectTowards(Vector2I.Down)?.SetAttribute("cycle", true);
+            from.TryConnectTowards(Vector2I.Down)?.SetAttribute("cycle", true);
+            from.Down?.TryConnectTowards(Vector2I.Up)?.SetAttribute("cycle", true);
+            from.TryConnectTowards(Vector2I.Left)?.SetAttribute("cycle", true);
+            from.Left?.TryConnectTowards(Vector2I.Right)?.SetAttribute("cycle", true);
+            from.TryConnectTowards(Vector2I.Right)?.SetAttribute("cycle", true);
+            from.Right?.TryConnectTowards(Vector2I.Left)?.SetAttribute("cycle", true);
+        }
     }
 }

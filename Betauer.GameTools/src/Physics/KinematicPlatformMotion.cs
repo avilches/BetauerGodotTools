@@ -228,8 +228,10 @@ public class KinematicPlatformMotion {
     /// <returns></returns>
     public IEnumerable<RayCast2D> GetFloorRaycastColliding() {
         return FloorRaycasts?
-                   .Do(r => r.ForceRaycastUpdate())
-                   .Where(r => r.IsColliding())
+                   .Where(r => {
+                       r.ForceRaycastUpdate();
+                       return r.IsColliding();
+                   })
                ?? Enumerable.Empty<RayCast2D>();
     }
 

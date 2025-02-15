@@ -386,7 +386,7 @@ public class MazeNode {
     /// <param name="target">The target node</param>
     /// <returns>List of nodes forming the shortest path, or an empty list if no path exists. The path the start and the end node.</returns>
     /// <param name="canTraverse">Optional predicate that determines if a node can be traversed</param>
-    public IReadOnlyList<MazeNode> FindShortestPath(MazeNode target, Func<MazeNode, bool>? canTraverse = null)
+    public List<MazeNode> FindShortestPath(MazeNode target, Func<MazeNode, bool>? canTraverse = null)
         => MazePathFinder.FindShortestPath(this, target, PathWeightMode.None, canTraverse).Path;
 
     /// <summary>

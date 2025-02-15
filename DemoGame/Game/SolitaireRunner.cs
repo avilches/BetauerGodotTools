@@ -37,8 +37,10 @@ public class SolitaireMultiRunner {
     private void Complete(SolitaireConsoleDemo demo, int i) {
         demo.Run(i,
             handler => {
-                var cards = DeckBuilder.ClassicPokerDeck();
-                cards.ForEach(handler.State.AddCard);
+                var poker = DeckBuilder.ClassicPokerDeck();
+                foreach (var card in poker) {
+                    handler.State.AddCard(card);
+                }
                 handler.Config.HandSize = 8;
                 handler.PokerHandsManager.Config.FlushSize = 5;
                 handler.PokerHandsManager.Config.StraightSize = 5;

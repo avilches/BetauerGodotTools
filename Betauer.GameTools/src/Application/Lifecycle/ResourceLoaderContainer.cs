@@ -68,17 +68,22 @@ public class ResourceLoaderContainer {
     }
 
     public void UnloadResources() {
-        GetResourceFactories(ResourceLoad.DefaultTag).ForEach(sf => sf.Unload());
+        foreach (var sf in GetResourceFactories(ResourceLoad.DefaultTag)) {
+            sf.Unload();
+        }
     }
 
     public void UnloadResources(string tag) {
-        GetResourceFactories(tag).ForEach(sf => sf.Unload());
+        foreach (var sf in GetResourceFactories(tag)) {
+            sf.Unload();
+        }
     }
 
     public void UnloadResources(string[] tags) {
-        GetResourceFactories(tags).ForEach(sf => sf.Unload());
+        foreach (var sf in GetResourceFactories(tags)) {
+            sf.Unload();
+        }
     }
-
     public IEnumerable<ResourceLoad> GetResourceFactories(string tag) {
         return ResourceFactories.Where(sf => sf.Tag == tag);
     }

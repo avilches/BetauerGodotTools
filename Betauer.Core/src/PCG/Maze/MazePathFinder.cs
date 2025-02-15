@@ -37,7 +37,7 @@ public static class MazePathFinder {
         if (start == target) {
             return new PathResult([start], mode is PathWeightMode.None or PathWeightMode.EdgesOnly ? 0 : start.Weight);
         }
-        if (canTraverse != null && (!canTraverse(start) || !canTraverse(target))) return new PathResult(ImmutableList<MazeNode>.Empty, -1);
+        if (canTraverse != null && (!canTraverse(start) || !canTraverse(target))) return new PathResult([], -1);
 
         heuristic ??= ManhattanDistance;
 
@@ -93,7 +93,7 @@ public static class MazePathFinder {
                 }
             }
         }
-        return new PathResult(ImmutableList<MazeNode>.Empty, -1);
+        return new PathResult([], -1);
     }
 
     /// <summary>
@@ -104,9 +104,9 @@ public static class MazePathFinder {
     /// <param name="target">Target node</param>
     /// <param name="canTraverse">Optional predicate that determines if a node can be traversed</param>
     /// <returns>List of nodes forming the shortest path, or empty list if no path exists</returns>
-    public static IReadOnlyList<MazeNode> FindBfsPath(MazeNode start, MazeNode target, Func<MazeNode, bool>? canTraverse = null) {
+    public static List<MazeNode> FindBfsPath(MazeNode start, MazeNode target, Func<MazeNode, bool>? canTraverse = null) {
         if (start == target) return [start];
-        if (canTraverse != null && (!canTraverse(start) || !canTraverse(target))) return ImmutableList<MazeNode>.Empty;
+        if (canTraverse != null && (!canTraverse(start) || !canTraverse(target))) return [];
 
         var previous = new Dictionary<MazeNode, MazeNode>();
         var queue = new Queue<MazeNode>();
@@ -143,7 +143,7 @@ public static class MazePathFinder {
             }
         }
 
-        return ImmutableList<MazeNode>.Empty;
+        return [];
     }
 
     /// <summary>

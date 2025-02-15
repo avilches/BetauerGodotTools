@@ -158,25 +158,33 @@ public static class RestoreExtensions {
 
     public static MultiRestorer CreateRestorer(this IEnumerable<Node> nodes, params string[] properties) {
         var multiRestorer = new MultiRestorer();
-        nodes.ForEach(node => multiRestorer.Add(node.CreateRestorer(properties)));
+        foreach (var node in nodes) {
+            multiRestorer.Add(node.CreateRestorer(properties));
+        }
         return multiRestorer;
     }
 
     public static MultiRestorer CreateRestorer(this IEnumerable<Node> nodes, params NodePath[] properties) {
         var multiRestorer = new MultiRestorer();
-        nodes.ForEach(node => multiRestorer.Add(node.CreateRestorer(properties)));
+        foreach (var node in nodes) {
+            multiRestorer.Add(node.CreateRestorer(properties));
+        }
         return multiRestorer;
     }
 
     public static MultiRestorer CreateRestorer(this IEnumerable<Node> nodes, params IProperty[] properties) {
         var multiRestorer = new MultiRestorer();
-        nodes.ForEach(node => multiRestorer.Add(node.CreateRestorer(properties)));
+        foreach (var node in nodes) {
+            multiRestorer.Add(node.CreateRestorer(properties));
+        }
         return multiRestorer;
     }
 
     public static MultiRestorer CreateRestorer(this IEnumerable<Node> nodes) {
         var multiRestorer = new MultiRestorer();
-        nodes.ForEach(node => multiRestorer.Add(node.CreateRestorer()));
+        foreach (var node in nodes) {
+            multiRestorer.Add(node.CreateRestorer());
+        }
         return multiRestorer;
     }
 

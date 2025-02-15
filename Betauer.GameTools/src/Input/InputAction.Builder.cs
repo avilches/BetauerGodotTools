@@ -167,10 +167,10 @@ public partial class InputAction {
                 inputAction.MouseButton = _mouseButton;
             }
             if (_keys.Count > 0) {
-                _keys.ForEach(k => inputAction.Keys.Add(k));
+                inputAction.Keys.AddRange(_keys);
             }
             if (_buttons.Count > 0) {
-                _buttons.ForEach(b => inputAction.Buttons.Add(b));
+                inputAction.Buttons.AddRange(_buttons);
             }
             inputAction.Ctrl = _ctrlPressed;
             inputAction.Shift = _shiftPressed;

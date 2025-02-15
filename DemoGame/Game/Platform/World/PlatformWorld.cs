@@ -53,21 +53,27 @@ public partial class PlatformWorld : Node, IInjectable {
 	public override void _Ready() {
 		PlatformConfig.ConfigurePlatformsCollisions();
 
-		GetChildren().OfType<TileMap>().ForEach(PlatformConfig.ConfigureTileMapCollision);
-		GetChildren().OfType<CanvasModulate>().ForEach(cm => cm.Visible = true);
+		foreach (var tilemap in GetChildren().OfType<TileMap>()) {
+			PlatformConfig.ConfigureTileMapCollision(tilemap);
+		}
+		foreach (var cm in GetChildren().OfType<CanvasModulate>()) {
+			cm.Visible = true;
+		}
 		var stageController = StageControllerFactory.Create();
-		_stages.GetChildren().OfType<Area2D>().ForEach(stageController.ConfigureStage);
+		foreach (var stage in _stages.GetChildren().OfType<Area2D>()) {
+			stageController.ConfigureStage(stage);
+		}
 		AddChild(_playerSpawn);
 		AddChild(_bulletSpawn);
 	}
-	
+
 	public void StartNewGame() {
-		_enemySpawn.GetChildren().OfType<Marker2D>().ForEach(m => {
+		foreach (var m in _enemySpawn.GetChildren().OfType<Marker2D>()) {
 			if (m.Visible) AddNewZombie(m.GlobalPosition);
-		});
-		_lights.GetChildren().OfType<PointLight2D>().ForEach(light => {
+		}
+		foreach (var light in _lights.GetChildren().OfType<PointLight2D>()) {
 			if (light.Name.ToString().StartsWith("Candle")) CandleOff(light);
-		});
+		}
 		PlaceMetalbar();
 		PlaceKnife();
 		PlaceSlowGun();

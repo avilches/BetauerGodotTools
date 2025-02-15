@@ -500,4 +500,10 @@ public class Array2D<T>(T[,] data) : Array2D, IEnumerable<T> {
     public string GetString(Func<T, string> transform, char lineSeparator = '\n') {
         return GetString(item => transform(item.Value), lineSeparator);
     }
+
+    public void ForEach(Action<T> action) {
+        foreach (var o in this) {
+            action(o);
+        }
+    }
 }

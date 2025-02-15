@@ -30,8 +30,9 @@ public class SolitaireConsoleDemo(bool autoPlay, int maxSimulations, float simul
                     // ..DeckBuilder.Cards('H', 2, 6),
                 // ];
                 var poker = DeckBuilder.ClassicPokerDeck();
-                poker.ForEach(handler.State.AddCard);
-            },
+                foreach (var card in poker) {
+                    handler.State.AddCard(card);
+                }            },
             () => {
                 // demo.IncreaseRandomPokerHandLevel();
                 // demo.IncreaseRandomPokerHandLevel();

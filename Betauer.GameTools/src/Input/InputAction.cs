@@ -43,12 +43,12 @@ public enum InputActionBehaviour {
     /// * To force a JustPressed (no matter if the action is pressed or it isn't) call to ClearJustStates() and SimulatePress().
     /// </summary>
     Simulator,
-    
+
     /// <summary>
     /// It uses the Godot Input singleton to handle the action (WasPressed() and WasReleased() always return false)
     /// </summary>
     GodotInput,
-    
+
     /// <summary>
     /// It add WasPressed() and WasReleased() methods.
     /// </summary>
@@ -59,6 +59,7 @@ public partial class InputAction {
     public static readonly Logger Logger = LoggerFactory.GetLogger<InputAction>();
     public const float DefaultDeadZone = 0.5f;
     public static Builder Create(string name) => new(name);
+
     public static InputAction Simulator(string? name = null, string? saveAs = null) {
         return new InputAction(name, null, InputActionBehaviour.Simulator, saveAs) {
             Enabled = true
@@ -107,6 +108,7 @@ public partial class InputAction {
 
     // Joypad
     private int _joypadId = -1;
+
     public int JoypadId {
         get => _joypadId;
         set {
@@ -122,6 +124,7 @@ public partial class InputAction {
 
     // Needed for Load() and Save()
     private bool _allowMultipleButtons = true;
+
     public bool AllowMultipleButtons {
         get => _allowMultipleButtons;
         set {
@@ -133,6 +136,7 @@ public partial class InputAction {
     }
 
     private bool _allowMultipleKeys = true;
+
     public bool AllowMultipleKeys {
         get => _allowMultipleKeys;
         set {
@@ -165,7 +169,6 @@ public partial class InputAction {
         string name,
         string? axisName,
         InputActionBehaviour behaviour, string? saveAs) {
-
         Name = name;
         AxisName = axisName;
         Behaviour = behaviour;
@@ -209,7 +212,7 @@ public partial class InputAction {
             GD.PushWarning($"{nameof(LoadFromGodotProjectSettings)}: Action {Name} not found in project");
             return;
         }
-        
+
         foreach (var inputEvent in InputMap.ActionGetEvents(stringName)) {
             if (inputEvent is InputEventKey key) {
                 Keys.Add(key.Keycode);
@@ -255,10 +258,10 @@ public partial class InputAction {
     public bool HasAxis() => Axis != JoyAxis.Invalid;
 
     public bool HasKeys() => Keys.Count > 0;
-    
+
     public bool HasButtons() => Buttons.Count > 0;
-    
-    public bool HasKey(Key key) =>  Keys.Contains(key);
+
+    public bool HasKey(Key key) => Keys.Contains(key);
 
     public bool HasButton(JoyButton button) => Buttons.Contains(button);
 
@@ -289,9 +292,9 @@ public partial class InputAction {
     public string Export() {
         var export = new List<string>();
         if (HasButtons()) {
-            Buttons.Where(button => button != JoyButton.Invalid)
-                .Select(button => $"Button:{button}")
-                .ForEach(export.Add);
+            var validButtons = Buttons.Where(button => button != JoyButton.Invalid)
+                .Select(button => $"Button:{button}");
+            export.AddRange(validButtons);
         }
         if (HasAxis()) {
             export.Add($"JoyAxis:{Axis}");
@@ -299,9 +302,9 @@ public partial class InputAction {
             if (IncludeDeadZone) export.Add($"DeadZone:{DeadZone.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
         }
         if (HasKeys()) {
-            Keys.Where(key => key != Key.Unknown && key != Key.None)
-                .Select(key => $"Key:{key}")
-                .ForEach(export.Add);
+            var validKeys = Keys.Where(key => key != Key.Unknown && key != Key.None)
+                .Select(key => $"Key:{key}");
+            export.AddRange(validKeys);
         }
         if (HasMouseButton()) {
             export.Add($"Mouse:{MouseButton}");

@@ -76,7 +76,9 @@ public static partial class ContainerExtensions {
             restorer.Add(container.CreateChildFocusedRestorer());
         }
         restorer.Save();
-        container.GetChildren().OfType<BaseButton>().ForEach(button => button.SetFocusDisabled(true));
+        foreach (var button in container.GetChildren().OfType<BaseButton>()) {
+            button.SetFocusDisabled(true);
+        }
         return restorer;
     }
 

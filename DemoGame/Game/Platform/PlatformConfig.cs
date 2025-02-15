@@ -6,7 +6,7 @@ using Betauer.DI.Attributes;
 using Godot;
 using static Veronenger.Game.Platform.CollisionLayerConstants;
 
-namespace Veronenger.Game.Platform; 
+namespace Veronenger.Game.Platform;
 
 [Singleton]
 public class PlatformConfig {
@@ -21,7 +21,9 @@ public class PlatformConfig {
     }
 
     public void ConfigurePlatformsCollisions() {
-        SceneTree.GetNodesInGroup(GROUP_PLATFORMS).OfType<PhysicsBody2D>().ForEach(ConfigurePlatformCollision);
+        foreach (var platform in SceneTree.GetNodesInGroup(GROUP_PLATFORMS).OfType<PhysicsBody2D>()) {
+            ConfigurePlatformCollision(platform);
+        }
     }
 
     public void ConfigurePlatformCollision(PhysicsBody2D platform) {
@@ -44,5 +46,4 @@ public class PlatformConfig {
     public bool IsPlatform(GodotObject? platform) => platform is PhysicsBody2D psb && psb.IsInGroup(GROUP_PLATFORMS);
     public bool IsMovingPlatform(GodotObject? platform) => platform is PhysicsBody2D psb && psb.IsInGroup(GROUP_MOVING_PLATFORMS);
     public bool IsFallingPlatform(GodotObject? platform) => platform is PhysicsBody2D psb && psb.IsInGroup(GROUP_FALLING_PLATFORMS);
-
 }

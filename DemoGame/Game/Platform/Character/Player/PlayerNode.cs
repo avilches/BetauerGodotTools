@@ -39,7 +39,7 @@ public enum PlayerState {
 	Jumping,
 	Hurting,
 	Death,
-			
+
 	Floating,
 }
 
@@ -67,7 +67,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 	[NodePath("Character")] public CharacterBody2D CharacterBody2D;
 	[NodePath("Character/Sprites/Weapon")] private Sprite2D _weaponSprite;
 	[NodePath("Character/Sprites/Body")] private Sprite2D _mainSprite;
-	
+
 	[NodePath("Character/Sprites/AnimationPlayer")] private AnimationPlayer _animationPlayer;
 	[NodePath("Character/AttackArea1")] private Area2D _attackArea1;
 	[NodePath("Character/AttackArea2")] private Area2D _attackArea2;
@@ -82,9 +82,9 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 	[Inject] private PlatformConfig PlatformConfig { get; set; }
 	[Inject] private ITransient<StageCameraController> StageCameraControllerFactory { get; set; }
 	[Inject] private CameraContainer CameraContainer { get; set; }
-	
+
 	[Inject] private NodePool<PickableItemNode> PickableItemPool { get; set; }
-	
+
 	[Inject] private SceneTree SceneTree { get; set; }
 	[Inject] private PlatformBus PlatformBus { get; set; }
 	[Inject] private PlatformQuery PlatformQuery { get; set; }
@@ -107,7 +107,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 	public Anim AnimationShoot { get; private set; }
 	public Anim AnimationAirAttack { get; private set; }
 	public Anim AnimationHurt { get; private set; }
-	
+
 	// private bool IsOnPlatform() => PlatformManager.IsPlatform(Body.GetFloor());
 	private bool IsOnFallingPlatform() => PlatformBody.IsOnFloor() &&
 										  PlatformConfig.IsFallingPlatform(PlatformBody
@@ -138,11 +138,11 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 		ConfigurePlayerHurtArea();
 		ConfigureFsm();
 		ConfigureOverlay();
-		
+
 		// Uncomment to discover if all the Ready methods are restoring the data correctly or there is still some property updated
 		// this.OnReady(_restorer.Save, true);
 		// this.OnReady(_restorer.Restore);
-	
+
 		// Uncomment to discover all properties modified during the life of the Node in the scene
 		// TreeExiting += _restorer.Restore;
 	}
@@ -165,7 +165,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 		CharacterBody2D.FloorConstantSpeed = true;
 		CharacterBody2D.FloorSnapLength = MotionConfig.SnapLength;
 		var flipper = new FlipperList()
-			.Sprite2DFlipH(_mainSprite)                               
+			.Sprite2DFlipH(_mainSprite)
 			.Sprite2DFlipH(_weaponSprite)
 			.ScaleX(_attackArea1)
 			.ScaleX(_attackArea2);
@@ -177,7 +177,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 			_mainSprite.Visible = true;
 			_mainSprite.Modulate = Colors.White;
 		};
-		
+
 		// OnAfter += () => {
 		// 	Label.Text = _animationStack.GetPlayingOnce() != null
 		// 		? _animationStack.GetPlayingOnce().Name
@@ -192,7 +192,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 		_restorer.Add(_weaponSprite);
 		_restorer.Add(CharacterBody2D);
 		_restorer.Add(PlayerDetector);
-		
+
 		Ready += () => CollisionLayerConfig.PlayerConfigureCollisions(this);
 
 		CollisionLayerConfig.PlayerPickableArea(this, OnPick);
@@ -252,9 +252,9 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 	public void SetCamera(Camera2D camera) {
 		_cameraController = CameraContainer.Camera(camera).Follow(CharacterBody2D);
 		// Uncomment to enable stages
-		// StageCameraController.CurrentCamera = camera; 
+		// StageCameraController.CurrentCamera = camera;
 	}
-	
+
 	public void StopFollowingCamera() {
 		StageCameraController.CurrentCamera = null;
 	}
@@ -287,31 +287,32 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 		};
 		_restorer.Add(_attackArea1);
 		_restorer.Add(_attackArea2);
-		
+
 		OnProcess += delta => {
 			if (PlayerGameObject.AvailableHits > 0) {
 				CheckAttackArea(_attackArea1);
 				CheckAttackArea(_attackArea2);
 			}
-			
-			// Monitoring flag of every area is changed during the melee attack animations 
+
+			// Monitoring flag of every area is changed during the melee attack animations
 			void CheckAttackArea(Area2D attackArea) {
 				if (attackArea.Monitoring && attackArea.HasOverlappingAreas()) {
-					attackArea.GetOverlappingAreas()
+					var enemies = attackArea.GetOverlappingAreas()
 						.Select(area2D => area2D.GetCollisionNode<NpcNode>())
 						.Where(enemy => enemy.CanBeAttacked(Inventory.WeaponMeleeEquipped))
 						.OrderBy(enemy => enemy.DistanceToPlayer()) // Ascending, so first element is the closest to the player
-						.Take(PlayerGameObject.AvailableHits)
-						.ForEach(enemy => {
-							PlayerGameObject.AvailableHits--;
-							PlatformBus.Publish(new PlayerAttackEvent(this, enemy, Inventory.WeaponMeleeEquipped));
-						});
+						.Take(PlayerGameObject.AvailableHits);
+
+					foreach(var enemy in enemies) {
+						PlayerGameObject.AvailableHits--;
+						PlatformBus.Publish(new PlayerAttackEvent(this, enemy, Inventory.WeaponMeleeEquipped));
+					}				
 				}
 			}
 		};
 	}
 
-	public bool CanJump() => !RaycastCanJump.IsColliding(); 
+	public bool CanJump() => !RaycastCanJump.IsColliding();
 
 	public void ApplyFloorGravity(float factor = 1.0F) {
 		PlatformBody.ApplyGravity(PlayerConfig.FloorGravity * factor, PlayerConfig.MaxFallingSpeed, (float)_fsm.Delta);
@@ -378,7 +379,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 			PlayerGameObject.Invincible = false;
 			_mainSprite.Visible = true;
 		}
-		
+
 		void StartInvincibleEffect() {
 			const float flashTime = 0.025f;
 			invincibleTween?.Kill();
@@ -405,11 +406,11 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 			_stateTimer.Restart();
 			xInputEnterState = XInput;
 		};
-		
+
 		var shootTimer = new GodotStopwatch().Start();
 
 		bool PlayerCanMeleeAttack() => Inventory.WeaponEquipped is WeaponMeleeGameObject;
-		bool PlayerCanShoot() => Inventory.WeaponEquipped is WeaponRangeGameObject weaponRangeItem && 
+		bool PlayerCanShoot() => Inventory.WeaponEquipped is WeaponRangeGameObject weaponRangeItem &&
 								 shootTimer.Elapsed >= weaponRangeItem.DelayBetweenShots;
 
 		_fsm.On(PlayerEvent.Idle).Set(PlayerState.Idle);
@@ -424,7 +425,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 			}
 			return ctx.Stay();
 		});
-		
+
 		TreeExiting += () => {
 			RestoreInvincibleEffect();
 			FinishFallFromPlatform();
@@ -485,7 +486,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 					FallFromPlatform();
 					return context.Set(PlayerState.Fall);
 				})
-			.If(() => Attack.IsJustPressed).Send(PlayerEvent.Attack)	
+			.If(() => Attack.IsJustPressed).Send(PlayerEvent.Attack)
 			.If(() => Jump.IsJustPressed && CanJump()).Set(PlayerState.Jumping)
 			.If(() => XInput != 0).Set(PlayerState.Running)
 			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.Fall)
@@ -505,7 +506,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 					}
 				}
 				LateralState.Flip(XInput);
-				PlatformBody.ApplyLateralConstantAcceleration(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.Friction, 
+				PlatformBody.ApplyLateralConstantAcceleration(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.Friction,
 					PlayerConfig.StopIfSpeedIsLessThan, PlayerConfig.ChangeDirectionFactor, (float)_fsm.Delta);
 				PlatformBody.Move();
 			})
@@ -533,7 +534,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 				PlatformBody.Move();
 				if (Attack.IsJustPressed) {
 					if (_attackState == AttackState.Step1) {
-						// Promoted short attack to long attack 
+						// Promoted short attack to long attack
 						_attackState = AttackState.Step2;
 					} else if (_attackState == AttackState.Step2) {
 						//
@@ -577,7 +578,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 				// no ammo, reload?
 				PlayerGameObject.Reload(weapon);
 				return;
-			} 
+			}
 			shootTimer.Restart();
 			var bulletPosition = weapon.Config.ProjectileStartPosition * new Vector2(LateralState.FacingRight, 1);
 			var bulletDirection = new Vector2(LateralState.FacingRight, 0);
@@ -632,7 +633,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 			.If(() => XInput == 0).Set(PlayerState.Idle)
 			.If(() => XInput != 0).Set(PlayerState.Running)
 			.Build();
-		
+
 		_fsm.State(PlayerState.Jumping)
 			.OnInput(InventoryHandler)
 			.Enter(() => {
@@ -678,12 +679,12 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 
 		_fsm.OnTransition += (args) => {
 			if (args is { From: PlayerState.FallWithCoyote, To: PlayerState.Jumping }) {
-				_coyoteMonitor?.Show($"{coyoteTimer.Elapsed:0.00} <= {PlayerConfig.CoyoteJumpTime:0.00} Done!");				
+				_coyoteMonitor?.Show($"{coyoteTimer.Elapsed:0.00} <= {PlayerConfig.CoyoteJumpTime:0.00} Done!");
 			} else if (Jump.IsJustPressed) {
 				_coyoteMonitor?.Show($"{coyoteTimer.Elapsed:0.00} > {PlayerConfig.CoyoteJumpTime:0.00} TOO LATE");
 			}
 		};
-				
+
 		_fsm.State(PlayerState.Fall)
 			.OnInput(InventoryHandler)
 			.Execute(() => {
@@ -735,7 +736,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 		_fsm.State(PlayerState.Death)
 			.Enter(() => {
 				Console.WriteLine("MUERTO");
-				MainBus.Publish(MainEvent.TriggerGameOver);                                                                     
+				MainBus.Publish(MainEvent.TriggerGameOver);
 			})
 			.If(() => true).Set(PlayerState.Idle)
 			.Build();

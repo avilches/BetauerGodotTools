@@ -11,7 +11,6 @@ using Betauer.Tools.FastReflection;
 namespace Betauer.DI;
 
 public abstract class Scanner {
-    
     private static readonly Logger Logger = LoggerFactory.GetLogger<Scanner>();
 
     internal static void ScanConfiguration(Container.Builder builder, object configuration) {
@@ -54,9 +53,11 @@ public abstract class Scanner {
             Logger.Debug("{0} class {1}", scanAttribute.FormatAttribute(), type.GetTypeName());
             stack ??= new HashSet<Type>();
             stack.Add(type);
-            scanAttribute.GetType().GetGenericArguments()
-                .Where(typeToImport => !stack.Contains(typeToImport))
-                .ForEach(typeToImport => Scan(builder, typeToImport, stack));
+            foreach (var typeToImport in scanAttribute.GetType()
+                         .GetGenericArguments()
+                         .Where(typeToImport => !stack.Contains(typeToImport))) {
+                Scan(builder, typeToImport, stack);
+            }
         }
     }
 

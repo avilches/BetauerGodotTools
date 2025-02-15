@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace Betauer.Core.PCG.Maze.Zoned;
@@ -10,13 +12,13 @@ public class MazeSolutionScoring {
     /// - KeyLocations[0] = the node in the zone 0 with the key to open the zone 1.
     /// - KeyLocations[lastZone] = the "goal"
     /// </summary>
-    public IReadOnlyList<MazeNode> KeyLocations { get; }
+    public List<MazeNode> KeyLocations { get; }
 
     /// <summary>
     /// The complete path taken through the maze, including all nodes visited and revisited in order.
     /// For example: if a path goes A->B->C->B->D, SolutionPath will contain [A,B,C,B,D]
     /// </summary>
-    public IReadOnlyList<MazeNode> SolutionPath { get; }
+    public List<MazeNode> SolutionPath { get; }
 
     /// <summary>
     /// The shortest possible path to the final destination, ignoring zone restrictions and keys. It's the path the player would take if the player had all the
@@ -25,7 +27,7 @@ public class MazeSolutionScoring {
     /// Example: if SolutionPath is [A,B,C,B,D] and GoalPath is [A,B,D], 
     /// it shows that revisiting B and visiting C were necessary due to zone constraints (the player needs to pick every key in order)
     /// </summary>
-    public IReadOnlyList<MazeNode> GoalPath { get; }
+    public List<MazeNode> GoalPath { get; }
 
     /// <summary>
     /// Groups nodes by how many times they were visited during solution traversal.
@@ -37,7 +39,7 @@ public class MazeSolutionScoring {
     ///
     /// The [0] key is used for nodes that were never visited, so they are not part of the solution path.
     /// </summary>
-    public IReadOnlyDictionary<int, List<MazeNode>> NodesByVisit { get; }
+    public Dictionary<int, List<MazeNode>> NodesByVisit { get; }
 
     /// <summary>
     /// Percentage of nodes that have each visit count, relative to total maze nodes.
@@ -47,7 +49,7 @@ public class MazeSolutionScoring {
     /// - VisitDistribution[1] = 0.5 // 50% of nodes were visited once
     /// - VisitDistribution[2] = 0.1 // 10% of nodes were visited twice
     /// </summary>
-    public IReadOnlyDictionary<int, float> VisitDistribution { get; }
+    public Dictionary<int, float> VisitDistribution { get; }
 
     /// <summary>
     /// Measures how evenly distributed the visits are across nodes using the Gini coefficient.
@@ -89,8 +91,8 @@ public class MazeSolutionScoring {
     
     public int GetTraversalCount(MazeNode node) => _traversalCount.GetValueOrDefault(node, 0);
 
-    public MazeSolutionScoring(IReadOnlyCollection<MazeNode> nodes, IReadOnlyList<MazeNode> keyLocations, MazeNode start) {
-        KeyLocations = keyLocations;
+    public MazeSolutionScoring(IReadOnlyCollection<MazeNode> nodes, IEnumerable<MazeNode> keyLocations, MazeNode start) {
+        KeyLocations = new List<MazeNode>(keyLocations);
 
         // The first path starts from the node root and goes to the first key in the zone 0 (best location in 0)
         // because the first key in the zone 0 opens the next zone in the zoneOrder
@@ -99,10 +101,10 @@ public class MazeSolutionScoring {
         var paths = new List<IReadOnlyList<MazeNode>>();
         var solutionPath = new List<MazeNode>();
 
-        foreach (var zoneId in Enumerable.Range(0, keyLocations.Count)) {
+        foreach (var zoneId in Enumerable.Range(0, KeyLocations.Count)) {
             keys.Add(zoneId);
             var pathStart = stops.Last();
-            var pathEnd = keyLocations[zoneId];
+            var pathEnd = KeyLocations[zoneId];
 
             var path = pathStart.FindShortestPath(pathEnd, node => keys.Contains(node.ZoneId));
             if (path.Count == 0) {
@@ -124,7 +126,7 @@ public class MazeSolutionScoring {
         SolutionPath = solutionPath;
         // Calcular non-linearity: suma de todas las visitas adicionales
         // (cada habitación que se visita más de una vez suma sus visitas extras)
-        GoalPath = start.FindShortestPath(keyLocations[keyLocations.Count - 1], node => true);
+        GoalPath = start.FindShortestPath(KeyLocations[^1], node => true);
 
         NodesByVisit = nodes.GroupBy(node => _traversalCount.GetValueOrDefault(node, 0))
             .OrderBy(i => i.Key)

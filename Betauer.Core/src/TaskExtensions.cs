@@ -14,7 +14,12 @@ public static class TaskExtensions {
     public static Task OnException(this Task task, Action<Exception> action) =>
         task.OnFaulted(t => {
             var ex = t.Exception?.GetBaseException();
-            if (ex != null) action(ex);
+            if (ex != null) {
+                ex = t.Exception.InnerExceptions.Count == 1
+                    ? t.Exception.InnerExceptions[0]
+                    : t.Exception;
+                action(ex);
+            }
         });        
 
         

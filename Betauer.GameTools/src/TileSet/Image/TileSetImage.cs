@@ -8,9 +8,8 @@ using Godot;
 namespace Betauer.TileSet.Image;
 
 public class TileSetImage {
-
     public CellImage CellImage { get; }
-    
+
     public int Width => CellImage.Width;
     public int Height => CellImage.Height;
     public int ImageWidth => CellImage.ImageWidth;
@@ -20,8 +19,8 @@ public class TileSetImage {
     public byte[] GetPng() => CellImage.GetPng();
 
     public ITileSetLayout Layout { get; }
-    
-    public IReadOnlyCollection<int> GetTileIds() => Layout.GetTileIds();
+
+    public ICollection<int> GetTileIds() => Layout.GetTileIds();
     public bool HasTile(int tileId) => Layout.HasTile(tileId);
     public Vector2I GetTilePositionById(int tileId) => Layout.GetAtlasCoordsByTileId(tileId);
     public int GetTileIdByPosition(int x, int y) => Layout.GetTileIdByPosition(x, y);
@@ -63,14 +62,12 @@ public class TileSetImage {
 
     public TileSetImage ExportAs(ITileSetLayout layout) {
         var destination = new TileSetImage(layout, CellSize);
-        layout.GetTileIds().ForEach(tileId => {
-            if (HasTile(tileId)) {
-                Copy(tileId).PasteTL(destination, tileId);
-            }
-        });
+        foreach (var tileId in layout.GetTileIds().Where(HasTile)) {
+            Copy(tileId).PasteTL(destination, tileId);
+        }
         return destination;
     }
-    
+
     public ImageTexture CreateTexture(string? path = null) {
         var texture2D = new ImageTexture();
         if (path != null) {
@@ -84,7 +81,7 @@ public class TileSetImage {
         if (desiredLayout.GetTileIds().All(HasTile)) {
             return ExportAs(desiredLayout);
         }
-        
+
         // create (clone) the layout, because maybe some of the tiles are not present in the source and the layout will end up with some tiles -1
         var layout = new TileSetLayoutBuilder(desiredLayout);
         var destination = new TileSetImage(layout, CellSize);
@@ -126,7 +123,7 @@ public class TileSetImage {
                     canApplyMoreRules = true; // if a rule is applied, maybe this rule helps to another one, so we need to apply again
                     return true;
                 } else {
-                    Console.WriteLine($"Ignoring rule for {rule.TileId}, it needs tiles {string.Join(",", rule.Dependencies??Array.Empty<int>())}");
+                    Console.WriteLine($"Ignoring rule for {rule.TileId}, it needs tiles {string.Join(",", rule.Dependencies ?? Array.Empty<int>())}");
                 }
                 return false;
             });
@@ -137,14 +134,15 @@ public class TileSetImage {
     }
 
     private static List<BaseRule>? _blob47Rules;
+
     public static List<BaseRule> Blob47Rules => _blob47Rules ??= new List<BaseRule> {
         // *
         // |
         // *
-        new StepRule(16).LeftRight(28,112),
-        new StepRule(17).LeftRight(31,241),
+        new StepRule(16).LeftRight(28, 112),
+        new StepRule(17).LeftRight(31, 241),
         new StepRule(1).LeftRight(7, 193),
-        
+
         // *-*
         new StepRule(4).UpDown(28, 7),
         new StepRule(68).UpDown(124, 199),
@@ -153,14 +151,14 @@ public class TileSetImage {
         // *
         new StepRule(0).Do(28, StepRule.Step.UpLeftQuarter).Do(112, StepRule.Step.UpRightQuarter)
             .Do(7, StepRule.Step.DownLeftQuarter).Do(193, StepRule.Step.DownRightQuarter),
-        
+
         new StepRule(20).Quarters(28, 28, 28, 247),
         new StepRule(84).Quarters(124, 124, 223, 247),
         new StepRule(80).Quarters(112, 112, 223, 112),
-        new StepRule(21).Quarters(31, 253,31, 247),
-        new StepRule(85).Quarters(127,253, 223, 247),
+        new StepRule(21).Quarters(31, 253, 31, 247),
+        new StepRule(85).Quarters(127, 253, 223, 247),
         new StepRule(81).Quarters(127, 241, 223, 241),
-        new StepRule( 5).Quarters(7, 253, 7, 7),
+        new StepRule(5).Quarters(7, 253, 7, 7),
         new StepRule(69).Quarters(127, 253, 199, 199),
         new StepRule(65).Quarters(127, 193, 193, 193),
 
@@ -180,14 +178,12 @@ public class TileSetImage {
         new StepRule(71).Quarters(127, 7, 199, 199),
         new StepRule(197).Quarters(193, 253, 199, 199),
         new StepRule(93).Quarters(127, 253, 223, 28),
-        
-        
+
         new StepRule(125).Quarters(127, 253, 124, 124),
         new StepRule(119).Quarters(127, 7, 112, 247),
         new StepRule(245).Quarters(241, 253, 241, 247),
         new StepRule(95).Quarters(127, 31, 223, 31),
         new StepRule(221).Quarters(193, 253, 223, 28),
-        new StepRule(215).Quarters(199,199, 223, 247),
+        new StepRule(215).Quarters(199, 199, 223, 247),
     };
-
 }

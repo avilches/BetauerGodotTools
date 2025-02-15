@@ -8,7 +8,7 @@ public abstract record EnumConfig<TEnum, TConfig>(TEnum Type) where TEnum : stru
 
     private static readonly Dictionary<TEnum, TConfig> Configs = new();
 
-    public static IEnumerable<TConfig> All => Configs.Values;
+    public static Dictionary<TEnum, TConfig>.ValueCollection All => Configs.Values;
 
     // Método protegido para registrar configuraciones, solo accesible desde las clases derivadas
     public static void Register(TConfig config) {
@@ -20,9 +20,7 @@ public abstract record EnumConfig<TEnum, TConfig>(TEnum Type) where TEnum : stru
 
     public static void RegisterAll(params TConfig[] configs) {
         Clear();
-        foreach (var config in configs) {
-            Register(config);
-        }
+        configs.ForEach(Register);
         VerifyAll();
     }
 
