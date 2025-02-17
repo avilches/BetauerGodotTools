@@ -8,12 +8,13 @@ public enum CellType : byte { // 1 byte = 256 cell types; short = 2 bytes = 6553
     Door,
 }
 
-public record CellTypeConfig(CellType Type, bool IsBlocked) : EnumConfig<CellType, CellTypeConfig>(Type) {
+public record CellTypeConfig(CellType Type, bool IsBlocked, char Glyph) : EnumConfig<CellType, CellTypeConfig>(Type) {
     public static void DefaultConfig() {
         RegisterAll(
-            new CellTypeConfig(CellType.Floor, false),
-            new CellTypeConfig(CellType.Wall, true),
-            new CellTypeConfig(CellType.Door, false)
+            new CellTypeConfig(CellType.Wall, true, '#'),
+
+            new CellTypeConfig(CellType.Floor, false, ' '),
+            new CellTypeConfig(CellType.Door, false, '/')
         );
     }
 }

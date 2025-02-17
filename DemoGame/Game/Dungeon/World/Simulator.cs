@@ -39,7 +39,8 @@ public class Simulator {
         Task.Run(() => HandlePlayerInput(_rogueWorld.Player));
 
         var ticks = turns * _rogueWorld.TurnWorld.TicksPerTurn;
-        var process = _rogueWorld.TurnWorld.CreateTurnSystem().CreateTurnSystemProcess();
+        _rogueWorld.TurnWorld.CreateTurnSystem().Run().Wait();
+        /*
         var lastTick = Environment.TickCount;
         while (_running && _rogueWorld.TurnWorld.CurrentTick < ticks) {
             var currentTick = Environment.TickCount;
@@ -50,6 +51,7 @@ public class Simulator {
             Thread.Sleep(millisecondsPerFrame);
         }
         _running = false;
+    */
     }
 
     public static string LoadTemplateContent(string templatePath) {

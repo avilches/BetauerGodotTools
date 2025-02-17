@@ -36,6 +36,7 @@ public partial class DungeonGameView : IGameView {
 
 	public DungeonMap DungeonMap;
 	public RogueWorld RogueWorld;
+	public TurnSystem TurnSystem;
 
 	private CameraController _cameraController;
 
@@ -44,6 +45,8 @@ public partial class DungeonGameView : IGameView {
 	public async Task StartNewGame(string? saveName = null) {
 		await GameLoader.Load(DungeonGameResources.GameLoaderTag);
 		Configure();
+		TurnSystem = RogueWorld.TurnWorld.CreateTurnSystem();
+		TurnSystem.Run();
 	}
 
 	private void Configure() {
@@ -63,8 +66,6 @@ public partial class DungeonGameView : IGameView {
 		DungeonPlayerActions.EnableAll();
 
 		SceneTree.Root.AddChild(DungeonMap); // last step (it calls to all the _Ready method/events)
-
-		DungeonMap.OnProcess += RogueWorld.TurnWorld.CreateTurnSystem().CreateTurnSystemProcess()._Process;
 	}
 
 	private RogueWorld CreateRogueWorld() {
@@ -89,6 +90,7 @@ public partial class DungeonGameView : IGameView {
 			Container.ResolveAll<INodePool>().ForEach(p => p.FreeAll());
 			GameLoader.UnloadResources(DungeonGameResources.GameLoaderTag);
 		}
+		TurnSystem.Stop();
 		DungeonPlayerActions.DisableAll();
 		DungeonPlayerActions.Stop();
 

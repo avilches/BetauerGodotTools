@@ -40,9 +40,8 @@ public partial class DungeonMap : Node2D, IInjectable {
 
             RogueWorld.TurnWorld.Cells.ForEach((cell) => {
                 if (cell == null) return;
-                if (cell.Config.IsBlocked) {
-                    TileMapLayer.SetCell(cell.Position, (int)TileSetSourceId.SmAscii16x16, new Vector2I(3, 2));
-                }
+                var glyph = cell.Config.Glyph;
+                TileMapLayer.SetCell(cell.Position, (int)TileSetSourceId.SmAscii16x16, new Vector2I((byte)glyph % 16, (byte)glyph / 16));
                 if (PlayerPos == Vector2I.Zero && cell.Config.IsBlocked == false) {
                     PlayerPos = cell.Position;
                 }
@@ -54,38 +53,27 @@ public partial class DungeonMap : Node2D, IInjectable {
         };
     }
 
+    public override void _Input(InputEvent @event) {
+        if (RogueWorld.Player.IsWaiting) {
+            PlayerEvent(@event);
+        }
+    }
+
+    private void PlayerEvent(InputEvent @event) {
+        if (DungeonPlayerActions.Right.IsJustPressed) {
+            MoveTo(PlayerPos + Vector2I.Right);
+        } else if (DungeonPlayerActions.Left.IsJustPressed) {
+            MoveTo(PlayerPos + Vector2I.Left);
+        } else if (DungeonPlayerActions.Up.IsJustPressed) {
+            MoveTo(PlayerPos + Vector2I.Up);
+        } else if (DungeonPlayerActions.Down.IsJustPressed) {
+            MoveTo(PlayerPos + Vector2I.Down);
+        }
+    }
+
+
     public void Configure(RogueWorld rogueWorld) {
         RogueWorld = rogueWorld;
-        OnProcess += (d) => {
-            if (!RogueWorld.Player.IsWaiting) {
-                return;
-            }
-            if (DungeonPlayerActions.Right.IsJustPressed) {
-                MoveTo(PlayerPos + Vector2I.Right);
-            } else if (DungeonPlayerActions.Left.IsJustPressed) {
-                MoveTo(PlayerPos + Vector2I.Left);
-            } else if (DungeonPlayerActions.Up.IsJustPressed) {
-                MoveTo(PlayerPos + Vector2I.Up);
-            } else if (DungeonPlayerActions.Down.IsJustPressed) {
-                MoveTo(PlayerPos + Vector2I.Down);
-            }
-
-            /*
-            if (DungeonPlayerActions.Right.IsJustPressed) {
-                PlayerPos += Vector2I.Right;
-                Player.Position = TileMapLayer.MapToLocal(PlayerPos);
-            } else if (DungeonPlayerActions.Left.IsJustPressed) {
-                PlayerPos += Vector2I.Left;
-                Player.Position = TileMapLayer.MapToLocal(PlayerPos);
-            } else if (DungeonPlayerActions.Up.IsJustPressed) {
-                PlayerPos += Vector2I.Up;
-                Player.Position = TileMapLayer.MapToLocal(PlayerPos);
-            } else if (DungeonPlayerActions.Down.IsJustPressed) {
-                PlayerPos += Vector2I.Down;
-                Player.Position = TileMapLayer.MapToLocal(PlayerPos);
-            }
-        */
-        };
     }
 
     private void MoveTo(Vector2I targetPosition) {

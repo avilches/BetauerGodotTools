@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Betauer.Core.DataMath;
+using Betauer.Tools.Logging;
 using Godot;
 
 namespace Veronenger.Game.Dungeon.World;
@@ -132,52 +133,60 @@ public class TurnWorld {
 public class TurnSystem {
     private readonly TurnWorld _world;
 
+    private static readonly Logger Logger = LoggerFactory.GetLogger<TurnSystem>();
+    public bool Running { get; private set; } = false;
+    public bool Busy { get; private set; } = false;
+
     internal TurnSystem(TurnWorld world) {
         _world = world;
     }
 
+    public async Task Run() {
+        if (Running) return;
+        Running = true;
+        while (Running) {
+            await ProcessTickAsync();
+        }
+    }
+
+    public void Stop() {
+        Running = false;
+    }
+
     public async Task ProcessTickAsync() {
+        if (Busy) return;
+        Running = true;
+        Busy = true;
         _world.NextTick();
 
-        // ToArray() to avoid concurrent modification
-        foreach (var entity in _world.Entities.ToArray()) {
+        foreach (var entity in _world.Entities.ToArray()) { // ToArray() to avoid concurrent modification
             entity.TickStart();
             if (entity.CanAct()) {
-                var action = await entity.DecideAction();
-                entity.Execute(action);
+                var action = await DecideAction(entity);
+                if (action != null) entity.Execute(action);
             }
             entity.TickEnd();
-        }
-    }
-
-    public TurnSystemProcess CreateTurnSystemProcess() {
-        return new TurnSystemProcess(this);
-    }
-}
-
-public class TurnSystemProcess {
-    public bool Busy { get; private set; } = false;
-
-    private Exception? _exception = null;
-    private readonly TurnSystem _turnSystem;
-
-    internal TurnSystemProcess(TurnSystem turnSystem) {
-        _turnSystem = turnSystem;
-    }
-
-    public void _Process(double delta) {
-        if (_exception != null) {
-            var e = _exception;
-            _exception = null;
-            throw e;
-        }
-        if (Busy) return;
-        Busy = true;
-        _turnSystem.ProcessTickAsync().ContinueWith(t => {
-            if (t.IsFaulted) {
-                _exception = t.Exception?.GetBaseException() ?? t.Exception;
+            if (!Running) {
+                break;
             }
-            Busy = false;
-        });
+        }
+        Busy = false;
+    }
+
+    private async Task<ActionCommand?> DecideAction(Entity entity) {
+        while (Running) {
+            try {
+                var decideTask = entity.DecideAction();
+                var timeoutTask = Task.Delay(166);
+                var completedTask = await Task.WhenAny(decideTask, timeoutTask);
+                if (completedTask == decideTask) {
+                    return await decideTask;
+                }
+            } catch (Exception e) {
+                Logger.Error($"Error deciding action for {entity.Name}: {e.Message}");
+                return null;
+            }
+        }
+        return null;
     }
 }
