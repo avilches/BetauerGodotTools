@@ -9,8 +9,8 @@ using Godot;
 namespace Veronenger.Game.Dungeon.World;
 
 public class TurnWorld {
-    private readonly List<Entity> _entities = [];
-    private readonly Dictionary<string, Entity> _entitiesByName = [];
+    private readonly List<EntityBase> _entities = [];
+    private readonly Dictionary<string, EntityBase> _entitiesByName = [];
 
     public Array2D<WorldCell?> Cells { get; private set; }
 
@@ -18,11 +18,11 @@ public class TurnWorld {
     public int CurrentTick { get; private set; } = 0;
     public int CurrentTurn { get; private set; } = 0;
 
-    public event Action<Entity>? OnEntityAdded;
-    public event Action<Entity>? OnEntityRemoved;
+    public event Action<EntityBase>? OnEntityAdded;
+    public event Action<EntityBase>? OnEntityRemoved;
     public event Action<int>? OnTick;
 
-    public IReadOnlyList<Entity> Entities { get; }
+    public IReadOnlyList<EntityBase> Entities { get; }
     public int Width => Cells.Width;
     public int Height => Cells.Height;
     public Rect2I Bounds => Cells.Bounds;
@@ -45,7 +45,7 @@ public class TurnWorld {
     public bool IsCellType(Vector2I position, CellType type) =>
         Cells[position] != null && Cells[position]!.Type == type;
 
-    public bool HasCellEntity(Vector2I position, Entity entity) =>
+    public bool HasCellEntity(Vector2I position, EntityBase entity) =>
         Cells[position] != null && Cells[position]!.Entities.Contains(entity);
 
     public bool IsValidPosition(Vector2I position) {
@@ -56,15 +56,15 @@ public class TurnWorld {
         return !IsValidPosition(position) || Cells[position] != null && Cells[position]!.Config.IsBlocked;
     }
 
-    public Entity GetEntity(string name) {
+    public EntityBase GetEntity(string name) {
         return _entitiesByName[name];
     }
 
-    public T GetEntity<T>(string name) where T : Entity {
+    public T GetEntity<T>(string name) where T : EntityBase {
         return _entitiesByName[name] as T;
     }
 
-    public void AddEntity(Entity entity, Vector2I position) {
+    public void AddEntity(EntityBase entity, Vector2I position) {
         if (Entities.Contains(entity)) {
             throw new InvalidOperationException($"Entity already added to world: {entity}");
         }
@@ -79,7 +79,8 @@ public class TurnWorld {
         // Update the data
         entity.Location = new Location(entity, this, position);
 
-        _entities.Add(entity);
+        AddEntityToList(entity);
+
         _entitiesByName[entity.Name] = entity;
         worldCell.AddEntity(entity);
 
@@ -88,7 +89,25 @@ public class TurnWorld {
         OnEntityAdded?.Invoke(entity);
     }
 
-    public bool RemoveEntity(Entity entity) {
+    private void AddEntityToList(EntityBase entity) {
+        if (entity is IEntityAsync) { // IEntityAsync entities go first, but ordered by insertion
+            var insertIndex = 0;
+            for (var i = 0; i < _entities.Count; i++) {
+                if (_entities[i] is IEntityAsync) {
+                    insertIndex = i + 1;
+                } else {
+                    break; // Stop when we hit the first non-IEntityAsync
+                }
+            }
+            _entities.Insert(insertIndex, entity);
+        } else if (entity is IEntitySync) { // IEntitySync goes at the end
+            _entities.Add(entity);
+        } else {
+            throw new InvalidOperationException($"Unknown entity type: {entity.GetType()}: the type must implements {nameof(IEntityAsync)} or {nameof(IEntitySync)}");
+        }
+    }
+
+    public bool RemoveEntity(EntityBase entity) {
         if (!_entities.Contains(entity)) return false;
 
 
@@ -104,7 +123,7 @@ public class TurnWorld {
         return true;
     }
 
-    internal void MoveEntity(Entity entity, Vector2I origin, Vector2I to) {
+    internal void MoveEntity(EntityBase entity, Vector2I origin, Vector2I to) {
         var worldCell = Cells[to];
         if (worldCell == null) {
             throw new InvalidOperationException($"Cell is empty: {to}");
@@ -141,16 +160,23 @@ public class TurnSystem {
         _world = world;
     }
 
-    public async Task Run() {
+    public async Task Run(double maxLoopDurationSecs = 0.0166d, Func<Task>? awaiter = null) {
         if (Running) return;
         Running = true;
+
+        var loopStartTime = DateTime.Now;
+
         while (Running) {
             await ProcessTickAsync();
-        }
-    }
 
-    public void Stop() {
-        Running = false;
+            if (awaiter != null) {
+                var loopDuration = (DateTime.Now - loopStartTime).TotalSeconds;
+                if (loopDuration > maxLoopDurationSecs) {
+                    await awaiter();
+                    loopStartTime = DateTime.Now;
+                }
+            }
+        }
     }
 
     public async Task ProcessTickAsync() {
@@ -160,20 +186,31 @@ public class TurnSystem {
         _world.NextTick();
 
         foreach (var entity in _world.Entities.ToArray()) { // ToArray() to avoid concurrent modification
+            // AddEntity ensures all the Async entities goes first
+
             entity.TickStart();
             if (entity.CanAct()) {
-                var action = await DecideAction(entity);
-                if (action != null) entity.Execute(action);
+                if (entity is IEntitySync syncEntity) {
+                    entity.Execute(syncEntity.DecideAction());
+
+                } else if (entity is IEntityAsync asyncEntity) {
+                    var action = await DecideAction(entity.Name, asyncEntity);
+                    if (action != null) entity.Execute(action);
+                    if (!Running || action?.Type == ActionType.EndGame) {
+                        break;
+                    }
+                }
             }
             entity.TickEnd();
-            if (!Running) {
-                break;
-            }
         }
         Busy = false;
     }
 
-    private async Task<ActionCommand?> DecideAction(Entity entity) {
+    public void Stop() {
+        Running = false;
+    }
+
+    private async Task<ActionCommand?> DecideAction(string name, IEntityAsync entity) {
         while (Running) {
             try {
                 var decideTask = entity.DecideAction();
@@ -183,7 +220,7 @@ public class TurnSystem {
                     return await decideTask;
                 }
             } catch (Exception e) {
-                Logger.Error($"Error deciding action for {entity.Name}: {e.Message}");
+                Logger.Error($"Error deciding action for {name}: {e.Message}");
                 return null;
             }
         }

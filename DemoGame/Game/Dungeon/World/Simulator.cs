@@ -65,11 +65,11 @@ public class Simulator {
         }
     }
 
-    private void HandlePlayerInput(EntityBlocking player) {
+    private void HandlePlayerInput(SchedulingEntity player) {
         while (_running) {
             if (player.IsWaiting) {
                 try {
-                    var action = HandleMenuInput(player.Entity);
+                    var action = HandleMenuInput(player);
                     player.SetResult(action);
                 } catch (Exception e) {
                     Console.WriteLine(e);
@@ -80,7 +80,7 @@ public class Simulator {
         }
     }
 
-    private ActionCommand HandleMenuInput(Entity player) {
+    private ActionCommand HandleMenuInput(EntityBase player) {
         while (true) {
             // Console.Clear();
             Console.WriteLine(_rogueWorld.PrintArray2D());

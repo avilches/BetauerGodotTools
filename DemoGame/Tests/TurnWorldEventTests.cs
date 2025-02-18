@@ -9,7 +9,7 @@ namespace Veronenger.Tests;
 [TestFixture]
 public class TurnWorldEventTests : TurnBaseTests {
     private TurnWorld _world;
-    private Entity _entity;
+    private EntityBase _entity;
     private int _worldEntityAddedCount;
     private int _worldEntityRemovedCount;
     private int _cellEntityAddedCount;
@@ -169,7 +169,7 @@ public class TurnWorldEventTests : TurnBaseTests {
         _world.AddEntity(_entity, Vector2I.Zero);
 
         var retrievedEntity = _world.GetEntity(_entity.Name);
-        var typedEntity = _world.GetEntity<Entity>(_entity.Name);
+        var typedEntity = _world.GetEntity<EntityBase>(_entity.Name);
 
         Assert.Multiple(() => {
             Assert.That(retrievedEntity, Is.EqualTo(_entity), "GetEntity should return the correct entity");

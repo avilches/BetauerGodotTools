@@ -9,10 +9,12 @@ namespace Veronenger.Game.Dungeon.World;
 public class RogueWorld {
 
     public TurnWorld TurnWorld { get; private set; }
-    public EntityBlocking Player { get; private set; }
+    public SchedulingEntity Player { get; private set; }
 
     public static void Configure(string templateContent) {
         ActionTypeConfig.RegisterAll(
+            new ActionTypeConfig(ActionType.EndGame) { EnergyCost = 0 },
+
             new ActionTypeConfig(ActionType.Wait) { EnergyCost = 1000 },
             new ActionTypeConfig(ActionType.Walk) { EnergyCost = 1000 },
             new ActionTypeConfig(ActionType.Attack) { EnergyCost = 1000 },
@@ -73,13 +75,10 @@ public class RogueWorld {
 
 
     private void CreatePlayer() {
-        var player = EntityBuilder.Create("Player", new EntityStats { BaseSpeed = 100 })
-            .Execute(command => {
-                Console.WriteLine($"Player executed {command.Type}");
-
-            })
-            .Build();
-        Player = new EntityBlocking(player);
+        Player = new SchedulingEntity("Player", new EntityStats { BaseSpeed = 100 });
+        Player.OnExecute += (command) => {
+            Console.WriteLine($"Player executed {command.Type}");
+        };
     }
 
 

@@ -13,9 +13,9 @@ using System.Linq;
 [TestFixture]
 public class TurnSystemTests : TurnBaseTests {
     private TurnSystem _turnSystem;
-    private EntityBlocking _player;
-    private Entity _fastWalker;
-    private Entity _slowAttacker;
+    private SchedulingEntity _player;
+    private EntityBase _fastWalker;
+    private EntityBase _slowAttacker;
     private TurnWorld _world;
 
     [SetUp]
@@ -26,8 +26,7 @@ public class TurnSystemTests : TurnBaseTests {
         _turnSystem = new TurnSystem(_world);
 
         // Create player with default speed (100)
-        _player = EntityBuilder.Create("Player", new EntityStats { BaseSpeed = 100 })
-            .BuildAsync();
+        _player = new SchedulingEntity("Player", new EntityStats { BaseSpeed = 100 });
 
         // Create monsters with different speeds
         _fastWalker = EntityBuilder.Create("FastMonster", new EntityStats { BaseSpeed = 120 })
@@ -39,7 +38,7 @@ public class TurnSystemTests : TurnBaseTests {
             .Build();
 
         // Add entities to the system
-        _world.AddEntity(_player.Entity, Vector2I.Zero);
+        _world.AddEntity(_player, Vector2I.Zero);
         _world.AddEntity(_fastWalker, Vector2I.Zero);
         _world.AddEntity(_slowAttacker, Vector2I.Zero);
 
@@ -47,10 +46,10 @@ public class TurnSystemTests : TurnBaseTests {
 
     [Test]
     public async Task ProcessTicks_CorrectEnergy() {
-        _player.ScheduleNextAction(new ActionCommand(ActionType.Walk, _player.Entity));
+        _player.ScheduleNextAction(new ActionCommand(ActionType.Walk, _player));
         await _turnSystem.ProcessTickAsync();
         // 1 tick -> - (1*ActionCost) +(1*BaseEnergy)
-        Assert.That(_player.Entity.CurrentEnergy, Is.EqualTo(-1000 + 100));
+        Assert.That(_player.CurrentEnergy, Is.EqualTo(-1000 + 100));
         Assert.That(_fastWalker.CurrentEnergy, Is.EqualTo(-1000 + 120));
         Assert.That(_slowAttacker.CurrentEnergy, Is.EqualTo(-1200 + 80));
     }
@@ -61,7 +60,7 @@ public class TurnSystemTests : TurnBaseTests {
         // Process enough ticks to let entities act
         // We'll process 20 ticks which should be 2 full turns
         for (var i = 0; i < ticks; i++) {
-            _player.ScheduleNextAction(new ActionCommand(ActionType.Run, _player.Entity));
+            _player.ScheduleNextAction(new ActionCommand(ActionType.Run, _player));
             await _turnSystem.ProcessTickAsync();
         }
 
@@ -79,11 +78,11 @@ public class TurnSystemTests : TurnBaseTests {
         var fastWalkerHistory = new List<ActionCommand>();
         var slowAttackerHistory = new List<ActionCommand>();
 
-        _player.Entity.OnExecute += (action) => playerHistory.Add(action);
+        _player.OnExecute += (action) => playerHistory.Add(action);
         _fastWalker.OnExecute += (action) => fastWalkerHistory.Add(action);
         _slowAttacker.OnExecute += (action) => slowAttackerHistory.Add(action);
         for (var i = 0; i < ticks; i++) {
-            _player.ScheduleNextAction(new ActionCommand(ActionType.Walk, _player.Entity));
+            _player.ScheduleNextAction(new ActionCommand(ActionType.Walk, _player));
             await _turnSystem.ProcessTickAsync();
         }
 
@@ -100,7 +99,7 @@ public class TurnSystemTests : TurnBaseTests {
 public class EntityEventsTests : TurnBaseTests {
     private TurnWorld _world;
     private TurnSystem _turnSystem;
-    private Entity _entity;
+    private EntityBase _entity;
     private int _tickStartCount;
     private int _tickEndCount;
     private int _executeCount;
@@ -300,21 +299,20 @@ public class EntityEventsTests : TurnBaseTests {
 
     [Test]
     public async Task AsyncEntityShouldRespectScheduledActions() {
-        var asyncEntity = EntityBuilder.Create("AsyncEntity", new EntityStats { BaseSpeed = 100 })
-            .BuildAsync();
+        var asyncEntity = new SchedulingEntity("Player", new EntityStats { BaseSpeed = 100 });
 
         var history = new List<ActionCommand>();
-        asyncEntity.Entity.OnExecute += (action) => {
+        asyncEntity.OnExecute += (action) => {
             // Execute action immediately
             history.Add(action);
         };
 
-        _world.AddEntity(asyncEntity.Entity, Vector2I.Zero);
+        _world.AddEntity(asyncEntity, Vector2I.Zero);
 
         // Schedule three actions
-        asyncEntity.ScheduleNextAction(new ActionCommand(ActionType.Walk, asyncEntity.Entity));
-        asyncEntity.ScheduleNextAction(new ActionCommand(ActionType.Attack, asyncEntity.Entity));
-        asyncEntity.ScheduleNextAction(new ActionCommand(ActionType.Run, asyncEntity.Entity));
+        asyncEntity.ScheduleNextAction(new ActionCommand(ActionType.Walk, asyncEntity));
+        asyncEntity.ScheduleNextAction(new ActionCommand(ActionType.Attack, asyncEntity));
+        asyncEntity.ScheduleNextAction(new ActionCommand(ActionType.Run, asyncEntity));
 
         // Process three ticks
         while (asyncEntity.Queue.Count > 0) {
@@ -333,7 +331,7 @@ public class EntityEventsTests : TurnBaseTests {
         // Actions cost: Walk (-1000) + Attack (-1200) + Run (-2000) = -4200
         // Energy gained: +100 * 50 = 5000
         var expectedEnergy = -4200 + (100 * _world.CurrentTick);
-        Assert.That(asyncEntity.Entity.CurrentEnergy, Is.EqualTo(expectedEnergy),
+        Assert.That(asyncEntity.CurrentEnergy, Is.EqualTo(expectedEnergy),
             "Final energy should reflect all actions and energy gains");
     }
 }

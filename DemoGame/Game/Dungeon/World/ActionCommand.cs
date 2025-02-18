@@ -9,12 +9,12 @@ public class ActionCommand {
     public ActionType Type { get; }
     public ActionTypeConfig Config => ActionTypeConfig.Get(Type);
 
-    public Entity? Target { get; }
+    public EntityBase? Target { get; }
     public Vector2I? TargetPosition { get; set; }
 
     public int EnergyCost { get; set; }
 
-    public ActionCommand(ActionType type, Entity? target = null, Vector2I? targetPosition = null) {
+    public ActionCommand(ActionType type, EntityBase? target = null, Vector2I? targetPosition = null) {
         Type = type;
         Target = target;
         TargetPosition = targetPosition;

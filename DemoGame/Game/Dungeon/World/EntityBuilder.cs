@@ -9,7 +9,7 @@ public class EntityBuilder {
     private readonly EntityStats _stats;
     private readonly List<MultiplierEffect> _initialEffects = new();
 
-    private Func<Task<ActionCommand>>? _onDecideAction;
+    private Func<ActionCommand>? _onDecideAction;
     private Func<bool>? _onCanAct;
     private Action<ActionCommand>? _onExecute;
     private Action? _onTickStart;
@@ -30,23 +30,18 @@ public class EntityBuilder {
         return this;
     }
 
-    public EntityBuilder DecideAction(Func<Task<ActionCommand>> action) {
+    public EntityBuilder DecideAction(Func<ActionCommand> action) {
         _onDecideAction = action;
         return this;
     }
 
-    public EntityBuilder DecideAction(Func<ActionCommand> action) {
-        _onDecideAction = () => Task.FromResult(action());
-        return this;
-    }
-
     public EntityBuilder DecideAction(ActionCommand command) {
-        _onDecideAction = () => Task.FromResult(command);
+        _onDecideAction = () => command;
         return this;
     }
 
     public EntityBuilder DecideAction(ActionType type) {
-        _onDecideAction = () => Task.FromResult(new ActionCommand(type, null));
+        _onDecideAction = () => new ActionCommand(type, null);
         return this;
     }
 
@@ -79,7 +74,7 @@ public class EntityBuilder {
         }
 
         // Set all handlers with null-safe defaults
-        entity.OnDecideAction = _onDecideAction ?? (() => Task.FromResult(new ActionCommand(ActionType.Wait, entity)));
+        if (_onDecideAction != null) entity.OnDecideAction = _onDecideAction;
         entity.OnCanAct = _onCanAct ?? (() => true);
 
         if (_onExecute != null) entity.OnExecute += _onExecute;
@@ -87,12 +82,5 @@ public class EntityBuilder {
         if (_onTickEnd != null) entity.OnTickEnd += _onTickEnd;
 
         return entity;
-    }
-
-    public EntityBlocking BuildAsync() {
-        if (_onDecideAction != null) {
-            throw new Exception("Cannot build async entity with custom DecideAction (the original DecideAction will be overwritten)");
-        }
-        return new EntityBlocking(Build());
     }
 }

@@ -9,7 +9,7 @@ namespace Veronenger.Tests;
 [TestFixture]
 public class SpeedEffectTests : TurnBaseTests {
     private TurnSystem _turnSystem;
-    private Entity _walker;
+    private EntityBase _walker;
     private TurnWorld _world;
 
     [SetUp]

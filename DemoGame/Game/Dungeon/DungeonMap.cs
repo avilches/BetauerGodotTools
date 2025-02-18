@@ -10,9 +10,7 @@ using Veronenger.Game.Dungeon.World;
 
 namespace Veronenger.Game.Dungeon;
 
-[Notifications(Process = false, PhysicsProcess = false)]
 public partial class DungeonMap : Node2D, IInjectable {
-    public override partial void _Notification(int what);
 
     CameraController CameraController;
     [Inject] public DungeonPlayerActions DungeonPlayerActions { get; set; }
@@ -46,7 +44,7 @@ public partial class DungeonMap : Node2D, IInjectable {
                     PlayerPos = cell.Position;
                 }
             });
-            RogueWorld.TurnWorld.AddEntity(RogueWorld.Player.Entity, PlayerPos);
+            RogueWorld.TurnWorld.AddEntity(RogueWorld.Player, PlayerPos);
             Player.Position = TileMapLayer.MapToLocal(PlayerPos);
 
             // TileMapLayer.SetCell();
@@ -70,7 +68,6 @@ public partial class DungeonMap : Node2D, IInjectable {
             MoveTo(PlayerPos + Vector2I.Down);
         }
     }
-
 
     public void Configure(RogueWorld rogueWorld) {
         RogueWorld = rogueWorld;
