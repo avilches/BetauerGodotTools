@@ -1,20 +1,18 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Betauer.Core.Examples;
-using Godot;
 using Veronenger.Game.Dungeon.World.Generation;
 
 namespace Veronenger.Game.Dungeon.World;
 
 public class RogueWorld {
-
     public WorldMap WorldMap { get; private set; }
-    public SchedulingEntity Player { get; private set; }
 
     public static void Configure(string templateContent) {
         ActionTypeConfig.RegisterAll(
             new ActionTypeConfig(ActionType.EndGame) { EnergyCost = 0 },
-
             new ActionTypeConfig(ActionType.Wait) { EnergyCost = 1000 },
             new ActionTypeConfig(ActionType.Walk) { EnergyCost = 1000 },
             new ActionTypeConfig(ActionType.Attack) { EnergyCost = 1000 },
@@ -30,21 +28,19 @@ public class RogueWorld {
         );
 
         MapTypeConfig.RegisterAll(
-            new MapTypeConfig(MapType.OfficeEasy, TemplateSetType.Office, (seed) => MazeGraphCatalog.CogmindLong(new Random(seed)))
+            new MapTypeConfig(MapType.OfficeEasy, TemplateSetType.Office, (seed) => MazeGraphCatalog.Mini(new Random(seed)))
         );
         MapGenerator.Validate();
-
     }
 
-    public void Create() {
-        var seed = 1;
-        var result = MapGenerator.CreateMap(MapType.OfficeEasy, seed);
+    public MapGenerator.MapGenerationResult GenerateWorldMap(int seed) {
+        var result = MapGenerator.GenerateMap(MapType.OfficeEasy, seed);
 
         WorldMap = new WorldMap(result.WorldCellMap) {
             TicksPerTurn = 10,
         };
-        CreatePlayer();
         CreateEntities();
+        return result;
     }
 
     private void CreateEntities() {
@@ -72,15 +68,6 @@ public class RogueWorld {
         TurnWorld.AddEntity(quickRat, Vector2I.Zero);
     */
     }
-
-
-    private void CreatePlayer() {
-        Player = new SchedulingEntity("Player", new EntityStats { BaseSpeed = 100 });
-        Player.OnExecute += (command) => {
-            Console.WriteLine($"Player executed {command.Type}");
-        };
-    }
-
 
     public string PrintArray2D() {
         var stringBuilder = new StringBuilder();

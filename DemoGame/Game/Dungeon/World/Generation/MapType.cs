@@ -16,5 +16,5 @@ public record MapTypeConfig(MapType Type, TemplateSet TemplateSet, Func<int, Maz
         this(Type, TemplateSetTypeConfig.Get(templateSetType).TemplateSet, Factory) {
     }
 
-    public MazeZones Create(int seed) => Factory(seed);
+    public MazeZones GenerateZones(int seed) => Factory(seed);
 }

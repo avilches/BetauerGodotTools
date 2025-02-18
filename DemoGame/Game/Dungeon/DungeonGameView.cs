@@ -37,29 +37,24 @@ public partial class DungeonGameView : IGameView {
 	public DungeonMap DungeonMap;
 	public RogueWorld RogueWorld;
 
-	private CameraController _cameraController;
-
 	private bool _initialized = false;
 
 	public async Task StartNewGame(string? saveName = null) {
 		await GameLoader.Load(DungeonGameResources.GameLoaderTag);
 		Configure();
-
-		RogueWorld = CreateRogueWorld();
-		DungeonMap.UpdateTileMap(RogueWorld);
-
-		RogueWorld.WorldMap.TurnSystem.Run();
+		DungeonMap.StartGame();
 	}
 
+	// This method could be called in new games or loaded games
 	private void Configure() {
 		if (_initialized) throw new Exception("Already initialized, can't call it twice");
 		_initialized = true;
-
+		RogueWorld.Configure(Templates.Get().Text);
 		GameObjectRepository.Initialize(); // Singleton, so it must be initialized every time this class is created
 
+		RogueWorld = new RogueWorld();
 		DungeonMap = DungeonMapFactory.Create();
-
-		ConfigureCamera();
+		DungeonMap.Configure(RogueWorld, CreateCamera());
 
 		DungeonPlayerActions.Start();
 		DungeonPlayerActions.EnableAll();
@@ -67,20 +62,10 @@ public partial class DungeonGameView : IGameView {
 		SceneTree.Root.AddChild(DungeonMap); // last step (it calls to all the _Ready method/events)
 	}
 
-	private RogueWorld CreateRogueWorld() {
-		var rogueWorld = new RogueWorld();
-		var templateContent = Templates.Get();
-        RogueWorld.Configure(templateContent.Text);
-		rogueWorld.Create();
-		return rogueWorld;
-	}
-
-	private void ConfigureCamera() {
+	private CameraController CreateCamera() {
 		var camera = new Camera2D();
 		camera.Enabled = true;
-		DungeonMap.AddChild(camera);
-		_cameraController = CameraContainer.Camera(camera);
-		DungeonMap.Configure(_cameraController);
+		return CameraContainer.Camera(camera);
 	}
 
 	public async Task End(bool unload) {

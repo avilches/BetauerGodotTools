@@ -34,9 +34,15 @@ public class Simulator {
         _rogueWorld = new RogueWorld();
         var templateContent = LoadTemplateContent(TemplatePath);
         RogueWorld.Configure(templateContent);
-        _rogueWorld.Create();
+        var result = _rogueWorld.GenerateWorldMap(1);
 
-        Task.Run(() => HandlePlayerInput(_rogueWorld.Player));
+        var player = new PlayerEntity("Player", new EntityStats { BaseSpeed = 100 });
+        _rogueWorld.WorldMap.AddEntity(player, result.StartCell.Position);
+        player.OnMoved += (oldPosition, newPosition) => {
+            // PlayerSprite.Position = TileMapLayer.MapToLocal(PlayerPos);
+        };
+
+        Task.Run(() => HandlePlayerInput(player));
 
         var ticks = turns * _rogueWorld.WorldMap.TicksPerTurn;
         _rogueWorld.WorldMap.TurnSystem.Run().Wait();
@@ -65,7 +71,7 @@ public class Simulator {
         }
     }
 
-    private void HandlePlayerInput(SchedulingEntity player) {
+    private void HandlePlayerInput(SchedulingEntityBase player) {
         while (_running) {
             if (player.IsWaiting) {
                 try {

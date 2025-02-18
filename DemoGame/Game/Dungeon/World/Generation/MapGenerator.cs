@@ -12,86 +12,13 @@ using Godot;
 
 namespace Veronenger.Game.Dungeon.World.Generation;
 
-public enum CellDefinitionType : byte {
-    Empty,
-    Wall,
-
-    Floor,
-    Door,
-    Loot,
-    Key
-}
-
-/// <summary>
-/// Cell definition comes from the template. It tries to explain the behaviour expected from the cell.
-/// For instance, the definition could be "loot", but the cell will be a Floor with, or without a loot.
-/// </summary>
-/// <param name="Type"></param>
-public record CellDefinitionConfig(CellDefinitionType Type) : EnumConfig<CellDefinitionType, CellDefinitionConfig>(Type) {
-    // Blocking means the cell is not traversable by the player or enemies.
-    public required bool Blocking { get; init; }
-
-
-    public required char TemplateCharacter { get; init; }
-    public required Func<Vector2I, WorldCell?> Factory { get; init; }
-
-    public static HashSet<char> AllChars { get; private set; }
-    public static HashSet<char> BlockingChars { get; private set; }
-
-    public static void InitializeDefaults() {
-        RegisterAll(
-            new CellDefinitionConfig(CellDefinitionType.Empty) { Blocking = true, TemplateCharacter = '.', Factory = (_) => null },
-            new CellDefinitionConfig(CellDefinitionType.Wall) { Blocking = true, TemplateCharacter = '#', Factory = (pos) => new WorldCell(CellType.Wall, pos) },
-            new CellDefinitionConfig(CellDefinitionType.Floor) { Blocking = false, TemplateCharacter = '·', Factory = (pos) => new WorldCell(CellType.Floor, pos) },
-            new CellDefinitionConfig(CellDefinitionType.Door) { Blocking = false, TemplateCharacter = 'd', Factory = (pos) => new WorldCell(CellType.Door, pos) },
-            new CellDefinitionConfig(CellDefinitionType.Loot) { Blocking = false, TemplateCharacter = '$', Factory = (pos) => new WorldCell(CellType.Floor, pos) },
-            new CellDefinitionConfig(CellDefinitionType.Key) { Blocking = false, TemplateCharacter = 'k', Factory = (pos) => new WorldCell(CellType.Floor, pos) }
-        );
-
-        // Avoid duplicated characters
-        HashSet<char> used = [];
-        foreach (var config in All) {
-            if (!used.Add(config.TemplateCharacter)) {
-                throw new InvalidDataException($"Character {config.TemplateCharacter} is duplicated in the CellDefinitionConfig");
-            }
-        }
-
-        AllChars = All.Select(c => c.TemplateCharacter).ToHashSet();
-        BlockingChars = All.Where(c => c.Blocking).Select(c => c.TemplateCharacter).ToHashSet();
-    }
-
-    public static CellDefinitionType Find(char cell) {
-        return All.First(config => config.TemplateCharacter == cell).Type;
-    }
-
-    public static bool IsValid(char c) => AllChars.Contains(c);
-    public static bool IsBlockingChar(char c) => BlockingChars.Contains(c);
-
-    public static WorldCell? CreateCell(char c, Vector2I pos) {
-        var cellDef = All.First(config => config.TemplateCharacter == c);
-        var worldCell = cellDef.Factory(pos);
-        if (worldCell != null) {
-            worldCell.CellDefinitionConfig = cellDef;
-        }
-        return worldCell;
-    }
-}
-
-public static class MazeNodeExtensions {
-    public static void SetTemplate(this MazeNode node, Template template) => node.SetAttribute("template", template);
-    public static Template GetTemplate(this MazeNode node) => node.GetAttributeAs<Template>("template")!;
-
-    public static void AddWorldCell(this MazeNode node, WorldCell cells) => node.GetCells().Add(cells);
-    public static List<WorldCell?> GetCells(this MazeNode node) => node.GetAttributeOrCreate<List<WorldCell?>>("worldcells", () => []);
-}
-
 public class MapGenerator {
     // The MazeNode contains two attributes
-    public record MapGenerationResult(MazeZones Zones, Array2D<WorldCell?> WorldCellMap);
+    public record MapGenerationResult(MazeZones Zones, Array2D<WorldCell?> WorldCellMap, WorldCell StartCell);
 
-    public static MapGenerationResult CreateMap(MapType mapType, int seed) {
+    public static MapGenerationResult GenerateMap(MapType mapType, int seed) {
         var mapTypeConfig = MapTypeConfig.Get(mapType);
-        var zones = mapTypeConfig.Create(seed);
+        var zones = mapTypeConfig.GenerateZones(seed);
         var templateSet = mapTypeConfig.TemplateSet;
 
         // Creates an empty array2D of templates. This will be used in the Render method to track the template used for
@@ -118,7 +45,74 @@ public class MapGenerator {
         MazeGraphZonedDemo.PrintGraph(zones.MazeGraph, zones);
         // PrintTemplates(templateSet.FindTemplates().ToList());
 
-        return new MapGenerationResult(zones, worldCellMap);
+        return new MapGenerationResult(zones, worldCellMap, FindCenterCell(zones.Start.GetCells()!, cell => !cell.CellDefinitionConfig.Blocking));
+    }
+
+
+    public static WorldCell FindCenterCell(List<WorldCell> worldCells, Func<WorldCell, bool> isCellValid) {
+        if (worldCells == null || worldCells.Count == 0) {
+            throw new InvalidOperationException("No cells to find the center");
+        }
+
+        // Creamos un diccionario para acceso rápido por posición
+        var cellsByPosition = worldCells.ToDictionary(cell => cell.Position);
+
+        // Encontrar los límites del área
+        int minX = int.MaxValue, maxX = int.MinValue;
+        int minY = int.MaxValue, maxY = int.MinValue;
+
+        foreach (var pos in cellsByPosition.Keys) {
+            minX = Math.Min(minX, pos.X);
+            maxX = Math.Max(maxX, pos.X);
+            minY = Math.Min(minY, pos.Y);
+            maxY = Math.Max(maxY, pos.Y);
+        }
+
+        // Calculamos el centro aproximado
+        var centerX = (minX + maxX) / 2;
+        var centerY = (minY + maxY) / 2;
+        Vector2I center = new(centerX, centerY);
+
+        // Conjunto para trackear las posiciones ya visitadas
+        var visited = new HashSet<Vector2I>();
+
+        // Cola de prioridad para obtener las posiciones en orden de distancia al centro
+        PriorityQueue<Vector2I, float> queue = new();
+        queue.Enqueue(center, 0);
+
+        while (queue.Count > 0) {
+            var pos = queue.Dequeue();
+
+            if (!visited.Add(pos)) continue;
+
+            // Si encontramos una celda válida en esta posición, la retornamos
+            if (cellsByPosition.TryGetValue(pos, out var cell) && isCellValid(cell)) {
+                return cell;
+            }
+
+            // Añadimos las 8 posiciones adyacentes a la cola
+            for (int dy = -1; dy <= 1; dy++) {
+                for (int dx = -1; dx <= 1; dx++) {
+                    if (dx == 0 && dy == 0) continue;
+
+                    Vector2I newPos = new(pos.X + dx, pos.Y + dy);
+
+                    // Solo añadimos posiciones dentro de los límites
+                    if (newPos.X < minX || newPos.X > maxX ||
+                        newPos.Y < minY || newPos.Y > maxY) {
+                        continue;
+                    }
+
+                    if (visited.Contains(newPos)) continue;
+
+                    // Calculamos la distancia Manhattan al centro
+                    float distance = Math.Abs(newPos.X - centerX) + Math.Abs(newPos.Y - centerY);
+                    queue.Enqueue(newPos, distance);
+                }
+            }
+        }
+
+        return null;
     }
 
     public static void Spawn(MapType mapType, MazeZones zones, Array2D<WorldCell?> worldCellMap) {

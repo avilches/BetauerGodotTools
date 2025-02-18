@@ -14,8 +14,26 @@ public interface IEntitySync {
     ActionCommand DecideAction();
 }
 
-public class BlockingEntity : EntityBase, IEntityAsync {
+public abstract class BlockingEntityBase : EntityBase, IEntityAsync {
+    protected BlockingEntityBase(EntityStats stats) : base(stats) {
+    }
+
+    protected BlockingEntityBase(string name, EntityStats stats) : base(name, stats) {
+    }
+
+    public abstract Task<ActionCommand> DecideAction();
+
+    public override void Execute(ActionCommand actionCommand) {
+        CurrentEnergy -= actionCommand.EnergyCost;
+        DoExecute(actionCommand);
+    }
+
+    public abstract void DoExecute(ActionCommand actionCommand);
+}
+
+public class BlockingEntity : BlockingEntityBase, IEntityAsync {
     public Func<Task<ActionCommand>> OnDecideAction { get; set; }
+    public event Action<ActionCommand>? OnExecute;
 
     public BlockingEntity(EntityStats stats) : base(stats) {
         OnDecideAction = () => Task.FromResult(new ActionCommand(ActionType.Wait, this));
@@ -25,18 +43,22 @@ public class BlockingEntity : EntityBase, IEntityAsync {
         OnDecideAction = () => Task.FromResult(new ActionCommand(ActionType.Wait, this));
     }
 
-    public Task<ActionCommand> DecideAction() {
+    public override Task<ActionCommand> DecideAction() {
         return OnDecideAction.Invoke();
+    }
+
+    public override void DoExecute(ActionCommand actionCommand) {
+        OnExecute?.Invoke(actionCommand);
     }
 }
 
-public class SchedulingEntity : EntityBase, IEntityAsync {
+public abstract class SchedulingEntityBase : EntityBase, IEntityAsync {
     private TaskCompletionSource<ActionCommand>? _promise;
 
-    public SchedulingEntity(EntityStats stats) : base(stats) {
+    protected SchedulingEntityBase(EntityStats stats) : base(stats) {
     }
 
-    public SchedulingEntity(string name, EntityStats stats) : base(name, stats) {
+    protected SchedulingEntityBase(string name, EntityStats stats) : base(name, stats) {
     }
 
     public Queue<ActionCommand> Queue { get; } = [];
@@ -67,10 +89,35 @@ public class SchedulingEntity : EntityBase, IEntityAsync {
         _promise ??= new TaskCompletionSource<ActionCommand>();
         return _promise.Task;
     }
+
+
+    public override void Execute(ActionCommand actionCommand) {
+        CurrentEnergy -= actionCommand.EnergyCost;
+        DoExecute(actionCommand);
+    }
+
+    public abstract void DoExecute(ActionCommand actionCommand);
 }
+
+public class SchedulingEntity : SchedulingEntityBase {
+    public event Action<ActionCommand>? OnExecute;
+
+    public SchedulingEntity(EntityStats stats) : base(stats) {
+    }
+
+    public SchedulingEntity(string name, EntityStats stats) : base(name, stats) {
+    }
+
+    public override void DoExecute(ActionCommand actionCommand) {
+        OnExecute?.Invoke(actionCommand);
+    }
+}
+
 
 public class Entity : EntityBase, IEntitySync {
     public Func<ActionCommand> OnDecideAction { get; set; }
+    public event Action<ActionCommand>? OnExecute;
+
 
     public Entity(EntityStats stats) : base(stats) {
         OnDecideAction = () => new ActionCommand(ActionType.Wait, this);
@@ -83,9 +130,14 @@ public class Entity : EntityBase, IEntitySync {
     public ActionCommand DecideAction() {
         return OnDecideAction.Invoke();
     }
+
+    public override void Execute(ActionCommand actionCommand) {
+        CurrentEnergy -= actionCommand.EnergyCost;
+        OnExecute?.Invoke(actionCommand);
+    }
 }
 
-public class EntityBase {
+public abstract class EntityBase {
     public string Name { get; }
     public EntityStats BaseStats { get; }
     public int CurrentEnergy { get; protected set; } = 0;
@@ -95,7 +147,6 @@ public class EntityBase {
 
     public Func<bool> OnCanAct { get; set; } = () => true;
 
-    public event Action<ActionCommand>? OnExecute;
     public event Action? OnTickStart;
     public event Action? OnTickEnd;
     public event Action? OnRemoved;
@@ -106,10 +157,10 @@ public class EntityBase {
     public WorldCell Cell => Location?.Cell;
     public Location Location { get; internal set; }
 
-    public EntityBase(EntityStats stats) : this(Guid.NewGuid().ToString(), stats) {
+    protected EntityBase(EntityStats stats) : this(Guid.NewGuid().ToString(), stats) {
     }
 
-    public EntityBase(string name, EntityStats stats) {
+    protected EntityBase(string name, EntityStats stats) {
         Name = name;
         BaseStats = stats;
     }
@@ -156,12 +207,6 @@ public class EntityBase {
 
     public bool CanAct() => CurrentEnergy >= 0 && OnCanAct.Invoke();
 
-    public void Execute(ActionCommand actionCommand) {
-        CurrentEnergy -= actionCommand.EnergyCost;
-        // Console.WriteLine($"{Name} -{action.EnergyCost} = {CurrentEnergy} (action: {action.Config.Type})");
-        OnExecute?.Invoke(actionCommand);
-    }
-
     public void TickEnd() {
         var currentSpeed = GetCurrentSpeed();
         CurrentEnergy += currentSpeed;
@@ -181,4 +226,6 @@ public class EntityBase {
             }
         }
     }
+
+    public abstract void Execute(ActionCommand actionCommand);
 }
