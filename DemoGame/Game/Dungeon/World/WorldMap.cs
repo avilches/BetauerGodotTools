@@ -13,7 +13,7 @@ public class WorldMap {
 
     public Array2D<WorldCell?> Cells { get; private set; }
 
-    public TurnSystem TurnSystem { get; private set; }
+    public TurnSystem TurnSystem { get; set; }
 
     public int TicksPerTurn { get; set; } = 10;
     public int CurrentTick { get; private set; } = 0;

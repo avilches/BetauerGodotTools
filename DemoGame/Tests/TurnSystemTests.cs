@@ -12,18 +12,16 @@ using System.Linq;
 
 [TestFixture]
 public class TurnSystemTests : TurnBaseTests {
-    private TurnSystem _turnSystem;
     private SchedulingEntity _player;
     private EntityBase _fastWalker;
     private EntityBase _slowAttacker;
     private WorldMap _worldMap;
+    private TurnSystem TurnSystem => _worldMap.TurnSystem;
 
     [SetUp]
     public void Setup() {
         _worldMap = new WorldMap(1, 1);
         _worldMap.Cells.Load((p) => new WorldCell(CellType.Floor, p));
-
-        _turnSystem = new TurnSystem(_worldMap);
 
         // Create player with default speed (100)
         _player = new SchedulingEntity("Player", new EntityStats { BaseSpeed = 100 });
@@ -41,13 +39,12 @@ public class TurnSystemTests : TurnBaseTests {
         _worldMap.AddEntity(_player, Vector2I.Zero);
         _worldMap.AddEntity(_fastWalker, Vector2I.Zero);
         _worldMap.AddEntity(_slowAttacker, Vector2I.Zero);
-
     }
 
     [Test]
     public async Task ProcessTicks_CorrectEnergy() {
         _player.ScheduleNextAction(new ActionCommand(ActionType.Walk, _player));
-        await _turnSystem.ProcessTickAsync();
+        await TurnSystem.ProcessTickAsync();
         // 1 tick -> - (1*ActionCost) +(1*BaseEnergy)
         Assert.That(_player.CurrentEnergy, Is.EqualTo(-1000 + 100));
         Assert.That(_fastWalker.CurrentEnergy, Is.EqualTo(-1000 + 120));
@@ -61,7 +58,7 @@ public class TurnSystemTests : TurnBaseTests {
         // We'll process 20 ticks which should be 2 full turns
         for (var i = 0; i < ticks; i++) {
             _player.ScheduleNextAction(new ActionCommand(ActionType.Run, _player));
-            await _turnSystem.ProcessTickAsync();
+            await TurnSystem.ProcessTickAsync();
         }
 
         // Verify turn and tick counts
@@ -83,7 +80,7 @@ public class TurnSystemTests : TurnBaseTests {
         _slowAttacker.OnExecute += (action) => slowAttackerHistory.Add(action);
         for (var i = 0; i < ticks; i++) {
             _player.ScheduleNextAction(new ActionCommand(ActionType.Walk, _player));
-            await _turnSystem.ProcessTickAsync();
+            await TurnSystem.ProcessTickAsync();
         }
 
         // Player always Walks (1000) and speed is 100
@@ -98,7 +95,7 @@ public class TurnSystemTests : TurnBaseTests {
 [TestFixture]
 public class EntityEventsTests : TurnBaseTests {
     private WorldMap _worldMap;
-    private TurnSystem _turnSystem;
+    private TurnSystem TurnSystem => _worldMap.TurnSystem;
     private EntityBase _entity;
     private int _tickStartCount;
     private int _tickEndCount;
@@ -110,7 +107,6 @@ public class EntityEventsTests : TurnBaseTests {
     public void Setup() {
         _worldMap = new WorldMap(1, 1);
         _worldMap.Cells.Load((p) => new WorldCell(CellType.Floor, p));
-        _turnSystem = new TurnSystem(_worldMap);
         ResetCounters();
     }
 
@@ -154,7 +150,7 @@ public class EntityEventsTests : TurnBaseTests {
         _worldMap.AddEntity(_entity, Vector2I.Zero);
 
         // Process one tick
-        await _turnSystem.ProcessTickAsync();
+        await TurnSystem.ProcessTickAsync();
 
         // Verify the order of events
         var expectedOrder = new[] { "TickStart", "CanAct", "DecideAction", "Execute", "TickEnd" };
@@ -201,7 +197,7 @@ public class EntityEventsTests : TurnBaseTests {
 
         _worldMap.AddEntity(_entity, Vector2I.Zero);
 
-        await _turnSystem.ProcessTickAsync();
+        await TurnSystem.ProcessTickAsync();
 
         // Verify only TickStart, CanAct and TickEnd were called
         var expectedOrder = new[] { "TickStart", "CanAct", "TickEnd" };
@@ -248,7 +244,7 @@ public class EntityEventsTests : TurnBaseTests {
         _worldMap.AddEntity(_entity, Vector2I.Zero);
 
         // First tick: entity acts normally
-        await _turnSystem.ProcessTickAsync();
+        await TurnSystem.ProcessTickAsync();
 
         // Entity now has negative energy due to the Walk action (-1000 + 100 = -900)
         Assert.That(_entity.CurrentEnergy, Is.EqualTo(-900));
@@ -257,7 +253,7 @@ public class EntityEventsTests : TurnBaseTests {
         actualOrder.Clear();
 
         // Second tick: entity should skip action due to negative energy
-        await _turnSystem.ProcessTickAsync();
+        await TurnSystem.ProcessTickAsync();
 
         // Verify only TickStart and TickEnd were called
         var expectedOrder = new[] { "TickStart", "TickEnd" };
@@ -285,15 +281,15 @@ public class EntityEventsTests : TurnBaseTests {
         _worldMap.AddEntity(_entity, Vector2I.Zero);
 
         // First tick
-        await _turnSystem.ProcessTickAsync();
+        await TurnSystem.ProcessTickAsync();
         Assert.That(_entity.CurrentEnergy, Is.EqualTo(-1000 + 200), "Should gain 200 energy (100 * 2.0)");
 
         // Second tick
-        await _turnSystem.ProcessTickAsync();
+        await TurnSystem.ProcessTickAsync();
         Assert.That(_entity.CurrentEnergy, Is.EqualTo(-1000 + 200 + 200), "Should gain another 200 energy");
 
         // Third tick - effect should have expired
-        await _turnSystem.ProcessTickAsync();
+        await TurnSystem.ProcessTickAsync();
         Assert.That(_entity.CurrentEnergy, Is.EqualTo(-1000 + 200 + 200 + 100), "Should gain normal 100 energy");
     }
 
@@ -316,7 +312,7 @@ public class EntityEventsTests : TurnBaseTests {
 
         // Process three ticks
         while (asyncEntity.Queue.Count > 0) {
-            await _turnSystem.ProcessTickAsync();
+            await TurnSystem.ProcessTickAsync();
         }
 
         // Verify actions were executed in order
@@ -333,5 +329,53 @@ public class EntityEventsTests : TurnBaseTests {
         var expectedEnergy = -4200 + (100 * _worldMap.CurrentTick);
         Assert.That(asyncEntity.CurrentEnergy, Is.EqualTo(expectedEnergy),
             "Final energy should reflect all actions and energy gains");
+    }
+
+    [Test]
+    public async Task EntitiesCanBeRemovedAndAddedDuringTick() {
+        // Create an entity that will remove another entity and queue a new one during its action
+        var removedEntityCalled = false;
+        var addedEntityCalled = false;
+
+        // Entity to be removed
+        var entityToRemove = EntityBuilder.Create("EntityToRemove", new EntityStats { BaseSpeed = 100 })
+            .DecideAction(ActionType.Wait)
+            .Build();
+
+        entityToRemove.OnRemoved += () => removedEntityCalled = true;
+
+
+        // Entity that will trigger the changes
+        var triggerEntity = EntityBuilder.Create("TriggerEntity", new EntityStats { BaseSpeed = 100 })
+            .Execute((action) => {
+                entityToRemove.Removed = true; // Mark entity for removal
+
+                // Queue a new entity
+                var newEntity = EntityBuilder.Create("NewEntity", new EntityStats { BaseSpeed = 100 })
+                    .DecideAction(ActionType.Wait)
+                    .Build();
+                newEntity.OnAdded += () => addedEntityCalled = true;
+
+                _worldMap.QueueAddEntity(newEntity, Vector2I.Zero);
+            })
+            .DecideAction(ActionType.Walk)
+            .Build();
+
+        // Add initial entities
+        _worldMap.AddEntity(triggerEntity, Vector2I.Zero);
+        _worldMap.AddEntity(entityToRemove, Vector2I.Zero);
+
+        Assert.That(_worldMap.Entities.Count, Is.EqualTo(2), "Should start with 2 entities");
+
+        // Process one tick
+        await TurnSystem.ProcessTickAsync();
+
+        Assert.Multiple(() => {
+            Assert.That(_worldMap.Entities.Count, Is.EqualTo(2), "Should end with 2 entities (1 removed, 1 added)");
+            Assert.That(removedEntityCalled, Is.True, "OnRemoved should have been called");
+            Assert.That(addedEntityCalled, Is.True, "OnAdded should have been called");
+            Assert.That(_worldMap.Entities.Any(e => e.Name == "EntityToRemove"), Is.False, "Removed entity should not be present");
+            Assert.That(_worldMap.Entities.Any(e => e.Name == "NewEntity"), Is.True, "New entity should be present");
+        });
     }
 }
