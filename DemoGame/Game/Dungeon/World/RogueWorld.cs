@@ -8,7 +8,7 @@ namespace Veronenger.Game.Dungeon.World;
 
 public class RogueWorld {
 
-    public TurnWorld TurnWorld { get; private set; }
+    public WorldMap WorldMap { get; private set; }
     public SchedulingEntity Player { get; private set; }
 
     public static void Configure(string templateContent) {
@@ -40,7 +40,7 @@ public class RogueWorld {
         var seed = 1;
         var result = MapGenerator.CreateMap(MapType.OfficeEasy, seed);
 
-        TurnWorld = new TurnWorld(result.WorldCellMap) {
+        WorldMap = new WorldMap(result.WorldCellMap) {
             TicksPerTurn = 10,
         };
         CreatePlayer();
@@ -84,9 +84,9 @@ public class RogueWorld {
 
     public string PrintArray2D() {
         var stringBuilder = new StringBuilder();
-        for (var y = 0; y < TurnWorld.Height; y++) {
-            for (var x = 0; x < TurnWorld.Width; x++) {
-                var cell = TurnWorld[y, x];
+        for (var y = 0; y < WorldMap.Height; y++) {
+            for (var x = 0; x < WorldMap.Width; x++) {
+                var cell = WorldMap[y, x];
                 // Console.WriteLine($"Glyph: {y},{x} : {cell?.Type}");
                 stringBuilder.Append(Glyph(cell));
             }

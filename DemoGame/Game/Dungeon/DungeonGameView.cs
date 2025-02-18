@@ -36,7 +36,6 @@ public partial class DungeonGameView : IGameView {
 
 	public DungeonMap DungeonMap;
 	public RogueWorld RogueWorld;
-	public TurnSystem TurnSystem;
 
 	private CameraController _cameraController;
 
@@ -45,22 +44,22 @@ public partial class DungeonGameView : IGameView {
 	public async Task StartNewGame(string? saveName = null) {
 		await GameLoader.Load(DungeonGameResources.GameLoaderTag);
 		Configure();
-		TurnSystem = RogueWorld.TurnWorld.CreateTurnSystem();
-		TurnSystem.Run();
+
+		RogueWorld = CreateRogueWorld();
+		DungeonMap.UpdateTileMap(RogueWorld);
+
+		RogueWorld.WorldMap.TurnSystem.Run();
 	}
 
 	private void Configure() {
 		if (_initialized) throw new Exception("Already initialized, can't call it twice");
 		_initialized = true;
-		RogueWorld = CreateRogueWorld();
 
 		GameObjectRepository.Initialize(); // Singleton, so it must be initialized every time this class is created
 
 		DungeonMap = DungeonMapFactory.Create();
-		DungeonMap.Configure(RogueWorld);
 
 		ConfigureCamera();
-
 
 		DungeonPlayerActions.Start();
 		DungeonPlayerActions.EnableAll();
@@ -90,7 +89,7 @@ public partial class DungeonGameView : IGameView {
 			Container.ResolveAll<INodePool>().ForEach(p => p.FreeAll());
 			GameLoader.UnloadResources(DungeonGameResources.GameLoaderTag);
 		}
-		TurnSystem.Stop();
+		RogueWorld.WorldMap.TurnSystem.Stop();
 		DungeonPlayerActions.DisableAll();
 		DungeonPlayerActions.Stop();
 

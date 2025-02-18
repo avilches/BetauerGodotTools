@@ -31,24 +31,23 @@ public partial class DungeonMap : Node2D, IInjectable {
     public void Configure(CameraController cameraController) {
         CameraController = cameraController;
         Ready += () => {
-            // TileMapLayer.SetCell(new Vector2I(0, 0), (int)TileSetSourceId.SmAscii16x16, new Vector2I(3, 2));
             CameraController.Follow(Player);
-
-            TileMapLayer.Clear();
-
-            RogueWorld.TurnWorld.Cells.ForEach((cell) => {
-                if (cell == null) return;
-                var glyph = cell.Config.Glyph;
-                TileMapLayer.SetCell(cell.Position, (int)TileSetSourceId.SmAscii16x16, new Vector2I((byte)glyph % 16, (byte)glyph / 16));
-                if (PlayerPos == Vector2I.Zero && cell.Config.IsBlocked == false) {
-                    PlayerPos = cell.Position;
-                }
-            });
-            RogueWorld.TurnWorld.AddEntity(RogueWorld.Player, PlayerPos);
-            Player.Position = TileMapLayer.MapToLocal(PlayerPos);
-
-            // TileMapLayer.SetCell();
         };
+    }
+
+    public void UpdateTileMap(RogueWorld rogueWorld) {
+        RogueWorld = rogueWorld;
+        TileMapLayer.Clear();
+        RogueWorld.WorldMap.Cells.ForEach((cell) => {
+            if (cell == null) return;
+            var glyph = cell.Config.Glyph;
+            TileMapLayer.SetCell(cell.Position, (int)TileSetSourceId.SmAscii16x16, new Vector2I((byte)glyph % 16, (byte)glyph / 16));
+            if (PlayerPos == Vector2I.Zero && cell.Config.IsBlocked == false) {
+                PlayerPos = cell.Position;
+            }
+        });
+        RogueWorld.WorldMap.AddEntity(RogueWorld.Player, PlayerPos);
+        Player.Position = TileMapLayer.MapToLocal(PlayerPos);
     }
 
     public override void _Input(InputEvent @event) {
@@ -69,12 +68,8 @@ public partial class DungeonMap : Node2D, IInjectable {
         }
     }
 
-    public void Configure(RogueWorld rogueWorld) {
-        RogueWorld = rogueWorld;
-    }
-
     private void MoveTo(Vector2I targetPosition) {
-        if (!RogueWorld.TurnWorld.IsBlocked(targetPosition)) {
+        if (!RogueWorld.WorldMap.IsBlocked(targetPosition)) {
             PlayerPos = targetPosition;
             RogueWorld.Player.SetResult(new ActionCommand(ActionType.Walk, targetPosition: targetPosition));
             Player.Position = TileMapLayer.MapToLocal(targetPosition);

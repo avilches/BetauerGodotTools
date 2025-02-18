@@ -16,14 +16,14 @@ public class TurnSystemTests : TurnBaseTests {
     private SchedulingEntity _player;
     private EntityBase _fastWalker;
     private EntityBase _slowAttacker;
-    private TurnWorld _world;
+    private WorldMap _worldMap;
 
     [SetUp]
     public void Setup() {
-        _world = new TurnWorld(1, 1);
-        _world.Cells.Load((p) => new WorldCell(CellType.Floor, p));
+        _worldMap = new WorldMap(1, 1);
+        _worldMap.Cells.Load((p) => new WorldCell(CellType.Floor, p));
 
-        _turnSystem = new TurnSystem(_world);
+        _turnSystem = new TurnSystem(_worldMap);
 
         // Create player with default speed (100)
         _player = new SchedulingEntity("Player", new EntityStats { BaseSpeed = 100 });
@@ -38,9 +38,9 @@ public class TurnSystemTests : TurnBaseTests {
             .Build();
 
         // Add entities to the system
-        _world.AddEntity(_player, Vector2I.Zero);
-        _world.AddEntity(_fastWalker, Vector2I.Zero);
-        _world.AddEntity(_slowAttacker, Vector2I.Zero);
+        _worldMap.AddEntity(_player, Vector2I.Zero);
+        _worldMap.AddEntity(_fastWalker, Vector2I.Zero);
+        _worldMap.AddEntity(_slowAttacker, Vector2I.Zero);
 
     }
 
@@ -65,8 +65,8 @@ public class TurnSystemTests : TurnBaseTests {
         }
 
         // Verify turn and tick counts
-        Assert.That(_world.CurrentTick, Is.EqualTo(ticks));
-        Assert.That(_world.CurrentTurn, Is.EqualTo(ticks / _world.TicksPerTurn));
+        Assert.That(_worldMap.CurrentTick, Is.EqualTo(ticks));
+        Assert.That(_worldMap.CurrentTurn, Is.EqualTo(ticks / _worldMap.TicksPerTurn));
     }
 
     [Test]
@@ -97,7 +97,7 @@ public class TurnSystemTests : TurnBaseTests {
 
 [TestFixture]
 public class EntityEventsTests : TurnBaseTests {
-    private TurnWorld _world;
+    private WorldMap _worldMap;
     private TurnSystem _turnSystem;
     private EntityBase _entity;
     private int _tickStartCount;
@@ -108,9 +108,9 @@ public class EntityEventsTests : TurnBaseTests {
 
     [SetUp]
     public void Setup() {
-        _world = new TurnWorld(1, 1);
-        _world.Cells.Load((p) => new WorldCell(CellType.Floor, p));
-        _turnSystem = new TurnSystem(_world);
+        _worldMap = new WorldMap(1, 1);
+        _worldMap.Cells.Load((p) => new WorldCell(CellType.Floor, p));
+        _turnSystem = new TurnSystem(_worldMap);
         ResetCounters();
     }
 
@@ -151,7 +151,7 @@ public class EntityEventsTests : TurnBaseTests {
             })
             .Build();
 
-        _world.AddEntity(_entity, Vector2I.Zero);
+        _worldMap.AddEntity(_entity, Vector2I.Zero);
 
         // Process one tick
         await _turnSystem.ProcessTickAsync();
@@ -199,7 +199,7 @@ public class EntityEventsTests : TurnBaseTests {
             })
             .Build();
 
-        _world.AddEntity(_entity, Vector2I.Zero);
+        _worldMap.AddEntity(_entity, Vector2I.Zero);
 
         await _turnSystem.ProcessTickAsync();
 
@@ -245,7 +245,7 @@ public class EntityEventsTests : TurnBaseTests {
             })
             .Build();
 
-        _world.AddEntity(_entity, Vector2I.Zero);
+        _worldMap.AddEntity(_entity, Vector2I.Zero);
 
         // First tick: entity acts normally
         await _turnSystem.ProcessTickAsync();
@@ -282,7 +282,7 @@ public class EntityEventsTests : TurnBaseTests {
             .DecideAction(ActionType.Walk) // Always walk
             .Build();
 
-        _world.AddEntity(_entity, Vector2I.Zero);
+        _worldMap.AddEntity(_entity, Vector2I.Zero);
 
         // First tick
         await _turnSystem.ProcessTickAsync();
@@ -307,7 +307,7 @@ public class EntityEventsTests : TurnBaseTests {
             history.Add(action);
         };
 
-        _world.AddEntity(asyncEntity, Vector2I.Zero);
+        _worldMap.AddEntity(asyncEntity, Vector2I.Zero);
 
         // Schedule three actions
         asyncEntity.ScheduleNextAction(new ActionCommand(ActionType.Walk, asyncEntity));
@@ -330,7 +330,7 @@ public class EntityEventsTests : TurnBaseTests {
         // Calculate expected energy
         // Actions cost: Walk (-1000) + Attack (-1200) + Run (-2000) = -4200
         // Energy gained: +100 * 50 = 5000
-        var expectedEnergy = -4200 + (100 * _world.CurrentTick);
+        var expectedEnergy = -4200 + (100 * _worldMap.CurrentTick);
         Assert.That(asyncEntity.CurrentEnergy, Is.EqualTo(expectedEnergy),
             "Final energy should reflect all actions and energy gains");
     }

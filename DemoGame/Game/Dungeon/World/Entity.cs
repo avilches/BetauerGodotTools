@@ -6,16 +6,91 @@ using Godot;
 
 namespace Veronenger.Game.Dungeon.World;
 
-/// <summary>
-/// Clase base para todas las entidades del juego
-/// </summary>
-public class Entity {
+public interface IEntityAsync {
+    Task<ActionCommand> DecideAction();
+}
+
+public interface IEntitySync {
+    ActionCommand DecideAction();
+}
+
+public class BlockingEntity : EntityBase, IEntityAsync {
+    public Func<Task<ActionCommand>> OnDecideAction { get; set; }
+
+    public BlockingEntity(EntityStats stats) : base(stats) {
+        OnDecideAction = () => Task.FromResult(new ActionCommand(ActionType.Wait, this));
+    }
+
+    public BlockingEntity(string name, EntityStats stats) : base(name, stats) {
+        OnDecideAction = () => Task.FromResult(new ActionCommand(ActionType.Wait, this));
+    }
+
+    public Task<ActionCommand> DecideAction() {
+        return OnDecideAction.Invoke();
+    }
+}
+
+public class SchedulingEntity : EntityBase, IEntityAsync {
+    private TaskCompletionSource<ActionCommand>? _promise;
+
+    public SchedulingEntity(EntityStats stats) : base(stats) {
+    }
+
+    public SchedulingEntity(string name, EntityStats stats) : base(name, stats) {
+    }
+
+    public Queue<ActionCommand> Queue { get; } = [];
+
+    public bool IsWaiting => _promise != null;
+
+    public void SetResult(ActionCommand actionCommand) {
+        var promise = _promise;
+        if (promise == null) {
+            throw new Exception("No action to resolve");
+        }
+        if (promise.Task.IsCompleted) {
+            throw new Exception("Player action already set");
+        }
+        _promise = null;
+        promise.TrySetResult(actionCommand);
+    }
+
+    public void ScheduleNextAction(ActionCommand nextActionCommand) {
+        Queue.Enqueue(nextActionCommand);
+    }
+
+    public Task<ActionCommand> DecideAction() {
+        if (Queue.Count > 0) {
+            var action = Queue.Dequeue();
+            return Task.FromResult(action);
+        }
+        _promise ??= new TaskCompletionSource<ActionCommand>();
+        return _promise.Task;
+    }
+}
+
+public class Entity : EntityBase, IEntitySync {
+    public Func<ActionCommand> OnDecideAction { get; set; }
+
+    public Entity(EntityStats stats) : base(stats) {
+        OnDecideAction = () => new ActionCommand(ActionType.Wait, this);
+    }
+
+    public Entity(string name, EntityStats stats) : base(name, stats) {
+        OnDecideAction = () => new ActionCommand(ActionType.Wait, this);
+    }
+
+    public ActionCommand DecideAction() {
+        return OnDecideAction.Invoke();
+    }
+}
+
+public class EntityBase {
     public string Name { get; }
     public EntityStats BaseStats { get; }
     public int CurrentEnergy { get; protected set; } = 0;
     public List<MultiplierEffect>? SpeedEffects { get; private set; } = null;
 
-    public Func<Task<ActionCommand>> OnDecideAction { get; set; }
     public Func<bool> OnCanAct { get; set; } = () => true;
 
     public event Action<ActionCommand>? OnExecute;
@@ -25,26 +100,25 @@ public class Entity {
     public event Action? OnWorldAdded;
     public event Action<Vector2I, Vector2I>? OnMoved;
 
-    public TurnWorld World => Location?.World;
+    public WorldMap WorldMap => Location?.WorldMap;
     public WorldCell Cell => Location?.Cell;
     public Location Location { get; internal set; }
 
-    public Entity(EntityStats stats) : this(Guid.NewGuid().ToString(), stats) {
+    public EntityBase(EntityStats stats) : this(Guid.NewGuid().ToString(), stats) {
     }
 
-    public Entity(string name, EntityStats stats) {
+    public EntityBase(string name, EntityStats stats) {
         Name = name;
         BaseStats = stats;
-        OnDecideAction = () => Task.FromResult(new ActionCommand(ActionType.Wait, this));
     }
 
-    public Entity Configure(Action<Entity> config) {
+    public EntityBase Configure(Action<EntityBase> config) {
         config(this);
         return this;
     }
 
     public MultiplierEffect AddSpeedEffect(string name, float multiplier, int turns) {
-        var effect = MultiplierEffect.Ticks(name, multiplier, turns * World.TicksPerTurn);
+        var effect = MultiplierEffect.Ticks(name, multiplier, turns * WorldMap.TicksPerTurn);
         AddSpeedEffect(effect);
         return effect;
     }
@@ -79,10 +153,6 @@ public class Entity {
     }
 
     public bool CanAct() => CurrentEnergy >= 0 && OnCanAct.Invoke();
-
-    public Task<ActionCommand> DecideAction() {
-        return OnDecideAction.Invoke();
-    }
 
     public void Execute(ActionCommand actionCommand) {
         CurrentEnergy -= actionCommand.EnergyCost;

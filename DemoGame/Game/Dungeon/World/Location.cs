@@ -2,12 +2,12 @@ using Godot;
 
 namespace Veronenger.Game.Dungeon.World;
 
-public class Location(EntityBase entity, TurnWorld world, Vector2I position) {
+public class Location(EntityBase entity, WorldMap worldMap, Vector2I position) {
     private Vector2I _position = position;
 
     public EntityBase EntityBase { get; } = entity;
-    public TurnWorld World { get; } = world;
-    public WorldCell Cell => World != null ? World[Position] : null;
+    public WorldMap WorldMap { get; } = worldMap;
+    public WorldCell Cell => WorldMap != null ? WorldMap[Position] : null;
 
     public Vector2I Position {
         get => _position;
@@ -15,7 +15,7 @@ public class Location(EntityBase entity, TurnWorld world, Vector2I position) {
             if (_position == value) return;
             var oldPosition = _position;
             _position = value;
-            World.MoveEntity(EntityBase, oldPosition, _position);
+            WorldMap.MoveEntity(EntityBase, oldPosition, _position);
         }
     }
 

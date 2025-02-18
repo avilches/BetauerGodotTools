@@ -38,8 +38,8 @@ public class Simulator {
 
         Task.Run(() => HandlePlayerInput(_rogueWorld.Player));
 
-        var ticks = turns * _rogueWorld.TurnWorld.TicksPerTurn;
-        _rogueWorld.TurnWorld.CreateTurnSystem().Run().Wait();
+        var ticks = turns * _rogueWorld.WorldMap.TicksPerTurn;
+        _rogueWorld.WorldMap.TurnSystem.Run().Wait();
         /*
         var lastTick = Environment.TickCount;
         while (_running && _rogueWorld.TurnWorld.CurrentTick < ticks) {

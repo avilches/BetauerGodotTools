@@ -10,15 +10,15 @@ namespace Veronenger.Tests;
 public class SpeedEffectTests : TurnBaseTests {
     private TurnSystem _turnSystem;
     private EntityBase _walker;
-    private TurnWorld _world;
+    private WorldMap _worldMap;
 
     [SetUp]
     public void Setup() {
-        _world = new TurnWorld(1, 1);
-        _world.Cells.Load((p) => new WorldCell(CellType.Floor, p));
-        _turnSystem = new TurnSystem(_world);
+        _worldMap = new WorldMap(1, 1);
+        _worldMap.Cells.Load((p) => new WorldCell(CellType.Floor, p));
+        _turnSystem = new TurnSystem(_worldMap);
         _walker = EntityBuilder.Create("Walker", new EntityStats { BaseSpeed = 100 }).DecideAction(ActionType.Walk).Build();
-        _world.AddEntity(_walker, Vector2I.Zero);
+        _worldMap.AddEntity(_walker, Vector2I.Zero);
     }
 
     [Test]
