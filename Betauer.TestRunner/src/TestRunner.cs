@@ -106,7 +106,7 @@ public class TestRunner {
         public object[]? Parameters { get; }
         public ParameterInfo[] MethodParameters => Method.GetParameters();
 
-        public TestMethod(MethodInfo method, TestClass type, string? description, bool only, object[]? parameters = null) {
+        public TestMethod(MethodInfo method, TestClass type, string? description, bool only, IEnumerable<MethodInfo>? setup, IEnumerable<MethodInfo>? tearDown, object[]? parameters = null) {
             TestClass = type;
             Method = method;
             Parameters = parameters;
@@ -114,6 +114,8 @@ public class TestRunner {
             Name = BuildTestName(method.Name, parameters);
             Description = description;
             Only = only;
+            Setup = setup;
+            TearDown = tearDown;
         }
 
         private string BuildTestName(string methodName, object[]? parameters) {
@@ -195,49 +197,32 @@ public class TestRunner {
     }
 
     private static TestClass CreateTestClass(Type type, Attribute testClassAttribute) {
+        var testClass = new TestClass(type);
         List<TestMethod> testMethods = [];
-        List<MethodInfo>? oneTimeSetUp = null;
-        List<MethodInfo>? setup = null;
-        List<MethodInfo>? oneTimeTearDown = null;
-        List<MethodInfo>? tearDown = null;
         var isAnyMethodWithOnly = false;
         var onlyThisType = HasAttribute(type, "Only") || HasAttributeField(testClassAttribute, "Only");
-        var testClass = new TestClass(type);
-        foreach (var method in type.GetMethods()) {
-            var testAttribute = TestMethodDefinition.GetTestMethodAttribute(method);
-            if (testAttribute != null) {
-                if (testAttribute.Skip) {
-                    continue;
-                }
+        var setup = GetMethodsInHierarchicalOrder(type, "SetUp", "TestInitialize").ToList();
+        var tearDown = GetMethodsInHierarchicalOrder(type, "TearDown", "TestCleanup").ToList();
+        foreach (var (method, description, _, onlyThisMethod) in type.GetMethods()
+                     .Select(TestMethodDefinition.GetTestMethodAttribute)
+                     .Where(t => t != null)
+                     .Select(t => t!)
+                     .Where(t => !t.Skip)) {
 
-                var onlyThisMethod = testAttribute.Only;
-                isAnyMethodWithOnly = isAnyMethodWithOnly || onlyThisMethod;
+            isAnyMethodWithOnly = isAnyMethodWithOnly || onlyThisMethod;
 
-                var testCases = GetTestCaseAttributes(method);
-                if (testCases.Any()) {
-                    // Crear un TestMethod por cada TestCase
-                    foreach (var testCase in testCases) {
-                        var parameters = GetTestCaseParameters(testCase, method);
-                        var description = GetFieldValue(testCase, "Description");
-                        var testMethod = new TestMethod(method, testClass, description, onlyThisMethod, parameters);
-                        testMethods.Add(testMethod);
-                    }
-                } else {
-                    // Caso normal sin parámetros
-                    var testMethod = new TestMethod(method, testClass, testAttribute.Description, onlyThisMethod);
-                    testMethods.Add(testMethod);
+            var testCases = GetTestCaseAttributes(method).ToArray();
+            if (testCases.Length > 0) {
+                // Crear un TestMethod por cada TestCase
+                foreach (var testCase in testCases) {
+                    var parameters = GetTestCaseParameters(testCase, method);
+                    var testCaseDescription = GetFieldValue(testCase, "Description");
+                    testMethods.Add(new TestMethod(method, testClass, testCaseDescription ?? description, onlyThisMethod, setup, tearDown, parameters));
                 }
             } else {
-                if (HasAttribute(method, "OneTimeSetUp", "SetUpClass")) (oneTimeSetUp ??= []).Add(method);
-                if (HasAttribute(method, "OneTimeTearDown", "TearDownClass")) (oneTimeTearDown ??= []).Add(method);
-                if (HasAttribute(method, "SetUp", "TestInitialize")) (setup ??= []).Add(method);
-                if (HasAttribute(method, "TearDown", "TestCleanup")) (tearDown ??= []).Add(method);
+                testMethods.Add(new TestMethod(method, testClass, description, onlyThisMethod, setup, tearDown));
             }
         }
-        testMethods.ForEach(testMethod => {
-            testMethod.Setup = setup;
-            testMethod.TearDown = tearDown;
-        });
         if (!isAnyMethodWithOnly && onlyThisType) {
             // If none of the methods has Only, but the TestClass has Only, then mark all methods as Only too
             testMethods.ForEach(method => method.Only = true);
@@ -247,8 +232,8 @@ public class TestRunner {
         }
         testClass.Only = onlyThisType;
         testClass.Methods = testMethods;
-        testClass.OneTimeSetUp = oneTimeSetUp;
-        testClass.OneTimeTearDown = oneTimeTearDown;
+        testClass.OneTimeSetUp = GetMethodsInHierarchicalOrder(type, "OneTimeSetUp", "SetUpClass").ToList();
+        testClass.OneTimeTearDown = GetMethodsInHierarchicalOrder(type, "OneTimeTearDown", "TearDownClass").ToList();
         return testClass;
     }
 
@@ -287,6 +272,7 @@ public class TestRunner {
     public static Attribute? GetAttribute(MemberInfo member, params string[] name) {
         return Attribute.GetCustomAttributes(member, false).FirstOrDefault(a => name.Any(n => a.GetType().Name == n + "Attribute"));
     }
+
     public static T? GetAttribute<T>(MemberInfo member, bool inherit = false) where T : Attribute {
         return Attribute.GetCustomAttribute(member, typeof(T), inherit) as T;
     }
@@ -321,7 +307,28 @@ public class TestRunner {
         return Attribute.GetCustomAttribute(member, typeof(T), inherit) is T;
     }
 
-    private static BindingFlags InheritFlags(bool inherit) => inherit
+    public static BindingFlags InheritFlags(bool inherit) => inherit
         ? BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy
         : BindingFlags.Public | BindingFlags.Instance;
+
+    public static IEnumerable<MethodInfo> GetMethodsInHierarchicalOrder(Type type, params string[] attributeNames) {
+        var methods = new List<MethodInfo>();
+        var currentType = type;
+
+        // Recorremos la jerarquía desde la clase base hasta la clase derivada
+        while (currentType != null && currentType != typeof(object)) {
+            // Obtenemos los métodos declarados en este nivel
+            var methodsInCurrentType = currentType.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly)
+                .Where(method => HasAttribute(method, attributeNames))
+                .ToList();
+
+            // Los añadimos al principio de la lista para que los métodos de la clase base vayan primero
+            methods.InsertRange(0, methodsInCurrentType);
+
+            // Subimos en la jerarquía
+            currentType = currentType.BaseType;
+        }
+
+        return methods;
+    }
 }
