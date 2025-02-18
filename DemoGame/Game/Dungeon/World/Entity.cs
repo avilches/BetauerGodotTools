@@ -91,13 +91,15 @@ public class EntityBase {
     public int CurrentEnergy { get; protected set; } = 0;
     public List<MultiplierEffect>? SpeedEffects { get; private set; } = null;
 
+    public bool Removed = false;
+
     public Func<bool> OnCanAct { get; set; } = () => true;
 
     public event Action<ActionCommand>? OnExecute;
     public event Action? OnTickStart;
     public event Action? OnTickEnd;
-    public event Action? OnWorldRemoved;
-    public event Action? OnWorldAdded;
+    public event Action? OnRemoved;
+    public event Action? OnAdded;
     public event Action<Vector2I, Vector2I>? OnMoved;
 
     public WorldMap WorldMap => Location?.WorldMap;
@@ -129,11 +131,11 @@ public class EntityBase {
     }
 
     internal void InvokeOnWorldAdded() {
-        OnWorldAdded?.Invoke();
+        OnAdded?.Invoke();
     }
 
     internal void InvokeOnWorldRemoved() {
-        OnWorldRemoved?.Invoke();
+        OnRemoved?.Invoke();
     }
 
     internal void InvokeOnMoved(Vector2I from, Vector2I to) {

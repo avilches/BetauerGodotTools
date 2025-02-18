@@ -9,6 +9,7 @@ namespace Veronenger.Game.Dungeon.World;
 public class WorldMap {
     private readonly List<EntityBase> _entities = [];
     private readonly Dictionary<string, EntityBase> _entitiesByName = [];
+    private readonly Queue<(EntityBase, Vector2I)> _pendingEntities = new();
 
     public Array2D<WorldCell?> Cells { get; private set; }
 
@@ -62,6 +63,17 @@ public class WorldMap {
         return _entitiesByName[name] as T;
     }
 
+    public void QueueAddEntity(EntityBase entity, Vector2I position) {
+        _pendingEntities.Enqueue((entity, position));
+    }
+
+    public void ApplyPendingChanges() {
+        while (_pendingEntities.Count > 0) {
+            var (entity, position) = _pendingEntities.Dequeue();
+            AddEntity(entity, position);
+        }
+    }
+
     public void AddEntity(EntityBase entity, Vector2I position) {
         if (Entities.Contains(entity)) {
             throw new InvalidOperationException($"Entity already added to world: {entity}");
@@ -105,9 +117,8 @@ public class WorldMap {
         }
     }
 
-    public bool RemoveEntity(EntityBase entity) {
-        if (!_entities.Contains(entity)) return false;
-
+    internal void RemoveEntity(EntityBase entity) {
+        if (!_entities.Contains(entity) || !entity.Removed) return;
 
         // Trigger events where the data is still valid
         entity.InvokeOnWorldRemoved();
@@ -118,7 +129,6 @@ public class WorldMap {
         _entitiesByName.Remove(entity.Name);
         Cells[entity.Location.Position]?.RemoveEntity(entity);
         entity.Location = null;
-        return true;
     }
 
     internal void MoveEntity(EntityBase entity, Vector2I origin, Vector2I to) {

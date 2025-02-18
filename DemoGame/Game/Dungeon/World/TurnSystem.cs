@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Betauer.Tools.Logging;
@@ -37,24 +38,40 @@ public class TurnSystem(WorldMap worldMap) {
         Busy = true;
         worldMap.NextTick();
 
-        foreach (var entity in worldMap.Entities.ToArray()) { // ToArray() to avoid concurrent modification
-            // AddEntity ensures all the Async entities goes first
+        List<EntityBase> destroyedQueue = null;
+
+        foreach (var entity in worldMap.Entities) {
+            if (entity.Removed) {
+                destroyedQueue ??= [];
+                destroyedQueue.Add(entity);
+                continue;
+            }
+
+            // AddEntity ensures all the Async entities (players) goes first
 
             entity.TickStart();
             if (entity.CanAct()) {
-                if (entity is IEntitySync syncEntity) {
-                    entity.Execute(syncEntity.DecideAction());
-
-                } else if (entity is IEntityAsync asyncEntity) {
+                if (entity is IEntityAsync asyncEntity) {
                     var action = await DecideAction(entity.Name, asyncEntity);
                     if (action != null) entity.Execute(action);
                     if (!Running || action?.Type == ActionType.EndGame) {
+                        // Only players can stop the tick (setting Running = false or ActionType.EndGame)
+                        // If the game is stopped, we can end the tick immediately
+                        entity.TickEnd();
                         break;
                     }
+                } else if (entity is IEntitySync syncEntity) {
+                    entity.Execute(syncEntity.DecideAction());
+
                 }
             }
             entity.TickEnd();
         }
+
+        if (destroyedQueue != null) {
+            foreach (var entity in destroyedQueue) worldMap.RemoveEntity(entity);
+        }
+        worldMap.ApplyPendingChanges();
         Busy = false;
     }
 

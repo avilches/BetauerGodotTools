@@ -56,7 +56,7 @@ public class TurnWorldEventTests : TurnBaseTests {
         cell.OnEntityAdded += (entity) => _cellEntityAddedCount++;
 
         // Subscribe to entity events
-        _entity.OnWorldAdded += () => _entityWorldAddedCount++;
+        _entity.OnAdded += () => _entityWorldAddedCount++;
 
         _worldMap.AddEntity(_entity, position);
 
@@ -81,11 +81,12 @@ public class TurnWorldEventTests : TurnBaseTests {
         cell.OnEntityRemoved += (entity) => _cellEntityRemovedCount++;
 
         // Subscribe to entity events
-        _entity.OnWorldRemoved += () => _entityWorldRemovedCount++;
+        _entity.OnRemoved += () => _entityWorldRemovedCount++;
 
         ResetCounters(); // Reset counters after adding entity
 
-        _worldMap.RemoveEntity(_entity);
+        _entity.Removed = true;
+        _worldMap.TurnSystem.ProcessTickAsync().Wait();
 
         Assert.Multiple(() => {
             Assert.That(_worldEntityRemovedCount, Is.EqualTo(1), "World OnEntityRemoved should be called once");
