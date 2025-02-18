@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using System.Linq;
 
 [TestFixture]
-public class TurnSystemTests {
+public class TurnSystemTests : TurnBaseTests {
     private TurnSystem _turnSystem;
     private EntityBlocking _player;
     private Entity _fastWalker;
@@ -20,7 +20,6 @@ public class TurnSystemTests {
 
     [SetUp]
     public void Setup() {
-        CellTypeConfig.DefaultConfig();
         _world = new TurnWorld(1, 1);
         _world.Cells.Load((p) => new WorldCell(CellType.Floor, p));
 
@@ -44,12 +43,6 @@ public class TurnSystemTests {
         _world.AddEntity(_fastWalker, Vector2I.Zero);
         _world.AddEntity(_slowAttacker, Vector2I.Zero);
 
-        ActionTypeConfig.RegisterAll(
-            new ActionTypeConfig(ActionType.Wait) { EnergyCost = 500 },
-            new ActionTypeConfig(ActionType.Walk) { EnergyCost = 1000 },
-            new ActionTypeConfig(ActionType.Attack) { EnergyCost = 1200 },
-            new ActionTypeConfig(ActionType.Run) { EnergyCost = 2000 }
-        );
     }
 
     [Test]
@@ -104,7 +97,7 @@ public class TurnSystemTests {
 }
 
 [TestFixture]
-public class EntityEventsTests {
+public class EntityEventsTests : TurnBaseTests {
     private TurnWorld _world;
     private TurnSystem _turnSystem;
     private Entity _entity;
@@ -119,13 +112,6 @@ public class EntityEventsTests {
         _world = new TurnWorld(1, 1);
         _world.Cells.Load((p) => new WorldCell(CellType.Floor, p));
         _turnSystem = new TurnSystem(_world);
-        ActionTypeConfig.RegisterAll(
-            new ActionTypeConfig(ActionType.Wait) { EnergyCost = 500 },
-            new ActionTypeConfig(ActionType.Walk) { EnergyCost = 1000 },
-            new ActionTypeConfig(ActionType.Attack) { EnergyCost = 1200 },
-            new ActionTypeConfig(ActionType.Run) { EnergyCost = 2000 }
-        );
-
         ResetCounters();
     }
 

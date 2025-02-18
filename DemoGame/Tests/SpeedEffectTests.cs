@@ -7,25 +7,18 @@ using Veronenger.Game.Dungeon.World;
 namespace Veronenger.Tests;
 
 [TestFixture]
-public class SpeedEffectTests {
+public class SpeedEffectTests : TurnBaseTests {
     private TurnSystem _turnSystem;
     private Entity _walker;
     private TurnWorld _world;
 
     [SetUp]
     public void Setup() {
-        CellTypeConfig.DefaultConfig();
         _world = new TurnWorld(1, 1);
         _world.Cells.Load((p) => new WorldCell(CellType.Floor, p));
         _turnSystem = new TurnSystem(_world);
         _walker = EntityBuilder.Create("Walker", new EntityStats { BaseSpeed = 100 }).DecideAction(ActionType.Walk).Build();
         _world.AddEntity(_walker, Vector2I.Zero);
-        ActionTypeConfig.RegisterAll(
-            new ActionTypeConfig(ActionType.Wait) { EnergyCost = 500 },
-            new ActionTypeConfig(ActionType.Walk) { EnergyCost = 1000 },
-            new ActionTypeConfig(ActionType.Attack) { EnergyCost = 1200 },
-            new ActionTypeConfig(ActionType.Run) { EnergyCost = 2000 }
-        );
     }
 
     [Test]

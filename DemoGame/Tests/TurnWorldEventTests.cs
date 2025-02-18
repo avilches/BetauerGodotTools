@@ -7,7 +7,7 @@ using Veronenger.Game.Dungeon.World;
 namespace Veronenger.Tests;
 
 [TestFixture]
-public class TurnWorldEventTests {
+public class TurnWorldEventTests : TurnBaseTests {
     private TurnWorld _world;
     private Entity _entity;
     private int _worldEntityAddedCount;
@@ -22,7 +22,6 @@ public class TurnWorldEventTests {
 
     [SetUp]
     public void Setup() {
-        CellTypeConfig.DefaultConfig();
         _world = new TurnWorld(5, 5);
         _world.Cells.Load((p) => new WorldCell(CellType.Floor, p));
         _entity = EntityBuilder.Create("TestEntity", new EntityStats { BaseSpeed = 100 })
