@@ -46,7 +46,7 @@ public class MazeGraph {
     internal void SetAttribute(object instance, string key, object value) => _attributes[new AttributeKey(instance, key)] = value;
     internal object? GetAttribute(object instance, string key) => _attributes.GetValueOrDefault(new AttributeKey(instance, key));
     internal T? GetAttributeAs<T>(object instance, string key) => _attributes.TryGetValue(new AttributeKey(instance, key), out var value) && value is T typedValue ? typedValue : default;
-    internal T GetAttributeOrDefault<T>(object instance, string key, T defaultValue) => _attributes.TryGetValue(new AttributeKey(instance, key), out var value) && value is T typedValue ? typedValue : defaultValue;
+    internal T GetAttributeOr<T>(object instance, string key, T defaultValue) => _attributes.TryGetValue(new AttributeKey(instance, key), out var value) && value is T typedValue ? typedValue : defaultValue;
 
     internal T GetAttributeOrCreate<T>(object instance, string key, Func<T> factory) {
         var attributeKey = new AttributeKey(instance, key);

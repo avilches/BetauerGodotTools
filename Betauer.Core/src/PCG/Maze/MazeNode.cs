@@ -134,10 +134,13 @@ public class MazeNode {
     // Metadata object
     public object Metadata { get; set; }
     public void SetMetadata<T>(T value) => Metadata = value;
-    public T GetMetadataOrDefault<T>() => Metadata is T value ? value : default;
-    public T GetMetadataOrNew<T>() where T : new() => Metadata is T value ? value : new T();
+    public T GetMetadataAs<T>() => (T)Metadata;
     public T GetMetadataOr<T>(T defaultValue) => Metadata is T value ? value : defaultValue;
-    public T GetMetadataOr<T>(Func<T> factory) => Metadata is T value ? value : factory();
+    public T GetMetadataOrCreate<T>(Func<T> factory) {
+        if (Metadata is T value) return value;
+        Metadata = factory();
+        return (T)Metadata;
+    }
     public bool HasMetadata<T>() => Metadata is T;
     public bool HasAnyMetadata => Metadata != null;
     public void ClearMetadata() => Metadata = null;
@@ -146,7 +149,7 @@ public class MazeNode {
     public void SetAttribute(string key, object value) => Graph.SetAttribute(this, key, value);
     public object? GetAttribute(string key) => Graph.GetAttribute(this, key);
     public T? GetAttributeAs<T>(string key) => Graph.GetAttributeAs<T>(this, key);
-    public T GetAttributeOrDefault<T>(string key, T defaultValue) => Graph.GetAttributeOrDefault(this, key, defaultValue);
+    public T GetAttributeOr<T>(string key, T defaultValue) => Graph.GetAttributeOr(this, key, defaultValue);
     public T GetAttributeOrCreate<T>(string key, Func<T> factory) => Graph.GetAttributeOrCreate(this, key, factory);
     public bool RemoveAttribute(string key) => Graph.RemoveAttribute(this, key);
     public bool HasAttribute(string key) => Graph.HasAttribute(this, key);

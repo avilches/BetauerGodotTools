@@ -29,7 +29,7 @@ public class Template {
     public void SetAttribute(string key, object value) => Attributes[key] = value;
     public object? GetAttribute(string key) => Attributes.GetValueOrDefault(key);
     public T? GetAttributeAs<T>(string key) => Attributes.TryGetValue(key, out var value) && value is T typedValue ? typedValue : default;
-    public T GetAttributeOrDefault<T>(string key, T defaultValue) => Attributes.TryGetValue(key, out var value) && value is T typedValue ? typedValue : defaultValue;
+    public T GetAttributeOr<T>(string key, T defaultValue) => Attributes.TryGetValue(key, out var value) && value is T typedValue ? typedValue : defaultValue;
 
     public T GetAttributeOrCreate<T>(string key, Func<T> factory) {
         if (Attributes.TryGetValue(key, out var value) && value is T typedValue) {
@@ -48,7 +48,7 @@ public class Template {
     public void SetAttribute(DirectionFlag flag, string key, object value) => SetAttribute(Key(flag, key), value);
     public object? GetAttribute(DirectionFlag flag, string key) => GetAttribute(Key(flag, key));
     public T? GetAttributeAs<T>(DirectionFlag flag, string key) => GetAttributeAs<T>(Key(flag, key));
-    public T GetAttributeOrDefault<T>(DirectionFlag flag, string key, T defaultValue) => GetAttributeOrDefault(Key(flag, key), defaultValue);
+    public T GetAttributeOr<T>(DirectionFlag flag, string key, T defaultValue) => GetAttributeOr(Key(flag, key), defaultValue);
     public T GetAttributeOrCreate<T>(DirectionFlag flag, string key, Func<T> factory) => GetAttributeOrCreate(Key(flag, key), factory);
     public bool RemoveAttribute(DirectionFlag flag, string key) => RemoveAttribute(Key(flag, key));
     public bool HasAttribute(DirectionFlag flag, string key) => HasAttribute(Key(flag, key));
@@ -115,7 +115,7 @@ public class Template {
                 }
             } else {
                 // Si hay salida, validar que el tamaño es correcto (1, 3 o 5)
-                var width = GetAttributeOrDefault(flag, "size", 1);
+                var width = GetAttributeOr(flag, "size", 1);
                 if (width % 2 == 0) {
                     if (throwException) throw new Exception($"Invalid template {Id}. Direction size {DirectionFlagTools.DirectionFlagToString(flag)} should be an odd number: {width}");
                     ;
