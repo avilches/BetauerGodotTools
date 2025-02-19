@@ -14,11 +14,11 @@ public interface IEntitySync {
     ActionCommand DecideAction();
 }
 
-public abstract class BlockingEntityBase : EntityBase, IEntityAsync {
-    protected BlockingEntityBase(EntityStats stats) : base(stats) {
+public abstract class EntityAsyncBase : EntityBase, IEntityAsync {
+    protected EntityAsyncBase(EntityStats stats) : base(stats) {
     }
 
-    protected BlockingEntityBase(string name, EntityStats stats) : base(name, stats) {
+    protected EntityAsyncBase(string name, EntityStats stats) : base(name, stats) {
     }
 
     public abstract Task<ActionCommand> DecideAction();
@@ -31,15 +31,15 @@ public abstract class BlockingEntityBase : EntityBase, IEntityAsync {
     public abstract void DoExecute(ActionCommand actionCommand);
 }
 
-public class BlockingEntity : BlockingEntityBase, IEntityAsync {
+public class EntityAsync : EntityAsyncBase, IEntityAsync {
     public Func<Task<ActionCommand>> OnDecideAction { get; set; }
     public event Action<ActionCommand>? OnExecute;
 
-    public BlockingEntity(EntityStats stats) : base(stats) {
+    public EntityAsync(EntityStats stats) : base(stats) {
         OnDecideAction = () => Task.FromResult(new ActionCommand(ActionType.Wait, this));
     }
 
-    public BlockingEntity(string name, EntityStats stats) : base(name, stats) {
+    public EntityAsync(string name, EntityStats stats) : base(name, stats) {
         OnDecideAction = () => Task.FromResult(new ActionCommand(ActionType.Wait, this));
     }
 
@@ -114,16 +114,16 @@ public class SchedulingEntity : SchedulingEntityBase {
 }
 
 
-public class Entity : EntityBase, IEntitySync {
+public class EntitySync : EntityBase, IEntitySync {
     public Func<ActionCommand> OnDecideAction { get; set; }
     public event Action<ActionCommand>? OnExecute;
 
 
-    public Entity(EntityStats stats) : base(stats) {
+    public EntitySync(EntityStats stats) : base(stats) {
         OnDecideAction = () => new ActionCommand(ActionType.Wait, this);
     }
 
-    public Entity(string name, EntityStats stats) : base(name, stats) {
+    public EntitySync(string name, EntityStats stats) : base(name, stats) {
         OnDecideAction = () => new ActionCommand(ActionType.Wait, this);
     }
 

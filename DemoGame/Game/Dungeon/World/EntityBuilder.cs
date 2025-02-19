@@ -65,8 +65,8 @@ public class EntityBuilder {
         return this;
     }
 
-    public Entity Build() {
-        var entity = new Entity(_name, _stats);
+    public EntitySync Build() {
+        var entity = new EntitySync(_name, _stats);
 
         // Add all initial effects
         foreach (var effect in _initialEffects) {

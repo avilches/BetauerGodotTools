@@ -13,8 +13,8 @@ using System.Linq;
 [TestFixture]
 public class TurnSystemTests : TurnBaseTests {
     private SchedulingEntity _player;
-    private Entity _fastWalker;
-    private Entity _slowAttacker;
+    private EntitySync _fastWalker;
+    private EntitySync _slowAttacker;
     private WorldMap _worldMap;
     private TurnSystem TurnSystem => _worldMap.TurnSystem;
 
