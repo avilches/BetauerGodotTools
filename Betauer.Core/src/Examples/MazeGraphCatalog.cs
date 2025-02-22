@@ -35,10 +35,10 @@ public class MazeGraphCatalog {
         config?.Invoke(maze);
         var zones = maze.GrowZoned(start, constraints, rng);
         ConnectNodes(template, maze);
-        // MazeGraphTools.ConnectLongestCycles(maze, zones.Zones.Count * 2).ForEach(c => {
-        //     c.nodeA.GetEdgeTo(c.nodeB)!.SetAttribute("cycle", true);
-        //     c.nodeB.GetEdgeTo(c.nodeA)!.SetAttribute("cycle", true);
-        // });
+        maze.ConnectLongestCycles(zones.Zones.Count * 2).ForEach(c => {
+             c.nodeA.GetEdgeTo(c.nodeB)!.Attributes().Set("cycle", true);
+             c.nodeB.GetEdgeTo(c.nodeA)!.Attributes().Set("cycle", true);
+        });
         return zones;
     }
 
@@ -70,8 +70,8 @@ public class MazeGraphCatalog {
         maze.NeverConnectZone(zones.Zones.Count - 1);
 
         MazeGraphTools.ConnectLongestCyclesInAllZones(zones).ForEach(c => {
-            c.nodeA.GetEdgeTo(c.nodeB)!.SetAttribute("cycle", true);
-            c.nodeB.GetEdgeTo(c.nodeA)!.SetAttribute("cycle", true);
+            c.nodeA.GetEdgeTo(c.nodeB)!.Attributes().Set("cycle", true);
+            c.nodeB.GetEdgeTo(c.nodeA)!.Attributes().Set("cycle", true);
         });
         return zones;
     }
@@ -88,8 +88,8 @@ public class MazeGraphCatalog {
         var zones = maze.GrowZoned(Vector2I.Zero, constraints, rng);
 
         MazeGraphTools.ConnectLongestCyclesInAllZones(zones).ForEach(c => {
-            c.nodeA.GetEdgeTo(c.nodeB)!.SetAttribute("cycle", true);
-            c.nodeB.GetEdgeTo(c.nodeA)!.SetAttribute("cycle", true);
+            c.nodeA.GetEdgeTo(c.nodeB)!.Attributes().Set("cycle", true);
+            c.nodeB.GetEdgeTo(c.nodeA)!.Attributes().Set("cycle", true);
         });
         return zones;
     }
@@ -112,8 +112,8 @@ public class MazeGraphCatalog {
         config?.Invoke(maze);
         var zones = maze.GrowZoned(Vector2I.Zero, constraints, rng);
         maze.ConnectLongestCycles(zones.Zones.Count).ForEach(c => {
-            c.nodeA.GetEdgeTo(c.nodeB)!.SetAttribute("cycle", true);
-            c.nodeB.GetEdgeTo(c.nodeA)!.SetAttribute("cycle", true);
+            c.nodeA.GetEdgeTo(c.nodeB)!.Attributes().Set("cycle", true);
+            c.nodeB.GetEdgeTo(c.nodeA)!.Attributes().Set("cycle", true);
         });
         // Add as many cycles as zones
         // MazeGraphTools.AddLongestCycles(maze, zones.Zones.Count);
@@ -140,8 +140,8 @@ public class MazeGraphCatalog {
         maze.NeverConnectZone(0);
         maze.NeverConnectZone(3);
         maze.ConnectLongestCycles(zones.Zones.Count).ForEach(c => {
-            c.nodeA.GetEdgeTo(c.nodeB)!.SetAttribute("cycle", true);
-            c.nodeB.GetEdgeTo(c.nodeA)!.SetAttribute("cycle", true);
+            c.nodeA.GetEdgeTo(c.nodeB)!.Attributes().Set("cycle", true);
+            c.nodeB.GetEdgeTo(c.nodeA)!.Attributes().Set("cycle", true);
         });
         // Add as many cycles as zones
         // MazeGraphTools.AddLongestCycles(maze, zones.Zones.Count);
@@ -167,8 +167,8 @@ public class MazeGraphCatalog {
         maze.NeverConnectZone(0);
         maze.NeverConnectZone(3);
         maze.ConnectLongestCycles(zones.Zones.Count).ForEach(c => {
-            c.nodeA.GetEdgeTo(c.nodeB)!.SetAttribute("cycle", true);
-            c.nodeB.GetEdgeTo(c.nodeA)!.SetAttribute("cycle", true);
+            c.nodeA.GetEdgeTo(c.nodeB)!.Attributes().Set("cycle", true);
+            c.nodeB.GetEdgeTo(c.nodeA)!.Attributes().Set("cycle", true);
         });
         // Add as many cycles as zones
         // MazeGraphTools.AddLongestCycles(maze, zones.Zones.Count);
@@ -188,10 +188,10 @@ public class MazeGraphCatalog {
                      .Where(dataCell => dataCell.Value == '-')
                      .Select(dataCell => mc.GetNodeAtOrNull(dataCell.Position)!)
                      .Where(node => node != null!)) {
-            from.TryConnectTowards(Vector2I.Left)?.SetAttribute("cycle", true);
-            from.Left?.TryConnectTowards(Vector2I.Right)?.SetAttribute("cycle", true);
-            from.TryConnectTowards(Vector2I.Right)?.SetAttribute("cycle", true);
-            from.Right?.TryConnectTowards(Vector2I.Left)?.SetAttribute("cycle", true);
+            from.TryConnectTowards(Vector2I.Left)?.Attributes().Set("cycle", true);
+            from.Left?.TryConnectTowards(Vector2I.Right)?.Attributes().Set("cycle", true);
+            from.TryConnectTowards(Vector2I.Right)?.Attributes().Set("cycle", true);
+            from.Right?.TryConnectTowards(Vector2I.Left)?.Attributes().Set("cycle", true);
         }
 
         foreach (var from in template
@@ -199,10 +199,10 @@ public class MazeGraphCatalog {
                      .Where(dataCell => dataCell.Value == '|')
                      .Select(dataCell => mc.GetNodeAtOrNull(dataCell.Position)!)
                      .Where(node => node != null!)) {
-            from.TryConnectTowards(Vector2I.Up)?.SetAttribute("cycle", true);
-            from.Up?.TryConnectTowards(Vector2I.Down)?.SetAttribute("cycle", true);
-            from.TryConnectTowards(Vector2I.Down)?.SetAttribute("cycle", true);
-            from.Down?.TryConnectTowards(Vector2I.Up)?.SetAttribute("cycle", true);
+            from.TryConnectTowards(Vector2I.Up)?.Attributes().Set("cycle", true);
+            from.Up?.TryConnectTowards(Vector2I.Down)?.Attributes().Set("cycle", true);
+            from.TryConnectTowards(Vector2I.Down)?.Attributes().Set("cycle", true);
+            from.Down?.TryConnectTowards(Vector2I.Up)?.Attributes().Set("cycle", true);
         }
 
         foreach (var from in template
@@ -210,14 +210,14 @@ public class MazeGraphCatalog {
                      .Where(dataCell => dataCell.Value == '+' || dataCell.Value == 'o')
                      .Select(dataCell => mc.GetNodeAt(dataCell.Position))
                      .Where(node => node != null!)) {
-            from.TryConnectTowards(Vector2I.Up)?.SetAttribute("cycle", true);
-            from.Up?.TryConnectTowards(Vector2I.Down)?.SetAttribute("cycle", true);
-            from.TryConnectTowards(Vector2I.Down)?.SetAttribute("cycle", true);
-            from.Down?.TryConnectTowards(Vector2I.Up)?.SetAttribute("cycle", true);
-            from.TryConnectTowards(Vector2I.Left)?.SetAttribute("cycle", true);
-            from.Left?.TryConnectTowards(Vector2I.Right)?.SetAttribute("cycle", true);
-            from.TryConnectTowards(Vector2I.Right)?.SetAttribute("cycle", true);
-            from.Right?.TryConnectTowards(Vector2I.Left)?.SetAttribute("cycle", true);
+            from.TryConnectTowards(Vector2I.Up)?.Attributes().Set("cycle", true);
+            from.Up?.TryConnectTowards(Vector2I.Down)?.Attributes().Set("cycle", true);
+            from.TryConnectTowards(Vector2I.Down)?.Attributes().Set("cycle", true);
+            from.Down?.TryConnectTowards(Vector2I.Up)?.Attributes().Set("cycle", true);
+            from.TryConnectTowards(Vector2I.Left)?.Attributes().Set("cycle", true);
+            from.Left?.TryConnectTowards(Vector2I.Right)?.Attributes().Set("cycle", true);
+            from.TryConnectTowards(Vector2I.Right)?.Attributes().Set("cycle", true);
+            from.Right?.TryConnectTowards(Vector2I.Left)?.Attributes().Set("cycle", true);
         }
     }
 }

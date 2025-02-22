@@ -105,7 +105,7 @@ public class AxisAction {
         return axisAction;
     }
 
-    public static Builder Create(string name = null) {
+    public static Builder Create(string name) {
         return new Builder(name);
     }
 

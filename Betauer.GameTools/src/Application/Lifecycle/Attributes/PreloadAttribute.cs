@@ -12,7 +12,7 @@ public class PreloadAttribute<T> : Attribute, IConfigurationClassAttribute where
     public string Path { get; set; }
     public string? TypeHint { get; set; }
 
-    public PreloadAttribute(string name, string path, string typeHint = null) {
+    public PreloadAttribute(string name, string path, string? typeHint = null) {
         Name = name;
         Path = path;
         TypeHint = typeHint;
