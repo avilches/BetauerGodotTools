@@ -3,11 +3,11 @@
   "profiles": {
     "DebugRoslynSourceGenerator": {
       "commandName": "DebugRoslynComponent",
-      "targetProject": "../Betauer.GameTools.Tests/Betauer.GameTools.Tests.csproj",
-      "targetProjectDD": "../Betauer.SourceGenerators.Tests/Betauer.SourceGenerators.Tests.csproj",
+      "targetProjectX1": "../Betauer.GameTools.Tests/Betauer.GameTools.Tests.csproj",
+      "targetProjectX2": "../Betauer.SourceGenerators.Tests/Betauer.SourceGenerators.Tests.csproj",
 
-      "targetProjectd": "../Betauer.GameTools/Betauer.GameTools.csproj",
-      "targetProjectdd": "../DemoGame/DemoGame4.csproj"
+      "targetProjectX3": "../Betauer.GameTools/Betauer.GameTools.csproj",
+      "targetProject": "../DemoGame/DemoGame4.csproj"
     }
   }
 }

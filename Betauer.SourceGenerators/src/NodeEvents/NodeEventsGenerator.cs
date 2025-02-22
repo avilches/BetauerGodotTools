@@ -1,12 +1,11 @@
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Betauer.SourceGenerators;
+namespace Betauer.SourceGenerators.NodeEvents;
 
 [Generator]
 public class NodeEventsGenerator : IIncrementalGenerator {
@@ -22,10 +21,10 @@ public class NodeEventsGenerator : IIncrementalGenerator {
         });
     }
 
-    public static IncrementalValuesProvider<GodotClassData> CreateValuesProviderForGodotClasses(SyntaxValueProvider provider,
+    public static IncrementalValuesProvider<ClassData> CreateValuesProviderForGodotClasses(SyntaxValueProvider provider,
         string parentClassFullName,
         Func<SyntaxNode, CancellationToken, bool>? customPredicate = null,
-        Func<GeneratorSyntaxContext, CancellationToken, GodotClassData>? customTransform = null) {
+        Func<GeneratorSyntaxContext, CancellationToken, ClassData>? customTransform = null) {
         
         return provider.CreateSyntaxProvider(
             // By default select class declarations that inherit from something
@@ -36,12 +35,12 @@ public class NodeEventsGenerator : IIncrementalGenerator {
                 var cds = (ClassDeclarationSyntax)ctx.Node;
                 if (!cds.IsGodotScriptClass(ctx.SemanticModel, out var symbol, parentClassFullName))
                     return default;
-                return new GodotClassData(cds, symbol);
+                return new ClassData(cds, symbol);
             })
         ).Where(static x => x.Symbol is not null);
     }
 
-    private static void Execute(SourceProductionContext context, Compilation compilation, ImmutableArray<GodotClassData> godotClassDatas) {
+    private static void Execute(SourceProductionContext context, Compilation compilation, ImmutableArray<ClassData> godotClassDatas) {
         godotClassDatas.Where(x => {
                 // Report and skip non-partial classes
                 if (x.DeclarationSyntax.IsPartial()) {
@@ -61,24 +60,4 @@ public class NodeEventsGenerator : IIncrementalGenerator {
     private const string ClassGeneratedSuffix = "_Betauer_Events";
 }
 
-public readonly struct GodotClassData {
-    public GodotClassData(ClassDeclarationSyntax cds, INamedTypeSymbol symbol) {
-        DeclarationSyntax = cds;
-        Symbol = symbol;
-    }
-
-    public ClassDeclarationSyntax DeclarationSyntax { get; }
-    public INamedTypeSymbol Symbol { get; }
-}
-
-public class ClassGeneratorEqualityComparer : IEqualityComparer<NodeEventsClassGenerator> {
-    private readonly IEqualityComparer<INamedTypeSymbol> _comparer = SymbolEqualityComparer.Default;
-
-    public bool Equals(NodeEventsClassGenerator? obj, NodeEventsClassGenerator? other) {
-        return _comparer.Equals(obj?.Symbol, other?.Symbol);
-    }
-
-    public int GetHashCode(NodeEventsClassGenerator obj) {
-        return _comparer.GetHashCode(obj.Symbol);
-    }
-}
+public readonly record struct ClassData(ClassDeclarationSyntax DeclarationSyntax, INamedTypeSymbol Symbol);

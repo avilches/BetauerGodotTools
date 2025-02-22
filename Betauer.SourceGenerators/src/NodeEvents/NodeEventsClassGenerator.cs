@@ -3,9 +3,11 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Betauer.SourceGenerators;
+namespace Betauer.SourceGenerators.NodeEvents;
 
-public class NodeEventsClassGenerator : ClassGenerator {
+public class NodeEventsClassGenerator(SourceProductionContext generatorExecutionContext, ClassDeclarationSyntax cds, INamedTypeSymbol symbol, string classGeneratedSuffix)
+    : ClassGenerator(generatorExecutionContext, cds, symbol, classGeneratedSuffix) {
+
     private const string AttributeNamespace = "Betauer.Core.Nodes.Events";
     private const string ProcessAttributeName = "Process";
     private const string PhysicsProcessAttributeName = "PhysicsProcess";
@@ -44,10 +46,6 @@ public class NodeEventsClassGenerator : ClassGenerator {
     public bool AddUnhandledInput { get; private set; }
     public bool AddUnhandledKeyInput { get; private set; }
     public bool AddShortcutInput { get; private set; }
-
-    public NodeEventsClassGenerator(SourceProductionContext generatorExecutionContext, ClassDeclarationSyntax cds, INamedTypeSymbol symbol, string classGeneratedSuffix) :
-        base(generatorExecutionContext, cds, symbol, classGeneratedSuffix) {
-    }
 
     public bool HasAttribute(string attributeFullName, string disabler) {
         var attribute =  Symbol.GetAttribute(attributeFullName);

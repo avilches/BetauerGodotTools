@@ -11,7 +11,7 @@ namespace Betauer.SourceGenerators;
 
 internal static class ExtensionMethods {
 
-    public const string GodotObject = "Godot.GodotObject";
+    // public const string GodotObject = "Godot.GodotObject";
 
     /// <summary>
     /// Immediately executes the given action on each element in the source sequence.
