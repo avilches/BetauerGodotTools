@@ -131,33 +131,6 @@ public class MazeNode {
 
     public float Weight { get; set; } = 0f;
 
-    // Metadata object
-    public object Metadata { get; set; }
-    public void SetMetadata<T>(T value) => Metadata = value;
-    public T GetMetadataAs<T>() => (T)Metadata;
-    public T GetMetadataOr<T>(T defaultValue) => Metadata is T value ? value : defaultValue;
-    public T GetMetadataOrCreate<T>(Func<T> factory) {
-        if (Metadata is T value) return value;
-        Metadata = factory();
-        return (T)Metadata;
-    }
-    public bool HasMetadata<T>() => Metadata is T;
-    public bool HasAnyMetadata => Metadata != null;
-    public void ClearMetadata() => Metadata = null;
-
-    // Attributes
-    public void SetAttribute(string key, object value) => Graph.SetAttribute(this, key, value);
-    public object? GetAttribute(string key) => Graph.GetAttribute(this, key);
-    public T? GetAttributeAs<T>(string key) => Graph.GetAttributeAs<T>(this, key);
-    public T GetAttributeOr<T>(string key, T defaultValue) => Graph.GetAttributeOr(this, key, defaultValue);
-    public T GetAttributeOrCreate<T>(string key, Func<T> factory) => Graph.GetAttributeOrCreate(this, key, factory);
-    public bool RemoveAttribute(string key) => Graph.RemoveAttribute(this, key);
-    public bool HasAttribute(string key) => Graph.HasAttribute(this, key);
-    public IEnumerable<KeyValuePair<string, object>> GetAttributes() => Graph.GetAttributes(this);
-    public int AttributeCount => Graph.GetAttributeCount(this);
-    public bool HasAnyAttribute => Graph.HasAnyAttribute(this);
-    public void ClearAttributes() => Graph.ClearAttributes(this);
-    
     // Edges
     public MazeEdge? GetEdgeTo(int id) => _outEdges.FirstOrDefault(edge => edge.To.Id == id);
     public MazeEdge? GetEdgeTo(Vector2I position) => _outEdges.FirstOrDefault(edge => edge.To.Position == position);
@@ -223,14 +196,12 @@ public class MazeNode {
         if (edge.From == this) {
             if (!_outEdges.Remove(edge)) return false;
             edge.To._inEdges.Remove(edge);
-            Graph.ClearAttributes(edge);
             Graph.InvokeOnEdgeRemoved(edge);
             return true;
         }
         if (edge.To == this) {
             if (!_inEdges.Remove(edge)) return false;
             edge.From._outEdges.Remove(edge);
-            Graph.ClearAttributes(edge);
             Graph.InvokeOnEdgeRemoved(edge);
             return true;
         }
@@ -255,18 +226,17 @@ public class MazeNode {
         _outEdges.Clear();
         _inEdges.Clear();
         Parent = null;
-        Graph.ClearAttributes(this);
         return true;
     }
 
-    public MazeEdge ConnectTo(int id, object metadata = default, float weight = 0f) {
+    public MazeEdge ConnectTo(int id, float weight = 0f) {
         var targetNode = Graph.GetNode(id);
-        return ConnectTo(targetNode, metadata, weight);
+        return ConnectTo(targetNode, weight);
     }
 
-    public MazeEdge ConnectTo(Vector2I targetPos, object metadata = default, float weight = 0f) {
+    public MazeEdge ConnectTo(Vector2I targetPos, float weight = 0f) {
         var targetNode = Graph.GetNodeAt(targetPos);
-        return ConnectTo(targetNode, metadata, weight);
+        return ConnectTo(targetNode, weight);
     }
 
     /// <summary>
@@ -276,19 +246,19 @@ public class MazeNode {
     /// <param name="metadata"></param>
     /// <param name="weight"></param>
     /// <returns></returns>
-    public MazeEdge? TryConnectTowards(Vector2I direction, object metadata = default, float weight = 0f) {
+    public MazeEdge? TryConnectTowards(Vector2I direction, float weight = 0f) {
         var targetPos = Position + direction;
         var targetNode = Graph.GetNodeAtOrNull(targetPos);
-        return targetNode != null ? ConnectTo(targetNode, metadata, weight) : null;
+        return targetNode != null ? ConnectTo(targetNode, weight) : null;
     }
 
-    public MazeEdge ConnectTowards(Vector2I direction, object metadata = default, float weight = 0f) {
+    public MazeEdge ConnectTowards(Vector2I direction, float weight = 0f) {
         var targetPos = Position + direction;
         var targetNode = Graph.GetNodeAt(targetPos);
-        return ConnectTo(targetNode, metadata, weight);
+        return ConnectTo(targetNode, weight);
     }
 
-    public MazeEdge ConnectTo(MazeNode to, object metadata = default, float weight = 0f) {
+    public MazeEdge ConnectTo(MazeNode to, float weight = 0f) {
         if (to.Graph != Graph) {
             throw new InvalidEdgeException("Cannot connect nodes from different graphs", Position, to.Position);
         }
@@ -302,11 +272,10 @@ public class MazeNode {
         var edge = GetEdgeTo(to);
         if (edge != null) {
             edge.Weight = weight;
-            edge.Metadata = metadata;
             return edge;
         }
 
-        edge = new MazeEdge(this, to, metadata, weight);
+        edge = new MazeEdge(this, to, weight);
         _outEdges.Add(edge);
         to._inEdges.Add(edge);
         Graph.InvokeOnEdgeCreated(edge);

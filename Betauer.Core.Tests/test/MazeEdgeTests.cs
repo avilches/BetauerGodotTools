@@ -41,20 +41,17 @@ public class MazeEdgeTests {
     }
 
     [Test]
-    public void Edge_WeightAndMetadata_CanBeModified() {
-        var edge = new MazeEdge(_nodeFrom, _nodeTo, "metadata", 1.5f);
+    public void Edge_Weight_CanBeModified() {
+        var edge = new MazeEdge(_nodeFrom, _nodeTo, 1.5f);
         
         Assert.Multiple(() => {
             Assert.That(edge.Weight, Is.EqualTo(1.5f));
-            Assert.That(edge.Metadata, Is.EqualTo("metadata"));
         });
 
         edge.Weight = 2.5f;
-        edge.Metadata = "new metadata";
-        
+
         Assert.Multiple(() => {
             Assert.That(edge.Weight, Is.EqualTo(2.5f));
-            Assert.That(edge.Metadata, Is.EqualTo("new metadata"));
         });
     }
 

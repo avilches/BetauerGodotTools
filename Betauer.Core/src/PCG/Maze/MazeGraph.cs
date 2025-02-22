@@ -39,50 +39,10 @@ public class MazeGraph {
 
     protected int LastId = 0;
 
-    public readonly record struct AttributeKey(object Instance, string Key);
-
-    private readonly Dictionary<AttributeKey, object> _attributes = [];
-
-    internal void SetAttribute(object instance, string key, object value) => _attributes[new AttributeKey(instance, key)] = value;
-    internal object? GetAttribute(object instance, string key) => _attributes.GetValueOrDefault(new AttributeKey(instance, key));
-    internal T? GetAttributeAs<T>(object instance, string key) => _attributes.TryGetValue(new AttributeKey(instance, key), out var value) && value is T typedValue ? typedValue : default;
-    internal T GetAttributeOr<T>(object instance, string key, T defaultValue) => _attributes.TryGetValue(new AttributeKey(instance, key), out var value) && value is T typedValue ? typedValue : defaultValue;
-
-    internal T GetAttributeOrCreate<T>(object instance, string key, Func<T> factory) {
-        var attributeKey = new AttributeKey(instance, key);
-        if (_attributes.TryGetValue(attributeKey, out var value) && value is T typedValue) {
-            return typedValue;
-        }
-        var newValue = factory();
-        _attributes[attributeKey] = newValue;
-        return newValue;
-    }
-
-    internal bool RemoveAttribute(object instance, string key) => _attributes.Remove(new AttributeKey(instance, key));
-    internal bool HasAttribute(object instance, string key) => _attributes.ContainsKey(new AttributeKey(instance, key));
-    internal bool HasAttributeWithValue<T>(object instance, string key, T value) => _attributes.TryGetValue(new AttributeKey(instance, key), out var existingValue) && existingValue is T && Equals(existingValue, value);
-    internal bool HasAttributeOfType<T>(object instance, string key) => _attributes.TryGetValue(new AttributeKey(instance, key), out var existingValue) && existingValue is T;
-
-    internal IEnumerable<KeyValuePair<string, object>> GetAttributes(object instance) {
-        return _attributes
-            .Where(kv => kv.Key.Instance == instance)
-            .Select(kv => new KeyValuePair<string, object>(kv.Key.Key, kv.Value));
-    }
-
-    internal int GetAttributeCount(object instance) => _attributes.Count(kv => kv.Key.Instance == instance);
-    internal bool HasAnyAttribute(object instance) => _attributes.Keys.Any(k => k.Instance == instance);
-
-    internal void ClearAttributes(object instance) {
-        var keys = _attributes.Keys.Where(k => k.Instance == instance).ToList();
-        foreach (var key in keys) {
-            _attributes.Remove(key);
-        }
-    }
 
     public void Clear() {
         NodeGrid.Clear();
         Nodes.Clear();
-        _attributes.Clear();
         LastId = 0;
     }
 
@@ -127,7 +87,6 @@ public class MazeGraph {
 
         var node = new MazeNode(this, nodeId, position) {
             Parent = parent,
-            Metadata = metadata!,
             Weight = weight
         };
         NodeGrid[position] = node;
@@ -182,20 +141,20 @@ public class MazeGraph {
         from.RemoveEdgeTo(to);
     }
 
-    public MazeEdge ConnectNodes(int fromId, int toId, object metadata = default, float weight = 0f) {
+    public MazeEdge ConnectNodes(int fromId, int toId, float weight = 0f) {
         var from = GetNode(fromId);
         var to = GetNode(toId);
-        return from.ConnectTo(to, metadata, weight);
+        return from.ConnectTo(to, weight);
     }
 
-    public MazeEdge ConnectNodes(Vector2I fromPosition, Vector2I toPosition, object metadata = default, float weight = 0f) {
+    public MazeEdge ConnectNodes(Vector2I fromPosition, Vector2I toPosition, float weight = 0f) {
         var from = GetNodeAt(fromPosition)!;
         var to = GetNodeAt(toPosition)!;
-        return from.ConnectTo(to, metadata, weight);
+        return from.ConnectTo(to, weight);
     }
 
-    public MazeEdge ConnectNodes(MazeNode from, MazeNode to, object metadata = default, float weight = 0f) {
-        return from.ConnectTo(to, metadata, weight);
+    public MazeEdge ConnectNodes(MazeNode from, MazeNode to, float weight = 0f) {
+        return from.ConnectTo(to, weight);
     }
 
     internal void InvokeOnEdgeCreated(MazeEdge edge) {
