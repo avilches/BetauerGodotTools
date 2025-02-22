@@ -113,8 +113,25 @@ public class SchedulingEntity : SchedulingEntityBase {
     }
 }
 
+public abstract class EntitySyncBase : EntityBase, IEntitySync {
+    protected EntitySyncBase(EntityStats stats) : base(stats) {
+    }
 
-public class EntitySync : EntityBase, IEntitySync {
+    protected EntitySyncBase(string name, EntityStats stats) : base(name, stats) {
+    }
+
+    public abstract ActionCommand DecideAction();
+
+    public override void Execute(ActionCommand actionCommand) {
+        CurrentEnergy -= actionCommand.EnergyCost;
+        DoExecute(actionCommand);
+    }
+
+    public abstract void DoExecute(ActionCommand actionCommand);
+}
+
+
+public class EntitySync : EntitySyncBase, IEntitySync {
     public Func<ActionCommand> OnDecideAction { get; set; }
     public event Action<ActionCommand>? OnExecute;
 
@@ -127,12 +144,11 @@ public class EntitySync : EntityBase, IEntitySync {
         OnDecideAction = () => new ActionCommand(ActionType.Wait, this);
     }
 
-    public ActionCommand DecideAction() {
+    public override ActionCommand DecideAction() {
         return OnDecideAction.Invoke();
     }
 
-    public override void Execute(ActionCommand actionCommand) {
-        CurrentEnergy -= actionCommand.EnergyCost;
+    public override void DoExecute(ActionCommand actionCommand) {
         OnExecute?.Invoke(actionCommand);
     }
 }
@@ -147,11 +163,13 @@ public abstract class EntityBase {
 
     public Func<bool> OnCanAct { get; set; } = () => true;
 
+    public char Glyph { get; set; }
+
     public event Action? OnTickStart;
     public event Action? OnTickEnd;
     public event Action? OnRemoved;
     public event Action? OnAdded;
-    public event Action<Vector2I, Vector2I>? OnMoved;
+    public event Action<Vector2I, Vector2I>? OnPositionChanged;
 
     public WorldMap WorldMap => Location?.WorldMap;
     public WorldCell Cell => Location?.Cell;
@@ -189,8 +207,8 @@ public abstract class EntityBase {
         OnRemoved?.Invoke();
     }
 
-    internal void InvokeOnMoved(Vector2I from, Vector2I to) {
-        OnMoved?.Invoke(from, to);
+    internal void InvokeOnPositionChanged(Vector2I from, Vector2I to) {
+        OnPositionChanged?.Invoke(from, to);
     }
 
     public int GetCurrentSpeed() {

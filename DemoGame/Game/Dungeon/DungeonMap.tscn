@@ -1,8 +1,7 @@
-[gd_scene load_steps=6 format=4 uid="uid://clb7ujfs7d35t"]
+[gd_scene load_steps=5 format=4 uid="uid://clb7ujfs7d35t"]
 
 [ext_resource type="Script" uid="uid://xn1id3anqa4a" path="res://Game/Dungeon/DungeonMap.cs" id="1_waare"]
 [ext_resource type="Texture2D" uid="uid://cjh6iqjyv37wu" path="res://Game/Dungeon/Assets/16x16_sm_ascii.png" id="2_23hge"]
-[ext_resource type="Texture2D" uid="uid://dx1c6mhvnwtkh" path="res://Game/Dungeon/Assets/pixale_tileset_16x16.png" id="3_3rrmu"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_3rrmu"]
 texture = ExtResource("2_23hge")
@@ -270,10 +269,3 @@ script = ExtResource("1_waare")
 unique_name_in_owner = true
 tile_map_data = PackedByteArray("AAD+//7/AAADAAIAAAD8//7/AAADAAIAAAD9//7/AAADAAIAAAD///7/AAADAAIAAAAAAP7/AAADAAIAAAABAP7/AAADAAIAAAACAP7/AAADAAIAAAADAP7/AAADAAIAAAAEAP7/AAADAAIAAAAEAP//AAADAAIAAAAEAAAAAAADAAIAAAAEAAEAAAADAAIAAAAEAAIAAAADAAIAAAAEAAMAAAADAAIAAAAEAAQAAAADAAIAAAAEAAUAAAADAAIAAAADAAUAAAADAAIAAAACAAUAAAADAAIAAAABAAUAAAADAAIAAAAAAAUAAAADAAIAAAD//wUAAAADAAIAAAD+/wUAAAADAAIAAAD9/wUAAAADAAIAAAD8/wUAAAADAAIAAAD8/wQAAAADAAIAAAD8/wMAAAADAAIAAAD8/wIAAAADAAIAAAD8/wEAAAADAAIAAAD8/wAAAAADAAIAAAD8////AAADAAIAAAA=")
 tile_set = SubResource("TileSet_ssdyi")
-
-[node name="Player" type="Sprite2D" parent="TileMapLayer"]
-unique_name_in_owner = true
-texture = ExtResource("3_3rrmu")
-hframes = 16
-vframes = 16
-frame = 64

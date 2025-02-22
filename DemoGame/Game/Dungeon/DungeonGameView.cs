@@ -52,7 +52,7 @@ public partial class DungeonGameView : IGameView {
 		RogueWorld.Configure(Templates.Get().Text);
 		GameObjectRepository.Initialize(); // Singleton, so it must be initialized every time this class is created
 
-		RogueWorld = new RogueWorld();
+		RogueWorld = new RogueWorld(10);
 		DungeonMap = DungeonMapFactory.Create();
 		DungeonMap.Configure(RogueWorld, CreateCamera());
 

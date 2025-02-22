@@ -15,6 +15,11 @@
     </ItemGroup>
     <ItemGroup Condition="'$(Configuration)' == 'ExportRelease'">
     </ItemGroup>
+    <!-- uncomment to view the generated source code -->
+    <!-- PropertyGroup>
+        <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+        <CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
+    </PropertyGroup-->
     <ItemGroup>
         <Content Include="*" Exclude="mono_crash*"/>
         <Compile Include="Game/**/*.cs"/>

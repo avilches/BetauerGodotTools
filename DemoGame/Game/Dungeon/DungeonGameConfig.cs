@@ -22,6 +22,7 @@ public class DungeonMainResources {
 [Configuration]
 [Loader("GameLoader", Tag = GameLoaderTag)]
 [Scene.Transient<DungeonMap>(Name = "DungeonMapFactory", Path = "res://Game/Dungeon/DungeonMap.tscn")]
+[Scene.Transient<EntityNode>(Name = "EntityFactory", Path = "res://Game/Dungeon/EntityNode.tscn")]
 [Resource<TextResource>("Templates", "res://Game/Dungeon/MazeTemplateDemos.txt")]
 public class DungeonGameResources {
     public const string GameLoaderTag = "dungeon";

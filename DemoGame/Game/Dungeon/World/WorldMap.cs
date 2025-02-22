@@ -140,7 +140,7 @@ public class WorldMap {
 
         this[origin]!.RemoveEntity(entity);
         worldCell.AddEntity(entity);
-        entity.InvokeOnMoved(origin, to);
+        entity.InvokeOnPositionChanged(origin, to);
     }
 
     public void NextTick() {

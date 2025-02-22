@@ -31,18 +31,16 @@ public class Simulator {
     private RogueWorld _rogueWorld;
 
     public void RunGameLoop(int turns, int millisecondsPerFrame = 16) {
-        _rogueWorld = new RogueWorld();
+        _rogueWorld = new RogueWorld(10);
         var templateContent = LoadTemplateContent(TemplatePath);
         RogueWorld.Configure(templateContent);
-        var result = _rogueWorld.GenerateWorldMap(1);
 
-        var player = new PlayerEntity("Player", new EntityStats { BaseSpeed = 100 });
-        _rogueWorld.WorldMap.AddEntity(player, result.StartCell.Position);
-        player.OnMoved += (oldPosition, newPosition) => {
+        _rogueWorld.StartNewGame(1);
+        _rogueWorld.Player.OnPositionChanged += (oldPosition, newPosition) => {
             // PlayerSprite.Position = TileMapLayer.MapToLocal(PlayerPos);
         };
 
-        Task.Run(() => HandlePlayerInput(player));
+        Task.Run(() => HandlePlayerInput(_rogueWorld.Player));
 
         var ticks = turns * _rogueWorld.WorldMap.TicksPerTurn;
         _rogueWorld.WorldMap.TurnSystem.Run().Wait();

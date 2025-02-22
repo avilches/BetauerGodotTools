@@ -9,6 +9,12 @@ namespace Veronenger.Game.Dungeon.World;
 
 public class RogueWorld {
     public WorldMap WorldMap { get; private set; }
+    public PlayerEntity Player { get; private set; }
+    public int TicksPerTurn { get; }
+
+    public RogueWorld(int ticksPerTurn) {
+        TicksPerTurn = ticksPerTurn;
+    }
 
     public static void Configure(string templateContent) {
         ActionTypeConfig.RegisterAll(
@@ -33,40 +39,30 @@ public class RogueWorld {
         MapGenerator.Validate();
     }
 
-    public MapGenerator.MapGenerationResult GenerateWorldMap(int seed) {
-        var result = MapGenerator.GenerateMap(MapType.OfficeEasy, seed);
+    public void StartNewGame(int seed) {
+        var result = GenerateWorldMap(seed);
 
-        WorldMap = new WorldMap(result.WorldCellMap) {
-            TicksPerTurn = 10,
-        };
-        CreateEntities();
-        return result;
+        Player = new PlayerEntity("Player", new EntityStats { BaseSpeed = 100 });
+
+        Func<WorldCell,bool> isCellValid = cell => !cell.CellDefinitionConfig.Blocking;
+        var startCell = MapGenerator.FindCenterCell(result.Zones.Start.GetCells()!, isCellValid);
+        WorldMap.AddEntity(Player, startCell.Position);
+
+        foreach (var zone in result.Zones.Zones) {
+            zone.GetEntryNodesFromPreviousZone().ToList().ForEach(entryZone => {
+                var goblinCell = MapGenerator.FindCenterCell(entryZone.GetCells()!, isCellValid);
+                var goblin = new EnemyEntity("Goblin", new EntityStats { BaseSpeed = 100 });
+                WorldMap.AddEntity(goblin, goblinCell.Position);
+            });
+        }
     }
 
-    private void CreateEntities() {
-        /*
-        var goblin = EntityBuilder.Create("Goblin", new EntityStats { BaseSpeed = 80 })
-            .Build();
-            */
-
-        /*
-    goblin.OnDecideAction = async () => {
-        var distance = GameWorld.GetDistance(player, goblin);
-        if (distance > 1) {
-            return new EntityAction(ActionType.Walk, player);
-        }
-        return new EntityAction(ActionType.Attack, player);
-    };
-    */
-
-        /*
-        var quickRat = EntityBuilder.Create("Goblin", new EntityStats { BaseSpeed = 80 })
-            .DecideAction(ActionType.Walk)
-            .Build();
-
-        TurnWorld.AddEntity(goblin, Vector2I.Zero);
-        TurnWorld.AddEntity(quickRat, Vector2I.Zero);
-    */
+    public MapGenerator.MapGenerationResult GenerateWorldMap(int seed) {
+        var result = MapGenerator.GenerateMap(MapType.OfficeEasy, seed);
+        WorldMap = new WorldMap(result.WorldCellMap) {
+            TicksPerTurn = TicksPerTurn,
+        };
+        return result;
     }
 
     public string PrintArray2D() {

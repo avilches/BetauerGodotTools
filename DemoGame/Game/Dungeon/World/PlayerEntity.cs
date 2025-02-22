@@ -14,3 +14,12 @@ public class PlayerEntity(string name, EntityStats stats) : SchedulingEntityBase
         Location.Position = position;
     }
 }
+
+public class EnemyEntity(string name, EntityStats stats) : EntitySyncBase(name, stats) {
+    public override ActionCommand DecideAction() {
+        return new ActionCommand(ActionType.Wait, this);
+    }
+
+    public override void DoExecute(ActionCommand actionCommand) {
+    }
+}

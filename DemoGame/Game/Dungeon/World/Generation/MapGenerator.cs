@@ -14,7 +14,7 @@ namespace Veronenger.Game.Dungeon.World.Generation;
 
 public class MapGenerator {
     // The MazeNode contains two attributes
-    public record MapGenerationResult(MazeZones Zones, Array2D<WorldCell?> WorldCellMap, WorldCell StartCell);
+    public record MapGenerationResult(MazeZones Zones, Array2D<WorldCell?> WorldCellMap);
 
     public static MapGenerationResult GenerateMap(MapType mapType, int seed) {
         var mapTypeConfig = MapTypeConfig.Get(mapType);
@@ -38,6 +38,7 @@ public class MapGenerator {
                 var worldCell = CellDefinitionConfig.CreateCell(cellChar, cellPosition);
                 if (worldCell != null) {
                     node.AddWorldCell(worldCell);
+                    worldCell.SetMazeNode(node);
                 }
                 return worldCell;
             });
@@ -45,7 +46,7 @@ public class MapGenerator {
         MazeGraphZonedDemo.PrintGraph(zones.MazeGraph, zones);
         // PrintTemplates(templateSet.FindTemplates().ToList());
 
-        return new MapGenerationResult(zones, worldCellMap, FindCenterCell(zones.Start.GetCells()!, cell => !cell.CellDefinitionConfig.Blocking));
+        return new MapGenerationResult(zones, worldCellMap);
     }
 
 
@@ -145,12 +146,12 @@ public class MapGenerator {
 
         static bool MatchesNodeUpDown(Template? upNodeTemplate, Template? downNodeTemplate) {
             return upNodeTemplate == null || downNodeTemplate == null ||
-                   Equals(upNodeTemplate.GetAttributeOrDefault(DirectionFlag.Down, "size", 1), downNodeTemplate.GetAttributeOrDefault(DirectionFlag.Up, "size", 1));
+                   Equals(upNodeTemplate.GetAttributeOr(DirectionFlag.Down, "size", 1), downNodeTemplate.GetAttributeOr(DirectionFlag.Up, "size", 1));
         }
 
         static bool MatchesNodeLeftRight(Template? leftNodeTemplate, Template? rightNodeTemplate) {
             return leftNodeTemplate == null || rightNodeTemplate == null ||
-                   Equals(leftNodeTemplate.GetAttributeOrDefault(DirectionFlag.Right, "size", 1), rightNodeTemplate.GetAttributeOrDefault(DirectionFlag.Left, "size", 1));
+                   Equals(leftNodeTemplate.GetAttributeOr(DirectionFlag.Right, "size", 1), rightNodeTemplate.GetAttributeOr(DirectionFlag.Left, "size", 1));
         }
 
         // Removes all templates from the templateArray array that are similar to the check template

@@ -113,7 +113,7 @@ public class TurnWorldEventTests : TurnBaseTests {
         newCell.OnEntityAdded += (entity) => _cellEntityAddedCount++;
 
         // Subscribe to location events
-        _entity.OnMoved += (oldPos, newPos) => {
+        _entity.OnPositionChanged += (oldPos, newPos) => {
             _lastOldPosition = oldPos;
             _lastNewPosition = newPos;
         };
