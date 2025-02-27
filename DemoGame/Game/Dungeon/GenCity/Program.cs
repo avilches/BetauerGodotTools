@@ -70,17 +70,15 @@ public class Program {
     }
 
     private static void GenerateCity(int width, int height) {
-        Console.WriteLine("Generando ciudad roguelike... Por favor espera.");
-
         // Inicializar mapa
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
+        for (var y = 0; y < height; y++) {
+            for (var x = 0; x < width; x++) {
                 _asciiMap[y, x] = EMPTY;
             }
         }
 
         // Crear y generar la ciudad
-        _city = new City(new CityData { Width = width, Height = height });
+        _city = new City(width, height);
 
         var parameters = new CityGenerationParameters {
             StreetMinLength = 6,
@@ -244,9 +242,9 @@ public class Program {
         mapOutput.AppendLine("┌" + new string('─', width) + "┐");
 
         // Añadir filas del mapa
-        for (int y = 0; y < height; y++) {
-            mapOutput.Append("│");
-            for (int x = 0; x < width; x++) {
+        for (var y = 0; y < height; y++) {
+            mapOutput.Append('│');
+            for (var x = 0; x < width; x++) {
                 mapOutput.Append(displayMap[y, x]);
             }
             mapOutput.AppendLine("│");

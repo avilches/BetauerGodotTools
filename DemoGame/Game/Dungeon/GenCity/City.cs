@@ -8,19 +8,19 @@ namespace Veronenger.Game.Dungeon.GenCity;
 public interface ICityTile;
 
 public class City {
-    public int Width { get; private set; }
-    public int Height { get; private set; }
+    public int Width { get; }
+    public int Height { get; }
 
     private Random _random;
 
-    private ICityTile[,] _matrix;
-    private List<Intersection> _nodes = new List<Intersection>();
-    private int _gauge = 1;
+    private readonly ICityTile[,] _matrix;
+    private readonly List<Intersection> _nodes = [];
+
     private CityGenerationParameters _params = new CityGenerationParameters();
 
-    public City(CityData data) {
-        Width = data.Width;
-        Height = data.Height;
+    public City(int width, int height) {
+        Width = width;
+        Height = height;
         _matrix = new ICityTile[Height, Width];
     }
 
@@ -62,13 +62,11 @@ public class City {
     }
 
     private void Reset() {
-        for (int y = 0; y < Height; y++) {
-            for (int x = 0; x < Width; x++) {
+        for (var y = 0; y < Height; y++) {
+            for (var x = 0; x < Width; x++) {
                 _matrix[y, x] = null;
             }
         }
-
-        _gauge = 1;
         _nodes.Clear();
     }
 
@@ -88,14 +86,10 @@ public class City {
             return;
         }
 
-        Vector2I nextCursor = path.GetNextCursor();
+        var nextCursor = path.GetNextCursor();
 
-        if (
-            // Out of matrix
-            GetAt(nextCursor) == null && IsOutOfBounds(nextCursor)
-            // Street end
-            || VariabilityChance(_params.ProbabilityStreetEnd)
-        ) {
+        if (GetAt(nextCursor) == null && IsOutOfBounds(nextCursor) // Out of matrix
+            || VariabilityChance(_params.ProbabilityStreetEnd)) { // Street end
             ClosePath(path);
             return;
         }
@@ -104,18 +98,14 @@ public class City {
         var cross = GetCross(path);
 
         if (cross.tile != null) {
-            Intersection intersection = null;
-
-            if (cross.tile is Intersection crossNode) {
-                intersection = crossNode;
-            } else if (cross.tile is Path crossPath) {
-                intersection = SplitPath(crossPath, cross.position);
-            }
-
+            Intersection? intersection = cross.tile switch {
+                Intersection crossNode => crossNode,
+                Path crossPath => SplitPath(crossPath, cross.position),
+                _ => null
+            };
             if (intersection != null) {
                 path.SetNodeEnd(intersection);
             }
-
             return;
         }
 
@@ -123,7 +113,7 @@ public class City {
         path.SetCursor(nextCursor);
         MarkAt(path.GetCursor(), path);
 
-        int streetLength = _params.StreetMinLength;
+        var streetLength = _params.StreetMinLength;
 
         if (path.GetLength() > streetLength && GetCross(path, streetLength).tile == null) {
             if (VariabilityChance(_params.ProbabilityIntersection)) {
@@ -135,40 +125,33 @@ public class City {
     }
 
     private void GenerateBuildings() {
-        foreach (Path path in GetAllPaths()) {
-            Vector2I shift = Utils.GetShift(path.Direction);
-            Vector2I position = new Vector2I(
-                path.GetStart().Position.X + shift.X,
-                path.GetStart().Position.Y + shift.Y
-            );
+        foreach (var path in GetAllPaths()) {
+            var (dirX, dirY) = Utils.GetShift(path.Direction);
+            var x = path.GetStart().Position.X + dirX;
+            var y = path.GetStart().Position.Y + dirY;
 
-            foreach (int direction in Utils.TurnDirection(path.Direction)) {
-                int stepOffset = _params.BuildingOffset;
+            foreach (var direction in Utils.TurnDirection(path.Direction)) {
+                var stepOffset = _params.BuildingOffset;
 
                 while (path.GetLength() > stepOffset) {
                     Vector2I stepShift = Utils.GetShift(path.Direction, stepOffset);
                     Vector2I shiftFromPath = Utils.GetShift(direction, _params.BuildingOffset + 1);
                     Vector2I startPosition = new Vector2I(
-                        position.X + stepShift.X + shiftFromPath.X,
-                        position.Y + stepShift.Y + shiftFromPath.Y
+                        x + stepShift.X + shiftFromPath.X,
+                        y + stepShift.Y + shiftFromPath.Y
                     );
 
-                    int[] size = {
+                    int[] size = [
                         VariabilityRange(_params.BuildingMinSize, _params.BuildingMaxSize),
                         VariabilityRange(_params.BuildingMinSize, _params.BuildingMaxSize)
-                    };
+                    ];
 
                     if (stepOffset + size[0] + _params.BuildingOffset > path.GetLength()) {
                         break;
                     }
+                    ProcessingBuilding(path, startPosition, size, [path.Direction, direction]);
 
-                    ProcessingBuilding(path, startPosition, size, new List<int> { path.Direction, direction });
-
-                    int spaceBetweenBuildings = VariabilityRange(
-                        _params.BuildingMinSpace,
-                        _params.BuildingMaxSpace
-                    );
-
+                    var spaceBetweenBuildings = VariabilityRange(_params.BuildingMinSpace, _params.BuildingMaxSpace);
                     stepOffset += size[0] + spaceBetweenBuildings;
                 }
             }
@@ -176,18 +159,15 @@ public class City {
     }
 
     private void ProcessingBuilding(Path path, Vector2I position, int[] size, List<int> directions) {
-        List<Vector2I> tiles = new List<Vector2I>();
-        List<Vector2I> vertices = new List<Vector2I>();
+        List<Vector2I> tiles = [];
+        List<Vector2I> vertices = [];
 
-        for (int i = 0; i < size[0]; i++) {
+        for (var i = 0; i < size[0]; i++) {
             Vector2I shiftParallel = Utils.GetShift(directions[0], i);
 
-            Vector2I startFromPathPosition = new Vector2I(
-                position.X + shiftParallel.X,
-                position.Y + shiftParallel.Y
-            );
+            Vector2I startFromPathPosition = new Vector2I(position.X + shiftParallel.X, position.Y + shiftParallel.Y);
 
-            for (int j = 0; j < size[1]; j++) {
+            for (var j = 0; j < size[1]; j++) {
                 Vector2I shiftPerpendicular = Utils.GetShift(directions[1], j);
                 Vector2I tilePosition = new Vector2I(
                     startFromPathPosition.X + shiftPerpendicular.X,
@@ -217,8 +197,7 @@ public class City {
     }
 
     private ICityTile? GetAt(Vector2I position) {
-        if (IsOutOfBounds(position))
-            return null;
+        if (IsOutOfBounds(position)) return null;
         var (x, y) = position;
         return _matrix[y, x];
     }
@@ -266,16 +245,13 @@ public class City {
 
         directions = FilterDirections(path, directions);
 
-        if (
-            directions.Count == 0
-            || (directions.Count == 1 && directions[0] == path.Direction)
-        ) {
+        if (directions.Count == 0 || (directions.Count == 1 && directions[0] == path.Direction)) {
             return;
         }
 
-        Intersection intersection = ClosePath(path);
+        var intersection = ClosePath(path);
 
-        for (int i = 0; i < directions.Count; i++) {
+        for (var i = 0; i < directions.Count; i++) {
             if (i < 2 || VariabilityChance(0.5f)) {
                 intersection.AddOutputPath(directions[i]);
             }
@@ -285,7 +261,7 @@ public class City {
     }
 
     private void TurnPath(Path path) {
-        List<int> directions = Utils.TurnDirection(path.Direction)
+        var directions = Utils.TurnDirection(path.Direction)
             .OrderBy(x => VariabilityChance(0.5f) ? 1 : -1)
             .ToList();
 
@@ -295,7 +271,7 @@ public class City {
             return;
         }
 
-        Intersection intersection = ClosePath(path);
+        var intersection = ClosePath(path);
         intersection.AddOutputPath(directions[0]);
         MarkAt(intersection.Position, intersection);
     }
@@ -367,23 +343,21 @@ public class City {
                 }
 
                 // Si encontramos una carretera paralela demasiado cerca, rechazar esta dirección
-                if (!IsOutOfBounds(checkPos1) && GetAt(checkPos1) is Path) {
-                    Path nearPath = (Path)GetAt(checkPos1);
+                if (!IsOutOfBounds(checkPos1) && GetAt(checkPos1) is Path nearPath) {
                     var isParallel = (isHorizontal && (Math.Abs(nearPath.Direction) == 0 || Math.Abs(nearPath.Direction) == 180)) ||
                                      (!isHorizontal && (Math.Abs(nearPath.Direction) == 90 || Math.Abs(nearPath.Direction) == 270));
                     if (isParallel) return false;
                 }
-                if (!IsOutOfBounds(checkPos2) && GetAt(checkPos2) is Path) {
-                    Path nearPath = (Path)GetAt(checkPos2);
-                    var isParallel = (isHorizontal && (Math.Abs(nearPath.Direction) == 0 || Math.Abs(nearPath.Direction) == 180)) ||
-                                     (!isHorizontal && (Math.Abs(nearPath.Direction) == 90 || Math.Abs(nearPath.Direction) == 270));
+                if (!IsOutOfBounds(checkPos2) && GetAt(checkPos2) is Path nearPath2) {
+                    var isParallel = (isHorizontal && (Math.Abs(nearPath2.Direction) == 0 || Math.Abs(nearPath2.Direction) == 180)) ||
+                                     (!isHorizontal && (Math.Abs(nearPath2.Direction) == 90 || Math.Abs(nearPath2.Direction) == 270));
                     if (isParallel) return false;
                 }
             }
 
             // También verificar un poco hacia adelante para evitar convergencias
-            int forwardCheck = 3;
-            for (int i = 1; i <= forwardCheck; i++) {
+            var forwardCheck = 3;
+            for (var i = 1; i <= forwardCheck; i++) {
                 Vector2I forwardPos = new Vector2I(
                     nextCursor.X + x * i,
                     nextCursor.Y + y * i

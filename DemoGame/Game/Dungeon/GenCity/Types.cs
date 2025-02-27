@@ -3,11 +3,6 @@ using Godot;
 
 namespace Veronenger.Game.Dungeon.GenCity;
 
-public struct CityData {
-    public int Width;
-    public int Height;
-}
-
 public class CityGenerationParameters {
 
     /// <summary>
