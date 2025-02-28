@@ -13,7 +13,9 @@ public class Program {
     // Caracteres ASCII para la representación
     private const char EMPTY = ' '; // Espacio vacío
     private const char ROAD_H = '═'; // Carretera horizontal
+    private const char CROSS_H = '-'; // Carretera horizontal
     private const char ROAD_V = '║'; // Carretera vertical
+    private const char CROSS_V = '|'; // Carretera vertical
     private const char CROSS = '╬'; // Intersección
     private const char TURN_NE = '╚'; // Giro noreste
     private const char TURN_NW = '╝'; // Giro noroeste
@@ -37,39 +39,57 @@ public class Program {
 
     public static void Main() {
         var program = new Program();
-        program.Start();
+        program.Start(120, 24);
+        // program.Validate(60, 20);
     }
 
-    public void Start() {
-        Console.OutputEncoding = Encoding.UTF8; // Para caracteres especiales
+    public void Validate(int width, int height) {
+        int turns = 0;
+        int fork2Count = 0;
+        int fork3Count = 0;
+        int noPath = 0;
 
-        int width = 180; // 180;
-        int height = 24; // 24;
+        var options = new CityGenerationOptions {
+            StreetMinLength = 6,
 
-        /*
-        // Obtener tamaño de la consola o usar valores predeterminados
-        try {
-            width = Console.WindowWidth - 2;
-            height = Console.WindowHeight - 3;
-        } catch (Exception) {
-            // En caso de error, usar los valores predeterminados
-        }
-        */
+            ProbabilityExtend = 0.80f,
 
-        // Asegurar un tamaño mínimo
-        // width = Math.Max(width, 40);
-        // height = Math.Max(height, 20);
+            ProbabilityCross = 0.42f,
+            ProbabilityFork = 0.42f,
+            ProbabilityTurn = 0.12f,
 
-        // Inicializar mapa ASCII
+            ProbabilityStreetEnd = 0.001f,
+        };
+
+        const int seedStart = 0;
+        const int seedOffset = 0;
+
+        _city = new City(width, height);
+        _city.Configure(options);
+
         _asciiMap = new Array2D<char>(width, height);
 
-        // Generar la ciudad
+        for (var i = seedStart; i < 1000; i++) {
+            options.Seed = i + seedOffset;
+            if (i % 100 == 0) {
+                Console.WriteLine(options.Seed);
+            }
+            try {
+                _city.Reset();
+                _city.Start();
+                _city.Grow();
+            } catch (Exception e) {
+                Console.WriteLine($"Seed:{options.Seed}");
+                Console.WriteLine(e);
+                throw;
+            }
+        }
+    }
+
+    public void Start(int width, int height) {
+        Console.OutputEncoding = Encoding.UTF8; // Para caracteres especiales
         GenerateCity(width, height, 2);
-
-        // Inicializar jugador
         InitializePlayer(width, height);
-
-        // Bucle principal del juego
         while (_running) {
             HandleInput(width, height);
             Thread.Sleep(50); // Pequeña pausa para reducir el uso de CPU
@@ -79,6 +99,7 @@ public class Program {
     private void GenerateCity(int width, int height, int seed) {
         // Inicializar mapa
         _city = new City(width, height);
+        _asciiMap = new Array2D<char>(width, height);
 
         List<Vector2I> startDirections = [Vector2I.Right, Vector2I.Down, Vector2I.Left, Vector2I.Up];
         startDirections.RemoveAt(seed % 4);
@@ -107,31 +128,40 @@ public class Program {
             }
         };
 
+        _city.Configure(options);
+        _city.Start();
+        _city.Grow();
         /*
-        int turns = 0;
-        int fork2Count = 0;
-        int fork3Count = 0;
-        int noPath = 0;
+        Render();
+        Render();
+        _city.CreatePath(new Vector2I(0, 16), new Vector2I(width - 1, 16));
+        Render();
+        _city.CreatePath(new Vector2I(0, 17), new Vector2I(width - 1, 17));
+        Render();
+        _city.CreatePath(new Vector2I(0, 3), new Vector2I(width - 1, 3));
+        Render();
+        _city.CreatePath(new Vector2I(0, 2), new Vector2I(width - 1, 2));
+        Render();
+        _city.CreatePath(new Vector2I(0, 0), new Vector2I(width - 1, 0));
+        Render();
+        _city.CreatePath(new Vector2I(131, 0), new Vector2I(131, height -1));
+        Render();
+        _city.CreatePath(new Vector2I(111, 0), new Vector2I(111, height -1));
+        Render();
 
-        for (var i = 0; i < 1000; i++) {
-            parameters.Seed = i+65542;
-            Console.WriteLine(i);
-            _city.Generate(parameters);
-            turns += _city.turns;
-            fork2Count += _city.fork2Count;
-            fork3Count += _city.fork3Count;
-            noPath += _city.noPath;
-        }
-
-        var total = fork2Count + fork3Count + turns;
-        Console.WriteLine("Fork 3: " + fork3Count+ " (" + (fork3Count * 100f / total) + "%)");
-        Console.WriteLine("Fork 2: " + fork2Count+ " (" + (fork2Count * 100f / total) + "%)");
-        Console.WriteLine("Turns: " + turns+ " (" + (turns * 100f / total) + "%)");
-        Console.WriteLine("No path: " + noPath+ " (" + (noPath * 100f / (total + noPath)) + "%)");
         */
 
-        _city.Generate(options);
+        _city.GenerateBuildings();
         Render();
+
+        /*
+        var paths = _city.GetAllPaths().ToArray();
+        new Random(1).Shuffle(paths);
+        foreach (var p in paths) {
+            _city.RemovePath(p);
+            Render();
+        }
+    */
     }
 
     private void Render() {
@@ -198,8 +228,8 @@ public class Program {
         if (hasSouth && hasWest) return TURN_SW; // ╗
 
         // Calles rectas
-        if (hasNorth && hasSouth) return ROAD_V;
-        if (hasEast && hasWest) return ROAD_H;
+        if (hasNorth && hasSouth) return CROSS_V;
+        if (hasEast && hasWest) return CROSS_H;
 
         // Caso por defecto para un solo camino o casos no manejados
         return END;

@@ -1,3 +1,4 @@
+using System;
 using Betauer.Core.DataMath.Geometry;
 using Godot;
 
@@ -6,6 +7,54 @@ namespace Betauer.Core;
 public static class Vector2IExtensions {
     public static Vector2I Inverse(this Vector2I from) {
         return from * -1;
+    }
+
+    /// <summary>
+    /// Returns true if the end position is in the same line as the path direction
+    /// </summary>
+    /// <param name="start"></param>
+    /// <param name="direction"></param>
+    /// <param name="end"></param>
+    /// <returns></returns>
+    public static bool SameDirection(this Vector2I start, Vector2I direction, Vector2I end) {
+        var delta = end - start;
+
+        if (direction.X != 0) {
+            // Movimiento horizontal
+            return delta.Y == 0 && Math.Sign(delta.X) == Math.Sign(direction.X);
+        }
+        // Movimiento vertical
+        return delta.X == 0 && Math.Sign(delta.Y) == Math.Sign(direction.Y);
+    }
+
+    /// <summary>
+    /// Returns true if the end position is in the same horizontal or vertical line as the start position
+    /// </summary>
+    /// <param name="start"></param>
+    /// <param name="end"></param>
+    /// <returns></returns>
+    public static bool SameDirection(this Vector2I start, Vector2I end) {
+        var delta = end - start;
+        // Horizontal or vertical line
+        return delta.X == 0 || delta.Y == 0;
+    }
+
+    /// <summary>
+    /// Calculates the direction vector from start to end.
+    /// </summary>
+    public static Vector2I DirectionTo(this Vector2I start, Vector2I end) {
+        var (x, y) = end - start;
+
+        // Determine direction (only one axis should have non-zero value)
+        if (x != 0 && y == 0) {
+            // Horizontal direction
+            return new Vector2I(Math.Sign(x), 0);
+        }
+        if (x == 0 && y != 0) {
+            // Vertical direction
+            return new Vector2I(0, Math.Sign(y));
+        }
+        throw new ArgumentException("Points must be aligned horizontally or vertically");
     }
 
     /// <summary>
@@ -79,7 +128,7 @@ public static class Vector2IExtensions {
             dir == Vector2I.Right ? Vector2I.Up :
             dir == Vector2I.Up ? Vector2I.Left : Vector2I.Down;
     }
-    
+
     public static float DistanceTo(this Vector2I from, Vector2I to) {
         return Geometry.Distance(from, to);
     }
