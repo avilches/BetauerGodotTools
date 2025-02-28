@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -22,26 +23,31 @@ public class Program {
     private const char BUILDING = '#'; // Edificio
     private const char PLAYER = '@'; // Jugador
 
-    private static readonly char[] BUILDING_CHARS = {
+    private readonly char[] BUILDING_CHARS = {
         '#', '■', '□', '▣', '▤', '▥', '▦', '▧', '▨', '▩', // Caracteres de bloque
         // '&', '%', '$', '@', '¤', '¥', '£'                   // Símbolos alternativos
     };
 
 
-    private static Array2D<char> _asciiMap;
-    private static int _playerX;
-    private static int _playerY;
-    private static bool _running = true;
-    private static City _city;
+    private Array2D<char> _asciiMap;
+    private int _playerX;
+    private int _playerY;
+    private bool _running = true;
+    private City _city;
 
     public static void Main() {
+        var program = new Program();
+        program.Start();
+    }
+
+    public void Start() {
         Console.OutputEncoding = Encoding.UTF8; // Para caracteres especiales
 
-        // Obtener tamaño de la consola o usar valores predeterminados
         int width = 180; // 180;
-        int height = 30; // 24;
+        int height = 24; // 24;
 
         /*
+        // Obtener tamaño de la consola o usar valores predeterminados
         try {
             width = Console.WindowWidth - 2;
             height = Console.WindowHeight - 3;
@@ -51,8 +57,8 @@ public class Program {
         */
 
         // Asegurar un tamaño mínimo
-        width = Math.Max(width, 40);
-        height = Math.Max(height, 20);
+        // width = Math.Max(width, 40);
+        // height = Math.Max(height, 20);
 
         // Inicializar mapa ASCII
         _asciiMap = new Array2D<char>(width, height);
@@ -64,72 +70,109 @@ public class Program {
         InitializePlayer(width, height);
 
         // Bucle principal del juego
-        RenderGame();
         while (_running) {
             HandleInput(width, height);
             Thread.Sleep(50); // Pequeña pausa para reducir el uso de CPU
         }
     }
 
-    private static void GenerateCity(int width, int height, int seed) {
+    private void GenerateCity(int width, int height, int seed) {
         // Inicializar mapa
-        for (var y = 0; y < height; y++) {
-            for (var x = 0; x < width; x++) {
-                _asciiMap[y, x] = EMPTY;
-            }
-        }
-
-        // Crear y generar la ciudad
         _city = new City(width, height);
 
-        var parameters = new CityGenerationParameters {
+        List<Vector2I> startDirections = [Vector2I.Right, Vector2I.Down, Vector2I.Left, Vector2I.Up];
+        startDirections.RemoveAt(seed % 4);
+
+        var options = new CityGenerationOptions {
             Seed = seed,
+            StartDirections = startDirections,
+
             StreetMinLength = 6,
-            ProbabilityIntersection = 0.32f, //0.5f, // 0.15f,
-            ProbabilityTurn = 0.08f, // 0.08f,
+
+            ProbabilityExtend = 0.80f,
+
+            ProbabilityCross = 0.42f,
+            ProbabilityFork = 0.42f,
+            ProbabilityTurn = 0.12f,
+
+            ProbabilityStreetEnd = 0.001f,
+
             BuildingMinSize = 2, //2,
             BuildingMaxSize = 5, //3,
             BuildingMinSpace = 1,
             BuildingMaxSpace = 2, // 2
-            StartDirections = [Vector2I.Right, Vector2I.Down, Vector2I.Left, Vector2I.Up]
+
+            OnUpdate = (_) => {
+                // Render();
+            }
         };
 
-        _city.Generate(parameters, () => {
-            RenderRoads();
-            RenderIntersections();
-            RenderBuildings();
-            RenderGame();
-        });
+        /*
+        int turns = 0;
+        int fork2Count = 0;
+        int fork3Count = 0;
+        int noPath = 0;
 
-        // Renderizar elementos de la ciudad
+        for (var i = 0; i < 1000; i++) {
+            parameters.Seed = i+65542;
+            Console.WriteLine(i);
+            _city.Generate(parameters);
+            turns += _city.turns;
+            fork2Count += _city.fork2Count;
+            fork3Count += _city.fork3Count;
+            noPath += _city.noPath;
+        }
+
+        var total = fork2Count + fork3Count + turns;
+        Console.WriteLine("Fork 3: " + fork3Count+ " (" + (fork3Count * 100f / total) + "%)");
+        Console.WriteLine("Fork 2: " + fork2Count+ " (" + (fork2Count * 100f / total) + "%)");
+        Console.WriteLine("Turns: " + turns+ " (" + (turns * 100f / total) + "%)");
+        Console.WriteLine("No path: " + noPath+ " (" + (noPath * 100f / (total + noPath)) + "%)");
+        */
+
+        _city.Generate(options);
+        Render();
+    }
+
+    private void Render() {
+        ClearRender();
         RenderRoads();
         RenderIntersections();
         RenderBuildings();
+        RenderGame();
     }
 
-    private static void RenderBuildings() {
+    private void ClearRender() {
+        _asciiMap.Fill(EMPTY);
+    }
+
+    private void RenderBuildings() {
         var buildingIndex = 0;
-        foreach (var building in _city.GetAllBuildings()) {
+        foreach (var building in _city.Buildings) {
             var buildingChar = BUILDING_CHARS[buildingIndex % BUILDING_CHARS.Length];
-            foreach (var position in building.Each()) {
+            foreach (var position in building.GetPositions()) {
                 _asciiMap[position] = buildingChar;
             }
             buildingIndex++;
         }
     }
 
-    private static void RenderRoads() {
+    public static bool IsHorizontal(Vector2I direction) {
+        return direction.X != 0 && direction.Y == 0;
+    }
+
+    private void RenderRoads() {
         foreach (var path in _city.GetAllPaths()) {
-            var isHorizontal = Utils.IsHorizontal(path.Direction);
+            var isHorizontal = IsHorizontal(path.Direction);
             var roadChar = isHorizontal ? ROAD_H : ROAD_V;
-            foreach (var position in path.Each()) {
+            foreach (var position in path.GetPositions().Where(p => _asciiMap.IsInBounds(p))) {
                 _asciiMap[position] = roadChar;
             }
         }
     }
 
-    private static void RenderIntersections() {
-        foreach (var intersection in _city.GetAllIntersections()) {
+    private void RenderIntersections() {
+        foreach (var intersection in _city.Intersections) {
             intersection.Directions(out var hasNorth, out var hasSouth, out var hasEast, out var hasWest);
             var intersectionChar = DetermineIntersectionChar(hasNorth, hasSouth, hasEast, hasWest);
             _asciiMap[intersection.Position] = intersectionChar;
@@ -137,9 +180,6 @@ public class Program {
     }
 
     private static char DetermineIntersectionChar(bool hasNorth, bool hasSouth, bool hasEast, bool hasWest) {
-        int connectionCount = (hasNorth ? 1 : 0) + (hasSouth ? 1 : 0) +
-                              (hasEast ? 1 : 0) + (hasWest ? 1 : 0);
-
         // Intersección completa
         if (hasNorth && hasSouth && hasEast && hasWest) {
             return CROSS;
@@ -165,9 +205,9 @@ public class Program {
         return END;
     }
 
-    private static void InitializePlayer(int width, int height) {
+    private void InitializePlayer(int width, int height) {
         // Colocar al jugador en una carretera disponible
-        foreach (var intersection in _city.GetAllIntersections()) {
+        foreach (var intersection in _city.Intersections) {
             _playerX = intersection.Position.X;
             _playerY = intersection.Position.Y;
 
@@ -178,10 +218,10 @@ public class Program {
         }
     }
 
-    private static void RenderGame() {
+    private void RenderGame() {
         // Console.Clear();
 
-        var (width,  height) = (_asciiMap.Width, _asciiMap.Height);
+        var (width, height) = (_asciiMap.Width, _asciiMap.Height);
 
         // Crear una copia del mapa para añadir al jugador
         var displayMap = new char[height, width];
@@ -221,13 +261,13 @@ public class Program {
         Func<Vector2I, string> t = d => d == Vector2I.Right ? "->" : d == Vector2I.Down ? "v" : d == Vector2I.Left ? "<-" : "^";
 
         if (tile is Intersection i) {
-            Console.WriteLine($"Intersección: {i.Position} | Caminos entrantes: {i.GetInputPaths().Count} {string.Join(",", i.GetInputPaths().Select(p=>t(p.Direction)))}| Caminos salientes: {i.GetOutputPaths().Count} {string.Join(",", i.GetOutputPaths().Select(p=>t(p.Direction)))}");
+            Console.WriteLine($"Intersección: {i.Position} | Caminos entrantes: {i.GetInputPaths().Count} {string.Join(",", i.GetInputPaths().Select(p => t(p.Direction)))}| Caminos salientes: {i.GetOutputPaths().Count} {string.Join(",", i.GetOutputPaths().Select(p => t(p.Direction)))}");
         } else {
             Console.WriteLine($"Posición: {_playerX}, {_playerY} | Tipo de tile: {tile?.GetType().Name ?? "N/A"}");
         }
     }
 
-    private static void HandleInput(int width, int height) {
+    private void HandleInput(int width, int height) {
         if (Console.KeyAvailable) {
             var key = Console.ReadKey(true).Key;
 
@@ -254,7 +294,6 @@ public class Program {
                     // Regenerar la ciudad
                     GenerateCity(width, height, _city.Seed + 1);
                     InitializePlayer(width, height);
-                    RenderGame();
                     return;
             }
 

@@ -80,5 +80,9 @@ public class Intersection(int id, Vector2I position) : ICityTile {
         else if (direction == Vector2I.Up) hasNorth = true;
     }
 
+    public override string ToString() {
+        return $"Intersection {Id} at {Position} ({IntersectionType})";
+    }
+
 
 }

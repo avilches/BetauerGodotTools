@@ -6,10 +6,10 @@ using Godot;
 namespace Veronenger.Game.Dungeon.GenCity;
 
 public class Building : ICityTile {
-    public List<Vector2I> Vertices { get; private set; }
-    public Vector2I Position { get; private set; }
-    public int Width { get; private set; }
-    public int Height { get; private set; }
+    public List<Vector2I> Vertices { get; }
+    public Vector2I Position { get; }
+    public int Width { get; }
+    public int Height { get;  }
     public Path Path { get; private set; }
 
     public Building(Path path, List<Vector2I> vertices) {
@@ -30,11 +30,7 @@ public class Building : ICityTile {
         Height = maxY - minY + 1;
     }
 
-    public void Remove() {
-        Path.Buildings.Remove(this);
-    }
-
-    public IEnumerable<Vector2I> Each() {
+    public IEnumerable<Vector2I> GetPositions() {
         for (var x = 0; x < Width; x++) {
             for (var y = 0; y < Height; y++) {
                 yield return Position + new Vector2I(x, y);
