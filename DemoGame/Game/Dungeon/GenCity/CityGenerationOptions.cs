@@ -6,6 +6,13 @@ namespace Veronenger.Game.Dungeon.GenCity;
 
 public class CityGenerationOptions {
 
+
+    public bool EnableDoublePaths { get; set; } = true;
+    public int MinStraightPathLength { get; set; } = 15;
+    public float ProbabilityDoublePath { get; set; } = 0.5f;
+    public int DoublePathOffset { get; set; } = 2;
+
+
     public Action<Vector2I>? OnUpdate;
 
     /// <summary>

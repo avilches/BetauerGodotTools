@@ -65,12 +65,11 @@ public class City(int width, int height) {
             }
             isCompleted = GetAllPaths().All(path => path.IsCompleted());
         }
-
     }
 
     private void GrowPath(Path path) {
         var newPos = path.GetCursor() + path.Direction;
-        if (!Data.IsInBounds(newPos)) {
+        if (!Data.IsInBounds(newPos) || StopPathHeadingToBorder(path)) {
             if (path.GetLength() == 0) {
                 path.Remove();
             } else {
@@ -99,21 +98,30 @@ public class City(int width, int height) {
             return;
         }
 
-        // Continuation path
         Data[newPos] = path;
         _options.OnUpdate?.Invoke(newPos);
 
         var streetLength = _options.StreetMinLength;
         if (path.GetLength() > streetLength &&
-            GetNextTile(path.GetCursor(), path.Direction, streetLength) == null) {
-            if (!VariabilityChance(_options.ProbabilityExtend)) {
-                _random.Pick(new (Action<Path>, float)[] {
-                    (CreateCrossPath, _options.ProbabilityCross),
-                    (CreateForkPath, _options.ProbabilityFork),
-                    (CreateTurnPath, _options.ProbabilityTurn)
-                })(path);
-            }
+            GetNextTile(path.GetCursor(), path.Direction, streetLength) == null &&
+            !VariabilityChance(_options.ProbabilityExtend)) {
+
+            _random.Pick(new (Action<Path>, float)[] {
+                (CreateCrossPath, _options.ProbabilityCross),
+                (CreateForkPath, _options.ProbabilityFork),
+                (CreateTurnPath, _options.ProbabilityTurn)
+            })(path);
         }
+    }
+
+    private const float HeadingBorderPathLimit = 3;
+    private const float HeadingBorderPathProbability = 0.3f;
+
+    private bool StopPathHeadingToBorder(Path path) {
+        var projectedX = path.GetCursor().X + path.Direction.X * HeadingBorderPathLimit;
+        var projectedY = path.GetCursor().Y + path.Direction.Y * HeadingBorderPathLimit;
+        var headingToBorder = projectedX >= Width || projectedX < 0 || projectedY >= Height || projectedY < 0;
+        return headingToBorder && VariabilityChance(HeadingBorderPathProbability);
     }
 
     private void GenerateBuildings() {
