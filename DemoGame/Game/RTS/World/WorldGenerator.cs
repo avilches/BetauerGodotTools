@@ -187,23 +187,23 @@ public partial class WorldGenerator {
     }
 
     private void PlaceObjects(Node parent, FastNoiseLite FastNoiseHeight) {
-        WeightValue<Trees.Id>[] stumps = [
-            new(Trees.Id.Trunk, 1f),
-            new(Trees.Id.Stump, 2f),
-            new(Trees.Id.MiniStump, 4f),
+        (Trees.Id, float)[] stumps = [
+            (Trees.Id.Trunk, 1f),
+            (Trees.Id.Stump, 2f),
+            (Trees.Id.MiniStump, 4f),
         ];
 
-        WeightValue<Trees.Id>[] bigTrees = [
-            new(Trees.Id.BigTree1, 5f),
-            new(Trees.Id.BigTree2, 5f),
+        (Trees.Id, float)[] bigTrees = [
+            (Trees.Id.BigTree1, 5f),
+            (Trees.Id.BigTree2, 5f),
         ];
-        WeightValue<Trees.Id>[] smallTrees = [
-            new(Trees.Id.SmallTree1, 5f),
-            new(Trees.Id.SmallTree2, 5f),
-            new(Trees.Id.SmallTree5, 3f),
-            new(Trees.Id.SmallTree6, 1f),
-            new(Trees.Id.SmallTree9, 5f),
-            new(Trees.Id.SmallTree10, 6f),
+        (Trees.Id, float)[] smallTrees = [
+            (Trees.Id.SmallTree1, 5f),
+            (Trees.Id.SmallTree2, 5f),
+            (Trees.Id.SmallTree5, 3f),
+            (Trees.Id.SmallTree6, 1f),
+            (Trees.Id.SmallTree9, 5f),
+            (Trees.Id.SmallTree10, 6f),
         ];
 
         var miniForestRadius = CellSize;
@@ -222,9 +222,9 @@ public partial class WorldGenerator {
         foreach (var circle in grid.FindShapes<Circle>().OrderBy(v => v.Y).ThenBy(v => v.X)) {
             var width = (int)circle.Width;
             if (width <= 32) {
-                LocateSprite(parent, Random.Pick(smallTrees).Value, (int)circle.X, (int)circle.Y);
+                LocateSprite(parent, Random.Pick(smallTrees), (int)circle.X, (int)circle.Y);
             } else {
-                LocateSprite(parent, Random.Pick(bigTrees).Value, (int)circle.X, (int)circle.Y);
+                LocateSprite(parent, Random.Pick(bigTrees), (int)circle.X, (int)circle.Y);
             }
         }
         Console.WriteLine(grid.FindShapes().Select(s => s.Width).Min());
