@@ -130,45 +130,10 @@ public class Program {
 
     private static void RenderIntersections() {
         foreach (var intersection in _city.GetAllIntersections()) {
-            // Obtener todos los caminos conectados al nodo
-            var inputPaths = intersection.GetInputPaths();
-            var outputPaths = intersection.GetOutputPaths();
-
-            bool hasNorth = false, hasSouth = false, hasEast = false, hasWest = false;
-
-            // Procesar caminos de entrada
-            foreach (var path in inputPaths) {
-                // Invertir la dirección para obtener desde dónde viene
-                Vector2I incomingDir = -path.Direction;
-                UpdateDirectionFlags(incomingDir, ref hasNorth, ref hasSouth, ref hasEast, ref hasWest);
-            }
-
-            // Procesar caminos de salida
-            foreach (var path in outputPaths) {
-                UpdateDirectionFlags(path.Direction, ref hasNorth, ref hasSouth, ref hasEast, ref hasWest);
-            }
-
-            // Determinar el tipo de nodo y asignar el carácter apropiado
-            char intersectionChar;
-
-            if (inputPaths.Count == 0 && outputPaths.Count == 0) {
-                intersectionChar = END;
-            } else if (inputPaths.Count + outputPaths.Count == 1) {
-                intersectionChar = END;
-            } else {
-                intersectionChar = DetermineIntersectionChar(hasNorth, hasSouth, hasEast, hasWest);
-            }
-
+            intersection.Directions(out var hasNorth, out var hasSouth, out var hasEast, out var hasWest);
+            var intersectionChar = DetermineIntersectionChar(hasNorth, hasSouth, hasEast, hasWest);
             _asciiMap[intersection.Position] = intersectionChar;
         }
-    }
-
-    private static void UpdateDirectionFlags(Vector2I direction, ref bool hasNorth, ref bool hasSouth,
-        ref bool hasEast, ref bool hasWest) {
-        if (direction == Vector2I.Right) hasEast = true;
-        else if (direction == Vector2I.Down) hasSouth = true;
-        else if (direction == Vector2I.Left) hasWest = true;
-        else if (direction == Vector2I.Up) hasNorth = true;
     }
 
     private static char DetermineIntersectionChar(bool hasNorth, bool hasSouth, bool hasEast, bool hasWest) {

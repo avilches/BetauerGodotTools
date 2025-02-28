@@ -27,16 +27,17 @@ public class City {
         Data = new Array2D<ICityTile?>(Width, Height);
     }
 
-    public List<Building> GetAllBuildings() {
-        return GetAllPaths().SelectMany(path => path.Buildings).ToList();
+    public IEnumerable<Building> GetAllBuildings() {
+        return GetAllPaths().SelectMany(path => path.Buildings);
     }
 
     public List<Intersection> GetAllIntersections() {
         return Intersections;
     }
 
-    public List<Path> GetAllPaths() {
-        return Intersections.SelectMany(intersection => intersection.GetOutputPaths()).ToList();
+    public IEnumerable<Path> GetAllPaths() {
+        // Only get output paths or input path, never both or you will get duplicates
+        return Intersections.SelectMany(intersection => intersection.GetOutputPaths());
     }
 
     public void Generate(CityGenerationParameters customParams = null, Action action = null) {
@@ -76,7 +77,7 @@ public class City {
         var isCompleted = false;
         while (!isCompleted) {
             var paths = GetAllPaths();
-            foreach (var p in paths.Where(path => !path.IsCompleted())) {
+            foreach (var p in paths.Where(path => !path.IsCompleted()).ToArray()) {
                 ProcessingPath(p);
                 // action?.Invoke();
             }
@@ -108,7 +109,7 @@ public class City {
         }
 
         path.SetCursor(newPos);
-        
+
         if (VariabilityChance(_params.ProbabilityStreetEnd)) {
             // Console.WriteLine("Closing path randomly");
             ClosePath(path);
