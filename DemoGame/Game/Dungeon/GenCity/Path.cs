@@ -4,28 +4,31 @@ using Godot;
 
 namespace Veronenger.Game.Dungeon.GenCity;
 
-public class Path(Intersection intersection, int direction) : ICityTile {
-    public int Direction { get; private set; } = direction;
+public class Path(Intersection start, Vector2I direction) : ICityTile {
+    public Vector2I Direction { get; private set; } = direction;
 
-    private readonly List<Building> _buildings = [];
-    private Intersection? _nodeEnd = null;
-    private Vector2I _cursor = intersection.Position;
+    public readonly List<Building> Buildings = [];
 
-    public List<Building> GetBuildings() {
-        return _buildings;
+    public Intersection? End = null;
+    public Intersection Start = start;
+
+    private Vector2I _cursor = start.Position;
+
+    public int GetLength() {
+        var (a, b) = GetPositions();
+        return Math.Max(Math.Abs(a.X - b.X), Math.Abs(a.Y - b.Y));
     }
 
     private (Vector2I beg, Vector2I end) GetPositions() {
-        return (intersection.Position, _nodeEnd?.Position ?? _cursor);
+        return (Start.Position, End?.Position ?? _cursor);
     }
 
     public bool IsCompleted() {
-        return _nodeEnd != null;
+        return End != null;
     }
 
     public Vector2I GetNextCursor() {
-        Vector2I shift = Utils.GetShift(Direction);
-        return new Vector2I(_cursor.X + shift.X, _cursor.Y + shift.Y);
+        return _cursor + Direction;
     }
 
     public Vector2I GetCursor() {
@@ -36,50 +39,29 @@ public class Path(Intersection intersection, int direction) : ICityTile {
         _cursor = position;
     }
 
-    public Intersection GetStart() {
-        return intersection;
-    }
-
-    public Intersection? GetNodeEnd() {
-        return _nodeEnd;
-    }
-
-    public void SetNodeEnd(Intersection intersection) {
-        intersection.AddInputPath(this);
-        _nodeEnd = intersection;
-        _cursor = intersection.Position;
+    public void SetEnd(Intersection end) {
+        end.AddInputPath(this);
+        End = end;
+        _cursor = end.Position;
     }
 
     public Building AddBuilding(List<Vector2I> vertices) {
         Building building = new Building(this, vertices);
-        _buildings.Add(building);
+        Buildings.Add(building);
         return building;
     }
 
-    public float GetLength() {
-        var positions = GetPositions();
-        return (float)Math.Sqrt(
-            Math.Pow(positions.beg.X - positions.end.X, 2) +
-            Math.Pow(positions.beg.Y - positions.end.Y, 2)
-        );
-    }
-
     public void Remove() {
-        intersection.RemoveOutputPath(this);
-        if (_nodeEnd != null) {
-            _nodeEnd.RemoveInputPath(this);
-        }
+        Start.RemoveOutputPath(this);
+        End?.RemoveInputPath(this);
     }
 
     public IEnumerable<Vector2I> Each() {
-        var (x, y) = Utils.GetShift(Direction);
         var length = GetLength();
-        var position = new Vector2I(intersection.Position.X, intersection.Position.Y);
-
+        var position = Start.Position;
         for (var i = 0; i <= length; i++) {
             yield return position;
-            position.X += x;
-            position.Y += y;
+            position += Direction;
         }
     }
 }

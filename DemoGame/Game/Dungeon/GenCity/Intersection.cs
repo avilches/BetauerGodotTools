@@ -3,6 +3,12 @@ using Godot;
 
 namespace Veronenger.Game.Dungeon.GenCity;
 
+public enum IntersectionType {
+    Turn,
+    Cross,
+    End
+}
+
 public class Intersection(int id, Vector2I position) : ICityTile {
     public Vector2I Position { get; private set; } = position;
     public int Id { get; private set; } = id;
@@ -16,38 +22,33 @@ public class Intersection(int id, Vector2I position) : ICityTile {
 
     public List<Path> GetAllPaths() => [.._outputPaths, .._inputPaths];
 
-    public Path AddOutputPath(int direction) {
+    public Path AddOutputPath(Vector2I direction) {
         Path path = new Path(this, direction);
         _outputPaths.Add(path);
         return path;
     }
 
     public void RemoveOutputPath(Path path) {
-        var index = _outputPaths.IndexOf(path);
-        if (index != -1) {
-            _outputPaths.RemoveAt(index);
-        }
+        _outputPaths.Remove(path);
     }
 
     public void AddInputPath(Path path) {
-        var existNode = path.GetNodeEnd();
-        existNode?.RemoveInputPath(path);
+        path.End?.RemoveInputPath(path);
         _inputPaths.Add(path);
     }
 
     public void RemoveInputPath(Path path) {
-        var index = _inputPaths.IndexOf(path);
-        if (index != -1) {
-            _inputPaths.RemoveAt(index);
-        }
+        _inputPaths.Remove(path);
     }
 
-    public NodeType GetType() {
-        var pathsCount = _outputPaths.Count + _inputPaths.Count;
-        return pathsCount switch {
-            2 => NodeType.TURN,
-            1 => NodeType.END,
-            _ => NodeType.CROSS
-        };
+    public IntersectionType IntersectionType {
+        get {
+            var pathsCount = _outputPaths.Count + _inputPaths.Count;
+            return pathsCount switch {
+                2 => IntersectionType.Turn,
+                1 => IntersectionType.End,
+                _ => IntersectionType.Cross
+            };
+        }
     }
 }

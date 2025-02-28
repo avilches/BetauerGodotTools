@@ -3,6 +3,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Betauer.Core.DataMath;
+using Godot;
 
 namespace Veronenger.Game.Dungeon.GenCity;
 
@@ -21,12 +23,12 @@ public class Program {
     private const char PLAYER = '@'; // Jugador
 
     private static readonly char[] BUILDING_CHARS = {
-        '#', '■', '□', '▣', '▤', '▥', '▦', '▧', '▨', '▩',  // Caracteres de bloque
+        '#', '■', '□', '▣', '▤', '▥', '▦', '▧', '▨', '▩', // Caracteres de bloque
         // '&', '%', '$', '@', '¤', '¥', '£'                   // Símbolos alternativos
     };
 
 
-    private static char[,] _asciiMap;
+    private static Array2D<char> _asciiMap;
     private static int _playerX;
     private static int _playerY;
     private static bool _running = true;
@@ -36,8 +38,8 @@ public class Program {
         Console.OutputEncoding = Encoding.UTF8; // Para caracteres especiales
 
         // Obtener tamaño de la consola o usar valores predeterminados
-        int width = 180;
-        int height = 24;
+        int width = 180; // 180;
+        int height = 30; // 24;
 
         /*
         try {
@@ -53,23 +55,23 @@ public class Program {
         height = Math.Max(height, 20);
 
         // Inicializar mapa ASCII
-        _asciiMap = new char[height, width];
+        _asciiMap = new Array2D<char>(width, height);
 
         // Generar la ciudad
-        GenerateCity(width, height);
+        GenerateCity(width, height, 2);
 
         // Inicializar jugador
         InitializePlayer(width, height);
 
         // Bucle principal del juego
-        RenderGame(width, height);
+        RenderGame();
         while (_running) {
             HandleInput(width, height);
             Thread.Sleep(50); // Pequeña pausa para reducir el uso de CPU
         }
     }
 
-    private static void GenerateCity(int width, int height) {
+    private static void GenerateCity(int width, int height, int seed) {
         // Inicializar mapa
         for (var y = 0; y < height; y++) {
             for (var x = 0; x < width; x++) {
@@ -81,109 +83,95 @@ public class Program {
         _city = new City(width, height);
 
         var parameters = new CityGenerationParameters {
+            Seed = seed,
             StreetMinLength = 6,
-            ProbabilityIntersection = 0.32f,  //0.5f, // 0.15f,
+            ProbabilityIntersection = 0.32f, //0.5f, // 0.15f,
             ProbabilityTurn = 0.08f, // 0.08f,
             BuildingMinSize = 2, //2,
             BuildingMaxSize = 5, //3,
             BuildingMinSpace = 1,
-            BuildingMaxSpace = 2 // 2
+            BuildingMaxSpace = 2, // 2
+            StartDirections = [Vector2I.Right, Vector2I.Down, Vector2I.Left, Vector2I.Up]
         };
 
-        _city.Generate(parameters);
+        _city.Generate(parameters, () => {
+            RenderRoads();
+            RenderIntersections();
+            RenderBuildings();
+            RenderGame();
+        });
 
         // Renderizar elementos de la ciudad
-        RenderRoads(width, height);
-        RenderNodes(width, height);
-        RenderBuildings(width, height);
+        RenderRoads();
+        RenderIntersections();
+        RenderBuildings();
     }
 
-    private static void RenderBuildings(int width, int height) {
-        // Renderizar edificios primero
-        int buildingIndex = 0;
+    private static void RenderBuildings() {
+        var buildingIndex = 0;
         foreach (var building in _city.GetAllBuildings()) {
-            char buildingChar = BUILDING_CHARS[buildingIndex % BUILDING_CHARS.Length];
+            var buildingChar = BUILDING_CHARS[buildingIndex % BUILDING_CHARS.Length];
             foreach (var position in building.Each()) {
-                var (x, y) = position;
-                if (x >= 0 && x < width && y >= 0 && y < height) {
-                    _asciiMap[y, x] = buildingChar;
-                }
+                _asciiMap[position] = buildingChar;
             }
             buildingIndex++;
         }
     }
 
-    private static void RenderRoads(int width, int height) {
-
-        // Renderizar carreteras
+    private static void RenderRoads() {
         foreach (var path in _city.GetAllPaths()) {
-            // Determinar si la carretera es horizontal o vertical
-            var isHorizontal = Math.Abs(path.Direction) == 0 || Math.Abs(path.Direction) == 180;
+            var isHorizontal = Utils.IsHorizontal(path.Direction);
             var roadChar = isHorizontal ? ROAD_H : ROAD_V;
-
             foreach (var position in path.Each()) {
-                var (x, y) = position;
-                if (x >= 0 && x < width && y >= 0 && y < height) {
-                    _asciiMap[y, x] = roadChar;
-                }
+                _asciiMap[position] = roadChar;
             }
         }
     }
 
-    private static void RenderNodes(int width, int height) {
-
-        // Renderizar nodos
-        foreach (var node in _city.GetAllNodes()) {
-            var (x, y) = node.Position;
-
-            if (x < 0 || x >= width || y < 0 || y >= height)
-                continue;
-
+    private static void RenderIntersections() {
+        foreach (var intersection in _city.GetAllIntersections()) {
             // Obtener todos los caminos conectados al nodo
-            var inputPaths = node.GetInputPaths();
-            var outputPaths = node.GetOutputPaths();
+            var inputPaths = intersection.GetInputPaths();
+            var outputPaths = intersection.GetOutputPaths();
 
             bool hasNorth = false, hasSouth = false, hasEast = false, hasWest = false;
 
             // Procesar caminos de entrada
-            foreach (var dir in inputPaths.Select(path => (path.Direction + 180) % 360)) {
-                UpdateDirectionFlags(dir, ref hasNorth, ref hasSouth, ref hasEast, ref hasWest);
+            foreach (var path in inputPaths) {
+                // Invertir la dirección para obtener desde dónde viene
+                Vector2I incomingDir = -path.Direction;
+                UpdateDirectionFlags(incomingDir, ref hasNorth, ref hasSouth, ref hasEast, ref hasWest);
             }
 
             // Procesar caminos de salida
-            foreach (var dir in outputPaths.Select(path => path.Direction)) {
-                UpdateDirectionFlags(dir, ref hasNorth, ref hasSouth, ref hasEast, ref hasWest);
+            foreach (var path in outputPaths) {
+                UpdateDirectionFlags(path.Direction, ref hasNorth, ref hasSouth, ref hasEast, ref hasWest);
             }
 
             // Determinar el tipo de nodo y asignar el carácter apropiado
-            char nodeChar;
+            char intersectionChar;
 
             if (inputPaths.Count == 0 && outputPaths.Count == 0) {
-                nodeChar = END;
-            }
-            else if (inputPaths.Count + outputPaths.Count == 1) {
-                nodeChar = END;
-            }
-            else {
-                nodeChar = DetermineNodeChar(hasNorth, hasSouth, hasEast, hasWest);
+                intersectionChar = END;
+            } else if (inputPaths.Count + outputPaths.Count == 1) {
+                intersectionChar = END;
+            } else {
+                intersectionChar = DetermineIntersectionChar(hasNorth, hasSouth, hasEast, hasWest);
             }
 
-            _asciiMap[y, x] = nodeChar;
+            _asciiMap[intersection.Position] = intersectionChar;
         }
-
     }
 
-    private static void UpdateDirectionFlags(int direction, ref bool hasNorth, ref bool hasSouth,
+    private static void UpdateDirectionFlags(Vector2I direction, ref bool hasNorth, ref bool hasSouth,
         ref bool hasEast, ref bool hasWest) {
-        switch (direction) {
-            case 0: hasEast = true; break;
-            case 90: hasSouth = true; break;
-            case 180: hasWest = true; break;
-            case 270: hasNorth = true; break;
-        }
+        if (direction == Vector2I.Right) hasEast = true;
+        else if (direction == Vector2I.Down) hasSouth = true;
+        else if (direction == Vector2I.Left) hasWest = true;
+        else if (direction == Vector2I.Up) hasNorth = true;
     }
 
-    private static char DetermineNodeChar(bool hasNorth, bool hasSouth, bool hasEast, bool hasWest) {
+    private static char DetermineIntersectionChar(bool hasNorth, bool hasSouth, bool hasEast, bool hasWest) {
         int connectionCount = (hasNorth ? 1 : 0) + (hasSouth ? 1 : 0) +
                               (hasEast ? 1 : 0) + (hasWest ? 1 : 0);
 
@@ -214,9 +202,9 @@ public class Program {
 
     private static void InitializePlayer(int width, int height) {
         // Colocar al jugador en una carretera disponible
-        foreach (var node in _city.GetAllNodes()) {
-            _playerX = (int)node.Position.X;
-            _playerY = (int)node.Position.Y;
+        foreach (var intersection in _city.GetAllIntersections()) {
+            _playerX = intersection.Position.X;
+            _playerY = intersection.Position.Y;
 
             // Verificar que esté dentro de los límites
             if (_playerX >= 0 && _playerX < width && _playerY >= 0 && _playerY < height) {
@@ -225,12 +213,14 @@ public class Program {
         }
     }
 
-    private static void RenderGame(int width, int height) {
-        Console.Clear();
+    private static void RenderGame() {
+        // Console.Clear();
+
+        var (width,  height) = (_asciiMap.Width, _asciiMap.Height);
 
         // Crear una copia del mapa para añadir al jugador
-        char[,] displayMap = new char[height, width];
-        Array.Copy(_asciiMap, displayMap, _asciiMap.Length);
+        var displayMap = new char[height, width];
+        Array.Copy(_asciiMap.Data, displayMap, _asciiMap.Data.Length);
 
         // Añadir jugador
         displayMap[_playerY, _playerX] = PLAYER;
@@ -287,9 +277,9 @@ public class Program {
                     return;
                 case ConsoleKey.R:
                     // Regenerar la ciudad
-                    GenerateCity(width, height);
+                    GenerateCity(width, height, _city.Seed + 1);
                     InitializePlayer(width, height);
-                    RenderGame(width, height);
+                    RenderGame();
                     return;
             }
 
@@ -299,7 +289,7 @@ public class Program {
                 _playerX = newX;
                 _playerY = newY;
             }
-            RenderGame(width, height);
+            RenderGame();
         }
     }
 }

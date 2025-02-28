@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Betauer.Core;
+using Betauer.Core.DataMath;
 using Godot;
 
 namespace Veronenger.Game.Dungeon.GenCity;
@@ -10,33 +12,34 @@ public interface ICityTile;
 public class City {
     public int Width { get; }
     public int Height { get; }
+    public int Seed => _params.Seed;
 
     private Random _random;
 
-    private readonly ICityTile[,] _matrix;
-    private readonly List<Intersection> _nodes = [];
+    private readonly Array2D<ICityTile?> _matrix;
+    private readonly List<Intersection> _intersections = [];
 
     private CityGenerationParameters _params = new CityGenerationParameters();
 
     public City(int width, int height) {
         Width = width;
         Height = height;
-        _matrix = new ICityTile[Height, Width];
+        _matrix = new Array2D<ICityTile?>(Width, Height);
     }
 
     public List<Building> GetAllBuildings() {
-        return GetAllPaths().SelectMany(path => path.GetBuildings()).ToList();
+        return GetAllPaths().SelectMany(path => path.Buildings).ToList();
     }
 
-    public List<Intersection> GetAllNodes() {
-        return _nodes;
+    public List<Intersection> GetAllIntersections() {
+        return _intersections;
     }
 
     public List<Path> GetAllPaths() {
-        return _nodes.SelectMany(node => node.GetOutputPaths()).ToList();
+        return _intersections.SelectMany(intersection => intersection.GetOutputPaths()).ToList();
     }
 
-    public void Generate(CityGenerationParameters customParams = null) {
+    public void Generate(CityGenerationParameters customParams = null, Action action = null) {
         Reset();
 
         _params = customParams ?? new CityGenerationParameters();
@@ -47,17 +50,16 @@ public class City {
         }
 
         if (_params.StartDirections.Count == 0) {
-            _params.StartDirections = [0, 90, 180, 270];
+            _params.StartDirections = [Vector2I.Right, Vector2I.Down, Vector2I.Left, Vector2I.Up];
         }
 
-        var node = AddNode(_params.StartPosition);
-        MarkAt(_params.StartPosition, node);
+        var intersection = AddIntersection(_params.StartPosition);
 
         foreach (var direction in _params.StartDirections) {
-            node.AddOutputPath(direction);
+            intersection.AddOutputPath(direction);
         }
 
-        GeneratePaths();
+        GeneratePaths(action);
         GenerateBuildings();
     }
 
@@ -67,55 +69,55 @@ public class City {
                 _matrix[y, x] = null;
             }
         }
-        _nodes.Clear();
+        _intersections.Clear();
     }
 
-    private void GeneratePaths() {
+    private void GeneratePaths(Action? action = null) {
         var isCompleted = false;
         while (!isCompleted) {
             var paths = GetAllPaths();
-            foreach (var p in paths) {
+            foreach (var p in paths.Where(path => !path.IsCompleted())) {
                 ProcessingPath(p);
+                // action?.Invoke();
             }
-            isCompleted = paths.All(path => path.IsCompleted());
+            isCompleted = GetAllPaths().All(path => path.IsCompleted());
         }
     }
 
     private void ProcessingPath(Path path) {
-        if (path.IsCompleted()) {
-            return;
-        }
-
         var nextCursor = path.GetNextCursor();
 
-        if (GetAt(nextCursor) == null && IsOutOfBounds(nextCursor) // Out of matrix
-            || VariabilityChance(_params.ProbabilityStreetEnd)) { // Street end
+        if (!_matrix.IsInBounds(nextCursor)) { // Out of matrix
+            // Console.WriteLine("Out of matrix, closing path");
             ClosePath(path);
             return;
         }
 
-        // Crossed another street
-        var cross = GetCross(path);
+        if (VariabilityChance(_params.ProbabilityStreetEnd)) {
+            // Console.WriteLine("Closing path randomly");
+            ClosePath(path);
+            return;
+        }
 
-        if (cross.tile != null) {
-            Intersection? intersection = cross.tile switch {
-                Intersection crossNode => crossNode,
-                Path crossPath => SplitPath(crossPath, cross.position),
-                _ => null
-            };
-            if (intersection != null) {
-                path.SetNodeEnd(intersection);
+        var tile = _matrix[nextCursor];
+
+        if (tile != null) {
+            if (tile is Intersection intersection) {
+                Console.WriteLine("Path closed by start intersection");
+                path.SetEnd(intersection);
+            } else if (tile is Path crossPath) {
+                SplitPath(crossPath, nextCursor);
             }
             return;
         }
 
         // Continuation path
         path.SetCursor(nextCursor);
-        MarkAt(path.GetCursor(), path);
+        _matrix[path.GetCursor()] = path;
 
         var streetLength = _params.StreetMinLength;
 
-        if (path.GetLength() > streetLength && GetCross(path, streetLength).tile == null) {
+        if (path.GetLength() > streetLength && GetNextTile(path.GetCursor(), path.Direction, streetLength) == null) {
             if (VariabilityChance(_params.ProbabilityIntersection)) {
                 ForkPath(path);
             } else if (VariabilityChance(_params.ProbabilityTurn)) {
@@ -126,20 +128,15 @@ public class City {
 
     private void GenerateBuildings() {
         foreach (var path in GetAllPaths()) {
-            var (dirX, dirY) = Utils.GetShift(path.Direction);
-            var x = path.GetStart().Position.X + dirX;
-            var y = path.GetStart().Position.Y + dirY;
+            var nextPos = path.Start.Position + path.Direction;
 
             foreach (var direction in Utils.TurnDirection(path.Direction)) {
                 var stepOffset = _params.BuildingOffset;
 
                 while (path.GetLength() > stepOffset) {
-                    Vector2I stepShift = Utils.GetShift(path.Direction, stepOffset);
-                    Vector2I shiftFromPath = Utils.GetShift(direction, _params.BuildingOffset + 1);
-                    Vector2I startPosition = new Vector2I(
-                        x + stepShift.X + shiftFromPath.X,
-                        y + stepShift.Y + shiftFromPath.Y
-                    );
+                    var stepShift = path.Direction * stepOffset;
+                    var shiftFromPath = direction * (_params.BuildingOffset + 1);
+                    var startPosition = nextPos + stepShift + shiftFromPath;
 
                     int[] size = [
                         VariabilityRange(_params.BuildingMinSize, _params.BuildingMaxSize),
@@ -158,29 +155,21 @@ public class City {
         }
     }
 
-    private void ProcessingBuilding(Path path, Vector2I position, int[] size, List<int> directions) {
+    private void ProcessingBuilding(Path path, Vector2I position, int[] size, List<Vector2I> directions) {
         List<Vector2I> tiles = [];
         List<Vector2I> vertices = [];
 
         for (var i = 0; i < size[0]; i++) {
-            Vector2I shiftParallel = Utils.GetShift(directions[0], i);
-
-            Vector2I startFromPathPosition = new Vector2I(position.X + shiftParallel.X, position.Y + shiftParallel.Y);
+            var shiftParallel = directions[0] * i;
+            var startFromPathPosition = position + shiftParallel;
 
             for (var j = 0; j < size[1]; j++) {
-                Vector2I shiftPerpendicular = Utils.GetShift(directions[1], j);
-                Vector2I tilePosition = new Vector2I(
-                    startFromPathPosition.X + shiftPerpendicular.X,
-                    startFromPathPosition.Y + shiftPerpendicular.Y
-                );
+                var shiftPerpendicular = directions[1] * j;
+                var tilePosition = startFromPathPosition + shiftPerpendicular;
 
-                if (IsEmptyAt(tilePosition)) {
+                if (_matrix.IsInBounds(tilePosition) && _matrix[tilePosition] == null) {
                     tiles.Add(tilePosition);
-
-                    if (
-                        (i == 0 || i == size[0] - 1)
-                        && (j == 0 || j == size[1] - 1)
-                    ) {
+                    if ((i == 0 || i == size[0] - 1) && (j == 0 || j == size[1] - 1)) {
                         vertices.Add(tilePosition);
                     }
                 } else {
@@ -192,62 +181,44 @@ public class City {
         var building = path.AddBuilding(vertices);
 
         foreach (Vector2I tilePosition in tiles) {
-            MarkAt(tilePosition, building);
+            _matrix[tilePosition] = building;
         }
     }
 
     private ICityTile? GetAt(Vector2I position) {
-        if (IsOutOfBounds(position)) return null;
-        var (x, y) = position;
-        return _matrix[y, x];
-    }
-
-    private bool IsOutOfBounds(Vector2I position) {
-        var (x, y) = position;
-        return x < 0 || y < 0 || x >= Width || y >= Height;
-    }
-
-    private void MarkAt(Vector2I position, ICityTile tile) {
-        var (x, y) = position;
-        _matrix[y, x] = tile;
+        return _matrix.GetValueSafe(position);
     }
 
     private bool IsEmptyAt(Vector2I position) {
-        return !IsOutOfBounds(position) && GetAt(position) == null;
+        return _matrix.IsInBounds(position) && _matrix[position] == null;
     }
 
-    private Intersection AddNode(Vector2I position, int? index = null) {
-        var node = new Intersection(_nodes.Count, position);
+    private Intersection AddIntersection(Vector2I position, int? index = null) {
+        var intersection = new Intersection(_intersections.Count, position);
 
         if (!index.HasValue) {
-            _nodes.Add(node);
+            _intersections.Add(intersection);
         } else {
-            _nodes.Insert(index.Value, node);
+            _intersections.Insert(index.Value, intersection);
         }
+        _matrix[position] = intersection;
 
-        return node;
+        return intersection;
     }
 
     private Intersection ClosePath(Path path) {
         Vector2I cursor = path.GetCursor();
-        Intersection intersection = AddNode(cursor);
+        Intersection intersection = AddIntersection(cursor);
 
-        path.SetNodeEnd(intersection);
-        MarkAt(cursor, intersection);
+        path.SetEnd(intersection);
 
         return intersection;
     }
 
     private void ForkPath(Path path) {
-        List<int> directions = Utils.ForkDirection(path.Direction)
-            .OrderBy(x => VariabilityChance(0.5f) ? 1 : -1)
+        List<Vector2I> directions = Utils.ForkDirection(path.Direction)
+            .OrderBy(x => _random.Next())
             .ToList();
-
-        directions = FilterDirections(path, directions);
-
-        if (directions.Count == 0 || (directions.Count == 1 && directions[0] == path.Direction)) {
-            return;
-        }
 
         var intersection = ClosePath(path);
 
@@ -257,119 +228,47 @@ public class City {
             }
         }
 
-        MarkAt(intersection.Position, intersection);
+        _matrix[intersection.Position] = intersection;
     }
 
     private void TurnPath(Path path) {
-        var directions = Utils.TurnDirection(path.Direction)
-            .OrderBy(x => VariabilityChance(0.5f) ? 1 : -1)
-            .ToList();
-
-        directions = FilterDirections(path, directions);
-
-        if (directions.Count == 0) {
-            return;
-        }
-
         var intersection = ClosePath(path);
-        intersection.AddOutputPath(directions[0]);
-        MarkAt(intersection.Position, intersection);
+        var direction =_random.Next(Utils.TurnDirection(path.Direction));
+        intersection.AddOutputPath(direction);
+        _matrix[intersection.Position ] = intersection;
     }
 
-    private Intersection SplitPath(Path path, Vector2I position) {
-        var nodeBeg = path.GetStart();
-        var nodeBegIndex = _nodes.FindIndex(node => node == nodeBeg);
-        var nodeNew = AddNode(position, nodeBegIndex + 1);
-        var continuePath = nodeNew.AddOutputPath(path.Direction);
+    private void SplitPath(Path path, Vector2I position) {
+        var nodeBegIndex = _intersections.FindIndex(intersection => intersection == path.Start);
+        var newIntersection = AddIntersection(position, nodeBegIndex + 1);
+        var continuePath = newIntersection.AddOutputPath(path.Direction);
 
-        MarkAt(position, nodeNew);
-
-        var nodeEnd = path.GetNodeEnd();
-        if (nodeEnd != null) {
-            continuePath.SetNodeEnd(nodeEnd);
+        if (path.End != null) {
+            continuePath.SetEnd(path.End);
         } else {
             continuePath.SetCursor(path.GetCursor());
         }
 
         // Refill matrix with new path
         foreach (var tilePosition in continuePath.Each()) {
-            if (GetAt(tilePosition) is Path) {
-                MarkAt(tilePosition, continuePath);
+            if (_matrix[tilePosition] is Path) {
+                _matrix[tilePosition] = continuePath;
             }
         }
-        path.SetNodeEnd(nodeNew);
-        return nodeNew;
+        path.SetEnd(newIntersection);
     }
 
-    private (object? tile, Vector2I position) GetCross(Path path, int length = 1) {
-        Vector2I cursor = path.GetCursor();
+    private Vector2I? GetNextTile(Vector2I start, Vector2I direction, int length) {
 
         for (var i = 1; i <= length; i++) {
-            var (x, y) = Utils.GetShift(path.Direction, i);
-            var position = new Vector2I(cursor.X + x, cursor.Y + y);
+            var position = start + direction * i;
 
-            if (!IsEmptyAt(position)) {
-                return (GetAt(position), position);
+            if (_matrix.IsInBounds(position) && _matrix[position] != null) {
+                return position;
             }
         }
 
-        return (null, Vector2I.Zero);
-    }
-
-    private List<int> FilterDirections(Path path, List<int> directions) {
-        return directions.Where(direction => {
-            var (x, y) = Utils.GetShift(direction);
-            var (cx, cy) = path.GetCursor();
-            var nextCursor = new Vector2I(cx + x, cy + y);
-
-            // Primero verificamos si la posición inmediata está vacía
-            if (!IsEmptyAt(nextCursor)) return false;
-
-            // Verificar si hay carreteras paralelas cercanas
-            var minDistanceToRoad = 3; // Distancia mínima a otra carretera
-            var isHorizontal = Math.Abs(direction) == 0 || Math.Abs(direction) == 180;
-
-            // Verificar en perpendicular a la dirección de la carretera
-            for (var dist = 1; dist <= minDistanceToRoad; dist++) {
-                Vector2I checkPos1, checkPos2;
-                if (isHorizontal) {
-                    // Para carreteras horizontales, verificar arriba y abajo
-                    checkPos1 = new Vector2I(nextCursor.X, nextCursor.Y + dist);
-                    checkPos2 = new Vector2I(nextCursor.X, nextCursor.Y - dist);
-                } else {
-                    // Para carreteras verticales, verificar izquierda y derecha
-                    checkPos1 = new Vector2I(nextCursor.X + dist, nextCursor.Y);
-                    checkPos2 = new Vector2I(nextCursor.X - dist, nextCursor.Y);
-                }
-
-                // Si encontramos una carretera paralela demasiado cerca, rechazar esta dirección
-                if (!IsOutOfBounds(checkPos1) && GetAt(checkPos1) is Path nearPath) {
-                    var isParallel = (isHorizontal && (Math.Abs(nearPath.Direction) == 0 || Math.Abs(nearPath.Direction) == 180)) ||
-                                     (!isHorizontal && (Math.Abs(nearPath.Direction) == 90 || Math.Abs(nearPath.Direction) == 270));
-                    if (isParallel) return false;
-                }
-                if (!IsOutOfBounds(checkPos2) && GetAt(checkPos2) is Path nearPath2) {
-                    var isParallel = (isHorizontal && (Math.Abs(nearPath2.Direction) == 0 || Math.Abs(nearPath2.Direction) == 180)) ||
-                                     (!isHorizontal && (Math.Abs(nearPath2.Direction) == 90 || Math.Abs(nearPath2.Direction) == 270));
-                    if (isParallel) return false;
-                }
-            }
-
-            // También verificar un poco hacia adelante para evitar convergencias
-            var forwardCheck = 3;
-            for (var i = 1; i <= forwardCheck; i++) {
-                Vector2I forwardPos = new Vector2I(
-                    nextCursor.X + x * i,
-                    nextCursor.Y + y * i
-                );
-
-                if (!IsOutOfBounds(forwardPos) && GetAt(forwardPos) is Path) {
-                    return false;
-                }
-            }
-
-            return true;
-        }).ToList();
+        return null;
     }
 
     public bool VariabilityChance(float value) {

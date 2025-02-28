@@ -20,7 +20,7 @@ public class CityGenerationParameters {
     /// Start generation directions.
     /// Default: Left, Right, Top, Bottom
     /// </summary>
-    public List<int> StartDirections { get; set; } = new List<int>();
+    public List<Vector2I> StartDirections { get; set; } = [];
 
     /// <summary>
     /// Street length before generating an intersection or turn.
@@ -75,15 +75,4 @@ public class CityGenerationParameters {
     /// Default: 0
     /// </summary>
     public int BuildingOffset { get; set; } = 0;
-}
-
-public struct PathData {
-    public Vector2I Position;
-    public int Direction;
-}
-
-public enum NodeType {
-    TURN,
-    CROSS,
-    END
 }

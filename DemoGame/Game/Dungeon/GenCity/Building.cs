@@ -31,18 +31,13 @@ public class Building : ICityTile {
     }
 
     public void Remove() {
-        List<Building> pathBuildings = Path.GetBuildings();
-        int index = pathBuildings.IndexOf(this);
-
-        if (index != -1) {
-            pathBuildings.RemoveAt(index);
-        }
+        Path.Buildings.Remove(this);
     }
 
     public IEnumerable<Vector2I> Each() {
         for (var x = 0; x < Width; x++) {
             for (var y = 0; y < Height; y++) {
-                yield return new Vector2I(Position.X + x, Position.Y + y);
+                yield return Position + new Vector2I(x, y);
             }
         }
     }

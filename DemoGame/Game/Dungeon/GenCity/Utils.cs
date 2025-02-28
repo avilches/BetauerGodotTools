@@ -5,26 +5,28 @@ namespace Veronenger.Game.Dungeon.GenCity;
 
 public static class Utils {
 
-    public static float DegToRad(float degrees) {
-        return degrees * (Mathf.Pi / 180);
+    // Returns left and right turn directions for a given direction vector
+    public static IList<Vector2I> TurnDirection(Vector2I direction) {
+        // If direction is horizontal (Right or Left), return vertical directions (Up and Down)
+        if (direction.X != 0 && direction.Y == 0) {
+            return [Vector2I.Down, Vector2I.Up];
+        }
+        // If direction is vertical (Up or Down), return horizontal directions (Right and Left)
+        else if (direction.X == 0 && direction.Y != 0) {
+            return [Vector2I.Right, Vector2I.Left];
+        }
+        // For diagonal directions or unexpected input, return default directions
+        return [Vector2I.Right, Vector2I.Down];
     }
 
-    public static List<int> TurnDirection(int direction) {
-        return [(direction + 90) % 360, (direction - 90) % 360];
+    // Returns current direction and perpendicular directions (fork)
+    public static List<Vector2I> ForkDirection(Vector2I direction) {
+        var turns = TurnDirection(direction);
+        return [direction, ..turns];
     }
 
-    public static List<int> ForkDirection(int direction) {
-        return [direction, ..TurnDirection(direction)];
-    }
 
-    public static Vector2I GetShift(int direction, int offset = 1) {
-        return new Vector2I(
-            Mathf.RoundToInt(Mathf.Cos(DegToRad(direction))) * offset,
-            Mathf.RoundToInt(Mathf.Sin(DegToRad(direction))) * offset
-        );
-    }
-
-    public static bool Between(int value, int min, int max) {
-        return value >= min && value <= max;
+    public static bool IsHorizontal(Vector2I direction) {
+        return direction.X != 0 && direction.Y == 0;
     }
 }
