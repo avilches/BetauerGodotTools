@@ -16,15 +16,15 @@ public class City {
 
     private Random _random;
 
-    private readonly Array2D<ICityTile?> _matrix;
-    private readonly List<Intersection> _intersections = [];
+    public readonly Array2D<ICityTile?> Data;
+    public readonly List<Intersection> Intersections = [];
 
     private CityGenerationParameters _params = new CityGenerationParameters();
 
     public City(int width, int height) {
         Width = width;
         Height = height;
-        _matrix = new Array2D<ICityTile?>(Width, Height);
+        Data = new Array2D<ICityTile?>(Width, Height);
     }
 
     public List<Building> GetAllBuildings() {
@@ -32,11 +32,11 @@ public class City {
     }
 
     public List<Intersection> GetAllIntersections() {
-        return _intersections;
+        return Intersections;
     }
 
     public List<Path> GetAllPaths() {
-        return _intersections.SelectMany(intersection => intersection.GetOutputPaths()).ToList();
+        return Intersections.SelectMany(intersection => intersection.GetOutputPaths()).ToList();
     }
 
     public void Generate(CityGenerationParameters customParams = null, Action action = null) {
@@ -66,10 +66,10 @@ public class City {
     private void Reset() {
         for (var y = 0; y < Height; y++) {
             for (var x = 0; x < Width; x++) {
-                _matrix[y, x] = null;
+                Data[y, x] = null;
             }
         }
-        _intersections.Clear();
+        Intersections.Clear();
     }
 
     private void GeneratePaths(Action? action = null) {
@@ -85,38 +85,40 @@ public class City {
     }
 
     private void ProcessingPath(Path path) {
-        var nextCursor = path.GetNextCursor();
+        var newPos = path.GetNextCursor();
 
-        if (!_matrix.IsInBounds(nextCursor)) { // Out of matrix
-            // Console.WriteLine("Out of matrix, closing path");
-            ClosePath(path);
+        if (!Data.IsInBounds(newPos)) {
+            if (path.GetLength() == 0) {
+                path.Remove();
+            } else {
+                ClosePath(path);
+            }
             return;
         }
 
+        var tile = Data[newPos];
+        if (tile != null) {
+            if (tile is Intersection intersection) {
+                // Console.WriteLine("Path closed by start intersection");
+                path.SetEnd(intersection);
+            } else if (tile is Path crossPath) {
+                SplitPath(crossPath, newPos);
+            }
+            return;
+        }
+
+        path.SetCursor(newPos);
+        
         if (VariabilityChance(_params.ProbabilityStreetEnd)) {
             // Console.WriteLine("Closing path randomly");
             ClosePath(path);
             return;
         }
 
-        var tile = _matrix[nextCursor];
-
-        if (tile != null) {
-            if (tile is Intersection intersection) {
-                Console.WriteLine("Path closed by start intersection");
-                path.SetEnd(intersection);
-            } else if (tile is Path crossPath) {
-                SplitPath(crossPath, nextCursor);
-            }
-            return;
-        }
-
         // Continuation path
-        path.SetCursor(nextCursor);
-        _matrix[path.GetCursor()] = path;
+        Data[newPos] = path;
 
         var streetLength = _params.StreetMinLength;
-
         if (path.GetLength() > streetLength && GetNextTile(path.GetCursor(), path.Direction, streetLength) == null) {
             if (VariabilityChance(_params.ProbabilityIntersection)) {
                 ForkPath(path);
@@ -139,8 +141,8 @@ public class City {
                     var startPosition = nextPos + stepShift + shiftFromPath;
 
                     int[] size = [
-                        VariabilityRange(_params.BuildingMinSize, _params.BuildingMaxSize),
-                        VariabilityRange(_params.BuildingMinSize, _params.BuildingMaxSize)
+                        _random.Next(_params.BuildingMinSize, _params.BuildingMaxSize + 1),
+                        _random.Next(_params.BuildingMinSize, _params.BuildingMaxSize + 1)
                     ];
 
                     if (stepOffset + size[0] + _params.BuildingOffset > path.GetLength()) {
@@ -148,7 +150,7 @@ public class City {
                     }
                     ProcessingBuilding(path, startPosition, size, [path.Direction, direction]);
 
-                    var spaceBetweenBuildings = VariabilityRange(_params.BuildingMinSpace, _params.BuildingMaxSpace);
+                    var spaceBetweenBuildings = _random.Next(_params.BuildingMinSpace, _params.BuildingMaxSpace + 1);
                     stepOffset += size[0] + spaceBetweenBuildings;
                 }
             }
@@ -167,7 +169,7 @@ public class City {
                 var shiftPerpendicular = directions[1] * j;
                 var tilePosition = startFromPathPosition + shiftPerpendicular;
 
-                if (_matrix.IsInBounds(tilePosition) && _matrix[tilePosition] == null) {
+                if (Data.IsInBounds(tilePosition) && Data[tilePosition] == null) {
                     tiles.Add(tilePosition);
                     if ((i == 0 || i == size[0] - 1) && (j == 0 || j == size[1] - 1)) {
                         vertices.Add(tilePosition);
@@ -181,27 +183,30 @@ public class City {
         var building = path.AddBuilding(vertices);
 
         foreach (Vector2I tilePosition in tiles) {
-            _matrix[tilePosition] = building;
+            Data[tilePosition] = building;
         }
     }
 
     private ICityTile? GetAt(Vector2I position) {
-        return _matrix.GetValueSafe(position);
+        return Data.GetValueSafe(position);
     }
 
     private bool IsEmptyAt(Vector2I position) {
-        return _matrix.IsInBounds(position) && _matrix[position] == null;
+        return Data.IsInBounds(position) && Data[position] == null;
     }
 
     private Intersection AddIntersection(Vector2I position, int? index = null) {
-        var intersection = new Intersection(_intersections.Count, position);
+        if (Data[position] is Intersection) {
+            throw new Exception("Intersection already exists at " + position);
+        }
+        var intersection = new Intersection(Intersections.Count, position);
 
         if (!index.HasValue) {
-            _intersections.Add(intersection);
+            Intersections.Add(intersection);
         } else {
-            _intersections.Insert(index.Value, intersection);
+            Intersections.Insert(index.Value, intersection);
         }
-        _matrix[position] = intersection;
+        Data[position] = intersection;
 
         return intersection;
     }
@@ -228,22 +233,23 @@ public class City {
             }
         }
 
-        _matrix[intersection.Position] = intersection;
+        Data[intersection.Position] = intersection;
     }
 
     private void TurnPath(Path path) {
         var intersection = ClosePath(path);
-        var direction =_random.Next(Utils.TurnDirection(path.Direction));
+        var direction = _random.Next(Utils.TurnDirection(path.Direction));
         intersection.AddOutputPath(direction);
-        _matrix[intersection.Position ] = intersection;
+        Data[intersection.Position] = intersection;
     }
 
     private void SplitPath(Path path, Vector2I position) {
-        var nodeBegIndex = _intersections.FindIndex(intersection => intersection == path.Start);
+        var nodeBegIndex = Intersections.FindIndex(intersection => intersection == path.Start);
         var newIntersection = AddIntersection(position, nodeBegIndex + 1);
         var continuePath = newIntersection.AddOutputPath(path.Direction);
 
         if (path.End != null) {
+            path.End.RemoveInputPath(path);
             continuePath.SetEnd(path.End);
         } else {
             continuePath.SetCursor(path.GetCursor());
@@ -251,31 +257,24 @@ public class City {
 
         // Refill matrix with new path
         foreach (var tilePosition in continuePath.Each()) {
-            if (_matrix[tilePosition] is Path) {
-                _matrix[tilePosition] = continuePath;
+            if (Data[tilePosition] is Path) {
+                Data[tilePosition] = continuePath;
             }
         }
         path.SetEnd(newIntersection);
     }
 
     private Vector2I? GetNextTile(Vector2I start, Vector2I direction, int length) {
-
         for (var i = 1; i <= length; i++) {
             var position = start + direction * i;
-
-            if (_matrix.IsInBounds(position) && _matrix[position] != null) {
+            if (Data.IsInBounds(position) && Data[position] != null) {
                 return position;
             }
         }
-
         return null;
     }
 
     public bool VariabilityChance(float value) {
         return _random.NextDouble() > 1.0 - value;
-    }
-
-    public int VariabilityRange(int min, int max) {
-        return (int)(min + _random.NextDouble() * (max - min + 1));
     }
 }

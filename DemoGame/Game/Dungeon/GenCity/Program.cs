@@ -250,6 +250,16 @@ public class Program {
         Console.WriteLine("Muévete con las teclas de flecha. Pulsa 'Q' para salir.");
         Console.WriteLine("Leyenda: @ = Tú | "
                           + $"{ROAD_H}/{ROAD_V} = Calles | {CROSS} = Intersección | {BUILDING} = Edificio");
+
+        var tile = _city.Data[_playerY, _playerX];
+
+        Func<Vector2I, string> t = d => d == Vector2I.Right ? "->" : d == Vector2I.Down ? "v" : d == Vector2I.Left ? "<-" : "^";
+
+        if (tile is Intersection i) {
+            Console.WriteLine($"Intersección: {i.Position} | Caminos entrantes: {i.GetInputPaths().Count} {string.Join(",", i.GetInputPaths().Select(p=>t(p.Direction)))}| Caminos salientes: {i.GetOutputPaths().Count} {string.Join(",", i.GetOutputPaths().Select(p=>t(p.Direction)))}");
+        } else {
+            Console.WriteLine($"Posición: {_playerX}, {_playerY} | Tipo de tile: {tile?.GetType().Name ?? "N/A"}");
+        }
     }
 
     private static void HandleInput(int width, int height) {
