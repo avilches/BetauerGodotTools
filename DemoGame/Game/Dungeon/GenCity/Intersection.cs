@@ -10,8 +10,8 @@ public enum IntersectionType {
 }
 
 public class Intersection(int id, Vector2I position) : ICityTile {
-    public Vector2I Position { get; private set; } = position;
-    public int Id { get; private set; } = id;
+    public Vector2I Position { get; } = position;
+    public int Id { get; } = id;
 
     private readonly List<Path> _outputPaths = [];
     private readonly List<Path> _inputPaths = [];
@@ -22,7 +22,7 @@ public class Intersection(int id, Vector2I position) : ICityTile {
 
     public List<Path> GetAllPaths() => [.._outputPaths, .._inputPaths];
 
-    public Path AddOutputPath(Vector2I direction) {
+    public Path CreatePathTo(Vector2I direction) {
         Path path = new Path(this, direction);
         _outputPaths.Add(path);
         return path;

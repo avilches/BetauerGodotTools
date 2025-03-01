@@ -46,7 +46,7 @@ public class City(int width, int height) {
         var startPosition = _options.StartPosition ?? new Vector2I(Width / 2, Height / 2);
         var intersection = AddIntersection(startPosition);
         foreach (var direction in _options.StartDirections) {
-            intersection.AddOutputPath(direction);
+            intersection.CreatePathTo(direction);
             _options.OnUpdate?.Invoke(intersection.Position);
         }
     }
@@ -63,53 +63,57 @@ public class City(int width, int height) {
             }
             isCompleted = GetAllPaths().All(path => path.IsCompleted());
         }
-    }
 
-    private void GrowPath(Path path) {
-        var newPos = path.GetCursor() + path.Direction;
-        if (!Data.IsInBounds(newPos)) {
-            if (path.GetLength() == 0) {
-                RemovePath(path);
-            } else {
-                ClosePath(path);
-            }
-            return;
-        }
+        const float HeadingBorderPathLimit = 3;
+        const float HeadingBorderPathProbability = 0.3f;
 
-        var tile = Data[newPos];
-        if (tile != null) {
-            if (tile is Intersection intersection) {
-                // The path collides with an intersection, join to it
-                path.SetEnd(intersection);
-            } else if (tile is Path crossPath) {
-                // The path collides with another path
-                SplitPath(crossPath, newPos);
-            }
-            return;
-        }
-
-        path.SetCursor(newPos);
-
-        if (_random.NextBool(_options.ProbabilityStreetEnd) || StopPathHeadingToBorder(path)) {
-            // Console.WriteLine("Closing path randomly");
-            ClosePath(path);
-            return;
-        }
-
-        Data[newPos] = path;
-        _options.OnUpdate?.Invoke(newPos);
-
-        var streetLength = _options.StreetMinLength;
-        if (path.GetLength() > streetLength &&
-            GetNextTile(path.GetCursor(), path.Direction, streetLength) == null &&
-            !_random.NextBool(_options.ProbabilityExtend)) {
-            _random.Pick(new (Action<Path>, float)[] {
-                (CreateCrossPath, _options.ProbabilityCross),
-                (CreateForkPath, _options.ProbabilityFork),
-                (CreateTurnPath, _options.ProbabilityTurn)
-            })(path);
-        }
         return;
+
+        void GrowPath(Path path) {
+            var newPos = path.GetCursor() + path.Direction;
+            if (!Data.IsInBounds(newPos)) {
+                if (path.GetLength() == 0) {
+                    RemovePath(path);
+                } else {
+                    ClosePath(path);
+                }
+                return;
+            }
+
+            var tile = Data[newPos];
+            if (tile != null) {
+                if (tile is Intersection intersection) {
+                    // The path collides with an intersection, join to it
+                    path.SetEnd(intersection);
+                } else if (tile is Path crossPath) {
+                    // The path collides with another path
+                    SplitPath(crossPath, newPos);
+                }
+                return;
+            }
+
+            path.SetCursor(newPos);
+
+            if (_random.NextBool(_options.ProbabilityStreetEnd) || StopPathHeadingToBorder(path)) {
+                // Console.WriteLine("Closing path randomly");
+                ClosePath(path);
+                return;
+            }
+
+            Data[newPos] = path;
+            _options.OnUpdate?.Invoke(newPos);
+
+            var streetLength = _options.StreetMinLength;
+            if (path.GetLength() > streetLength &&
+                GetNextTile(path.GetCursor(), path.Direction, streetLength) == null &&
+                !_random.NextBool(_options.ProbabilityExtend)) {
+                _random.Pick(new (Action<Path>, float)[] {
+                    (CreateCrossPath, _options.ProbabilityCross),
+                    (CreateForkPath, _options.ProbabilityFork),
+                    (CreateTurnPath, _options.ProbabilityTurn)
+                })(path);
+            }
+        }
 
         Intersection ClosePath(Path path) {
             var cursor = path.GetCursor();
@@ -123,7 +127,7 @@ public class City(int width, int height) {
             var directions = ForkDirection(path.Direction).ToList();
             var intersection = ClosePath(path);
             foreach (var direction in directions) {
-                intersection.AddOutputPath(direction);
+                intersection.CreatePathTo(direction);
                 _options.OnUpdate?.Invoke(intersection.Position);
             }
         }
@@ -134,7 +138,7 @@ public class City(int width, int height) {
                 .ToList();
             var intersection = ClosePath(path);
             foreach (var direction in directions.Take(directions.Count - 1)) {
-                intersection.AddOutputPath(direction);
+                intersection.CreatePathTo(direction);
                 _options.OnUpdate?.Invoke(intersection.Position);
             }
         }
@@ -142,29 +146,26 @@ public class City(int width, int height) {
         void CreateTurnPath(Path path) {
             var direction = _random.Next(TurnDirection(path.Direction));
             var intersection = ClosePath(path);
-            intersection.AddOutputPath(direction);
+            intersection.CreatePathTo(direction);
             _options.OnUpdate?.Invoke(intersection.Position);
         }
-    }
 
-    private const float HeadingBorderPathLimit = 3;
-    private const float HeadingBorderPathProbability = 0.3f;
-
-    private bool StopPathHeadingToBorder(Path path) {
-        var projectedX = path.GetCursor().X + path.Direction.X * HeadingBorderPathLimit;
-        var projectedY = path.GetCursor().Y + path.Direction.Y * HeadingBorderPathLimit;
-        var headingToBorder = projectedX >= Width || projectedX < 0 || projectedY >= Height || projectedY < 0;
-        return headingToBorder && _random.NextBool(HeadingBorderPathProbability);
-    }
-
-    private Vector2I? GetNextTile(Vector2I start, Vector2I direction, int length) {
-        for (var i = 1; i <= length; i++) {
-            var position = start + direction * i;
-            if (Data.IsInBounds(position) && Data[position] != null) {
-                return position;
-            }
+        bool StopPathHeadingToBorder(Path path) {
+            var projectedX = path.GetCursor().X + path.Direction.X * HeadingBorderPathLimit;
+            var projectedY = path.GetCursor().Y + path.Direction.Y * HeadingBorderPathLimit;
+            var headingToBorder = projectedX >= Width || projectedX < 0 || projectedY >= Height || projectedY < 0;
+            return headingToBorder && _random.NextBool(HeadingBorderPathProbability);
         }
-        return null;
+
+        Vector2I? GetNextTile(Vector2I start, Vector2I direction, int length) {
+            for (var i = 1; i <= length; i++) {
+                var position = start + direction * i;
+                if (Data.IsInBounds(position) && Data[position] != null) {
+                    return position;
+                }
+            }
+            return null;
+        }
     }
 
     /// <summary>
@@ -226,7 +227,7 @@ public class City(int width, int height) {
         }
         var nodeBegIndex = Intersections.FindIndex(intersection => intersection == path.Start);
         var newIntersection = AddIntersection(position, nodeBegIndex + 1);
-        var continuePath = newIntersection.AddOutputPath(path.Direction);
+        var continuePath = newIntersection.CreatePathTo(path.Direction);
         _options.OnUpdate?.Invoke(newIntersection.Position);
 
         if (path.End != null) {
@@ -264,20 +265,12 @@ public class City(int width, int height) {
         }
         var startIntersection = GetOrCreateIntersectionAt(startPoint);
         var endIntersection = GetOrCreateIntersectionAt(endPoint);
-        var createdPaths = CreateDirectPath(startIntersection, endIntersection);
-        return createdPaths;
-    }
-
-    /// <summary>
-    /// Creates a direct path between two intersections in the given direction.
-    /// Handles any collisions with existing paths or intersections.
-    /// </summary>
-    private List<Path> CreateDirectPath(Intersection startIntersection, Intersection endIntersection) {
         var direction = startIntersection.Position.DirectionTo(endIntersection.Position);
+
         List<Path> createdPaths = [];
 
         // Create initial path
-        var path = startIntersection.AddOutputPath(direction);
+        var path = startIntersection.CreatePathTo(direction);
         createdPaths.Add(path);
 
         // Current position as we trace the path
@@ -290,14 +283,14 @@ public class City(int width, int height) {
                 // Found an intersection on the way - end current path here
                 path.SetEnd(intersection);
                 // Start a new path from this intersection
-                path = intersection.AddOutputPath(direction);
+                path = intersection.CreatePathTo(direction);
                 createdPaths.Add(path);
             } else if (tile is Path crossPath) {
                 // Found a crossing path - split it
                 var newIntersection = SplitPath(crossPath, currentPos);
                 path.SetEnd(newIntersection);
                 // Start a new path from this intersection
-                path = newIntersection.AddOutputPath(direction);
+                path = newIntersection.CreatePathTo(direction);
                 createdPaths.Add(path);
             } else {
                 // Mark this position as part of the path

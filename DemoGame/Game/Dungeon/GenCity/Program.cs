@@ -154,14 +154,12 @@ public class Program {
         _city.GenerateBuildings();
         Render();
 
-        /*
         var paths = _city.GetAllPaths().ToArray();
         new Random(1).Shuffle(paths);
         foreach (var p in paths) {
             _city.RemovePath(p);
             Render();
         }
-    */
     }
 
     private void Render() {
