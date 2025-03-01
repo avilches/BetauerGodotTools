@@ -219,10 +219,10 @@ public class Program {
                 throw new Exception("Wrong intersection position");
             }
 
-            var hasNorth = intersection.FindPathTo(Vector2I.Up) != null;
-            var hasSouth = intersection.FindPathTo(Vector2I.Down) != null ;
-            var hasEast = intersection.FindPathTo(Vector2I.Right) != null ;
-            var hasWest = intersection.FindPathTo(Vector2I.Left) != null ;
+            var hasNorth = intersection.Up != null;
+            var hasSouth = intersection.Down != null ;
+            var hasEast = intersection.Right != null ;
+            var hasWest = intersection.Left != null ;
             var intersectionChar = DetermineIntersectionChar(hasNorth, hasSouth, hasEast, hasWest);
             _asciiMap[intersection.Position] = intersectionChar;
         }

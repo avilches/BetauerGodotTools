@@ -23,6 +23,11 @@ public class Intersection(int id, Vector2I position) : ICityTile {
 
     public List<Path> GetAllPaths() => [.._outputPaths, .._inputPaths];
 
+    public Path? Up => FindPathTo(Vector2I.Up);
+    public Path? Down => FindPathTo(Vector2I.Down);
+    public Path? Right => FindPathTo(Vector2I.Right);
+    public Path? Left => FindPathTo(Vector2I.Left);
+
     public Path CreatePathTo(Vector2I direction) {
         Path path = new Path(this, direction);
         _outputPaths.Add(path);
@@ -76,33 +81,6 @@ public class Intersection(int id, Vector2I position) : ICityTile {
         }
 
         return (null, null);
-    }
-
-    public void Directions(out bool hasNorth, out bool hasSouth, out bool hasEast, out bool hasWest) {
-        hasNorth = false;
-        hasSouth = false;
-        hasEast = false;
-        hasWest = false;
-
-        // Procesar caminos de entrada
-        foreach (var path in _inputPaths) {
-            // Invertir la dirección para obtener desde dónde viene
-            Vector2I incomingDir = -path.Direction;
-            UpdateDirectionFlags(incomingDir, ref hasNorth, ref hasSouth, ref hasEast, ref hasWest);
-        }
-
-        // Procesar caminos de salida
-        foreach (var path in _outputPaths) {
-            UpdateDirectionFlags(path.Direction, ref hasNorth, ref hasSouth, ref hasEast, ref hasWest);
-        }
-    }
-
-    private static void UpdateDirectionFlags(Vector2I direction, ref bool hasNorth, ref bool hasSouth,
-        ref bool hasEast, ref bool hasWest) {
-        if (direction == Vector2I.Right) hasEast = true;
-        else if (direction == Vector2I.Down) hasSouth = true;
-        else if (direction == Vector2I.Left) hasWest = true;
-        else if (direction == Vector2I.Up) hasNorth = true;
     }
 
     public override string ToString() {
