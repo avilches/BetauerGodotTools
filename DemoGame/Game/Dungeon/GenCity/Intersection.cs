@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 
 namespace Veronenger.Game.Dungeon.GenCity;
@@ -52,7 +53,32 @@ public class Intersection(int id, Vector2I position) : ICityTile {
         }
     }
 
-    public bool Directions(out bool hasNorth, out bool hasSouth, out bool hasEast, out bool hasWest) {
+    public Path? FindPathTo(Vector2I direction) {
+        foreach (var path in _inputPaths.Where(path => -path.Direction == direction)) {
+            return path;
+        }
+        return _outputPaths.FirstOrDefault(path => path.Direction == direction);
+    }
+
+    public (Path? inPath, Path? outPath) GetOppositeDirectionPaths() {
+        if (_inputPaths.Count + _outputPaths.Count != 2) return (null, null);
+
+        if (_inputPaths.Count == 2 && -_inputPaths[0].Direction == _inputPaths[1].Direction) {
+            return (_inputPaths[0], _inputPaths[1]);
+        }
+
+        if (_outputPaths.Count == 2 && -_outputPaths[0].Direction == _outputPaths[1].Direction) {
+            return (_outputPaths[0], _outputPaths[1]);
+        }
+
+        if (_inputPaths.Count == 1 && _outputPaths.Count == 1 && _inputPaths[0].Direction == _outputPaths[0].Direction) {
+            return (_inputPaths[0], _outputPaths[0]);
+        }
+
+        return (null, null);
+    }
+
+    public void Directions(out bool hasNorth, out bool hasSouth, out bool hasEast, out bool hasWest) {
         hasNorth = false;
         hasSouth = false;
         hasEast = false;
@@ -69,7 +95,6 @@ public class Intersection(int id, Vector2I position) : ICityTile {
         foreach (var path in _outputPaths) {
             UpdateDirectionFlags(path.Direction, ref hasNorth, ref hasSouth, ref hasEast, ref hasWest);
         }
-        return hasNorth;
     }
 
     private static void UpdateDirectionFlags(Vector2I direction, ref bool hasNorth, ref bool hasSouth,
@@ -83,6 +108,4 @@ public class Intersection(int id, Vector2I position) : ICityTile {
     public override string ToString() {
         return $"Intersection {Id} at {Position} ({IntersectionType})";
     }
-
-
 }

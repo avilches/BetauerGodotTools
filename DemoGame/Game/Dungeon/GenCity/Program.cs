@@ -39,7 +39,7 @@ public class Program {
 
     public static void Main() {
         var program = new Program();
-        program.Start(120, 24);
+        program.Start(140, 40);
         // program.Validate(60, 20);
     }
 
@@ -131,8 +131,6 @@ public class Program {
         _city.Configure(options);
         _city.Start();
         _city.Grow();
-        /*
-        Render();
         Render();
         _city.CreatePath(new Vector2I(0, 16), new Vector2I(width - 1, 16));
         Render();
@@ -149,24 +147,24 @@ public class Program {
         _city.CreatePath(new Vector2I(111, 0), new Vector2I(111, height -1));
         Render();
 
-        */
+        // _city.GenerateBuildings();
+        // Render();
 
-        _city.GenerateBuildings();
-        Render();
-
-        var paths = _city.GetAllPaths().ToArray();
-        new Random(1).Shuffle(paths);
-        foreach (var p in paths) {
-            _city.RemovePath(p);
+        /*
+        var path = _city.GetAllPaths().FirstOrDefault();
+        while (path != null) {
+            _city.RemovePath(path);
+            path = _city.GetAllPaths().FirstOrDefault();
             Render();
         }
+    */
     }
 
     private void Render() {
         ClearRender();
         RenderRoads();
         RenderIntersections();
-        RenderBuildings();
+        // RenderBuildings();
         RenderGame();
     }
 
@@ -193,7 +191,22 @@ public class Program {
         foreach (var path in _city.GetAllPaths()) {
             var isHorizontal = IsHorizontal(path.Direction);
             var roadChar = isHorizontal ? ROAD_H : ROAD_V;
-            foreach (var position in path.GetPositions().Where(p => _asciiMap.IsInBounds(p))) {
+            var start = path.Start.Position;
+            var end = path.End?.Position ?? path.GetCursor();
+
+            foreach (var position in path.GetPositions()) {
+                if (position == start && _city.Data[position] != path.Start) {
+                    throw new Exception("Wrong start position");
+                }
+                if (position == end && path.End == null && _city.Data[position] != path) {
+                    throw new Exception("Wrong end position (cursor)");
+                }
+                if (position == end && path.End != null && _city.Data[position] != path.End) {
+                    throw new Exception("Wrong end position");
+                }
+                if (position != start && position != end && _city.Data[position] != path) {
+                    throw new Exception("Wrong path position");
+                }
                 _asciiMap[position] = roadChar;
             }
         }
@@ -201,7 +214,15 @@ public class Program {
 
     private void RenderIntersections() {
         foreach (var intersection in _city.Intersections) {
-            intersection.Directions(out var hasNorth, out var hasSouth, out var hasEast, out var hasWest);
+
+            if (_city.Data[intersection.Position] != intersection) {
+                throw new Exception("Wrong intersection position");
+            }
+
+            var hasNorth = intersection.FindPathTo(Vector2I.Up) != null;
+            var hasSouth = intersection.FindPathTo(Vector2I.Down) != null ;
+            var hasEast = intersection.FindPathTo(Vector2I.Right) != null ;
+            var hasWest = intersection.FindPathTo(Vector2I.Left) != null ;
             var intersectionChar = DetermineIntersectionChar(hasNorth, hasSouth, hasEast, hasWest);
             _asciiMap[intersection.Position] = intersectionChar;
         }
