@@ -244,7 +244,7 @@ public class RandomExtensionsTests {
     public void PickPosition_WithIWeight_Test() {
         // Arrange
         var random = new Random(42);
-        var items = new WeightValue<string>[] {
+        var items = new (string, float)[] {
             new("A", 1f),
             new("B", 2f),
             new("C", 7f)
@@ -254,12 +254,13 @@ public class RandomExtensionsTests {
 
         // Act
         for (int i = 0; i < iterations; i++) {
-            counts[random.PickPosition(items)]++;
+            int position = random.PickPosition(items.Select(item => item.Item2).ToArray());
+            counts[position]++;
         }
 
         // Assert
         var total = counts.Sum();
-        var weights = items.Select(item => item.Weight).ToArray();
+        var weights = items.Select(item => item.Item2).ToArray();
         var expectedRatios = weights.Select(w => w / weights.Sum()).ToArray();
         var actualRatios = counts.Select(c => (float)c / total).ToArray();
 

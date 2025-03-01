@@ -127,13 +127,13 @@ public class RandomTests {
     public void WeightedPickIWeightArrayTest() {
         var rnd = new Random(0);
 
-        WeightValue<string>[] val = [new("A", 1f), new("B", 2f), new("C", 3f)];
-        var weightHist = Distribution.DiscreteHistogram(() => rnd.PickPosition(val), SampleCount);
+        (string, float)[] val = [("A", 1f), ("B", 2f), ("C", 3f)];
+        var weightHist = Distribution.DiscreteHistogram(() => rnd.Pick(val), SampleCount);
         Console.WriteLine("16%/33%/50%");
         Console.WriteLine(Distribution.Show(weightHist));
-        Assert.That(weightHist[0], Is.EqualTo(SampleCount * 0.16666f).Within(NUnitTolerance).Percent);
-        Assert.That(weightHist[1], Is.EqualTo(SampleCount * 0.33333f).Within(NUnitTolerance).Percent);
-        Assert.That(weightHist[2], Is.EqualTo(SampleCount * 0.5f).Within(NUnitTolerance).Percent);
+        Assert.That(weightHist["A"], Is.EqualTo(SampleCount * 0.16666f).Within(NUnitTolerance).Percent);
+        Assert.That(weightHist["B"], Is.EqualTo(SampleCount * 0.33333f).Within(NUnitTolerance).Percent);
+        Assert.That(weightHist["C"], Is.EqualTo(SampleCount * 0.5f).Within(NUnitTolerance).Percent);
     }
 
     private static void AssertUniform<T>(Dictionary<T, long> hist, float tolerance) {
