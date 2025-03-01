@@ -9,7 +9,7 @@ using Godot;
 
 namespace Veronenger.Game.Dungeon.GenCity;
 
-public class Program {
+public class GenCityDemo {
     // Caracteres ASCII para la representación
     private const char EMPTY = ' '; // Espacio vacío
     private const char ROAD_H = '═'; // Carretera horizontal
@@ -38,7 +38,7 @@ public class Program {
     private City _city;
 
     public static void Main() {
-        var program = new Program();
+        var program = new GenCityDemo();
         program.Start(140, 40);
         // program.Validate(60, 20);
     }
@@ -147,8 +147,8 @@ public class Program {
         _city.CreatePath(new Vector2I(111, 0), new Vector2I(111, height -1));
         Render();
 
-        // _city.GenerateBuildings();
-        // Render();
+        _city.GenerateBuildings();
+        Render();
 
         /*
         var path = _city.GetAllPaths().FirstOrDefault();
@@ -164,7 +164,7 @@ public class Program {
         ClearRender();
         RenderRoads();
         RenderIntersections();
-        // RenderBuildings();
+        RenderBuildings();
         RenderGame();
     }
 

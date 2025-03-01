@@ -195,16 +195,15 @@ public class City(int width, int height) {
     }
 
     public void RemovePath(Path path) {
-        // Almacenar referencias a las intersecciones antes de eliminarlas
+        // Store references to the intersections before removing them
         var startIntersection = path.Start;
         var endIntersection = path.End;
 
+        // Remove the path from its start and end intersections correctly
         startIntersection.RemoveOutputPath(path);
-        startIntersection.RemoveInputPath(path);
-        endIntersection?.RemoveOutputPath(path);
         endIntersection?.RemoveInputPath(path);
 
-        // Limpiar las posiciones del camino en la matriz de datos
+        // Clear the path positions in the data matrix
         foreach (var tilePosition in path.GetPositions()) {
             if (Data[tilePosition] is Path p && p == path) {
                 Data[tilePosition] = null;
@@ -212,24 +211,24 @@ public class City(int width, int height) {
             }
         }
 
-        // Verificar si hay que eliminar la intersección inicial
+        // Check if the start intersection should be removed
         if (startIntersection.GetAllPaths().Count == 0) {
             Intersections.Remove(startIntersection);
             Data[startIntersection.Position] = null;
             _options.OnUpdate?.Invoke(startIntersection.Position);
         } else {
-            // Intentar aplanar si quedan dos caminos en direcciones opuestas
+            // Try to flatten if there are two paths in opposite directions
             FlatIntersection(startIntersection);
         }
 
         if (endIntersection != null) {
-            // Verificar si hay que eliminar la intersección final
+            // Check if the end intersection should be removed
             if (endIntersection.GetAllPaths().Count == 0) {
                 Intersections.Remove(endIntersection);
                 Data[endIntersection.Position] = null;
                 _options.OnUpdate?.Invoke(endIntersection.Position);
             } else {
-                // Intentar aplanar si quedan dos caminos en direcciones opuestas
+                // Try to flatten if there are two paths in opposite directions
                 FlatIntersection(endIntersection);
             }
         }
@@ -325,51 +324,54 @@ public class City(int width, int height) {
             return false;
         }
 
-        // Determinar qué caminos son entrantes y salientes
+        // Determine which paths are incoming and outgoing
         var incomingPath = path1;
         var outgoingPath = path2;
 
-        // Si ambos son del mismo tipo, necesitamos determinar cuál es el "primero"
+        // If both are the same type, we need to determine which is the "first"
         if (intersection.GetInputPaths().Contains(path1) && intersection.GetInputPaths().Contains(path2)) {
-            // Ambos son caminos de entrada, elegimos uno como "entrante" para nuestra lógica
+            // Both are input paths, choose one as "incoming" for our logic
             incomingPath = path1;
             outgoingPath = path2;
         } else if (intersection.GetOutputPaths().Contains(path1) && intersection.GetOutputPaths().Contains(path2)) {
-            // Ambos son caminos de salida, elegimos uno como "entrante" para nuestra lógica
+            // Both are output paths, choose one as "incoming" for our logic
             incomingPath = path1;
             outgoingPath = path2;
         }
 
-        // Determinar las intersecciones extremas (que no son la que estamos aplanando)
+        // Determine the extreme intersections (not the one we're flattening)
         var startIntersection = incomingPath.Start == intersection ? incomingPath.End : incomingPath.Start;
         var endIntersection = outgoingPath.End == intersection ? outgoingPath.Start : outgoingPath.End;
 
-        // Si alguno de los extremos no es una intersección válida, no podemos aplanar
+        // If either extreme is not a valid intersection, we can't flatten
         if (startIntersection == null || endIntersection == null) {
             return false;
         }
 
-        startIntersection.RemoveInputPath(path1);
-        startIntersection.RemoveOutputPath(path1);
-        startIntersection.RemoveInputPath(path2);
-        startIntersection.RemoveOutputPath(path2);
+        // Remove the paths correctly from their respective intersections
+        if (path1.Start == startIntersection) {
+            startIntersection.RemoveOutputPath(path1);
+        } else if (path1.End == startIntersection) {
+            startIntersection.RemoveInputPath(path1);
+        }
 
-        endIntersection.RemoveInputPath(path1);
-        endIntersection.RemoveOutputPath(path1);
-        endIntersection.RemoveInputPath(path2);
-        endIntersection.RemoveOutputPath(path2);
+        if (path2.Start == endIntersection) {
+            endIntersection.RemoveOutputPath(path2);
+        } else if (path2.End == endIntersection) {
+            endIntersection.RemoveInputPath(path2);
+        }
 
-        // Eliminar la intersección
+        // Remove the intersection
         Intersections.Remove(intersection);
         Data[intersection.Position] = null;
         _options.OnUpdate?.Invoke(intersection.Position);
 
-        // Crear un nuevo camino entre las intersecciones extremas
+        // Create a new path between the extreme intersections
         var direction = startIntersection.Position.DirectionTo(endIntersection.Position);
         var newPath = startIntersection.CreatePathTo(direction);
         newPath.SetEnd(endIntersection);
 
-        // Actualizar la matriz de datos para el nuevo camino
+        // Update the data matrix for the new path
         foreach (var position in newPath.GetPositions()) {
             if (position != startIntersection.Position && position != endIntersection.Position) {
                 Data[position] = newPath;
