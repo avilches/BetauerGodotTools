@@ -35,7 +35,7 @@ public class GenCityDemo {
     private int _playerX;
     private int _playerY;
     private bool _running = true;
-    private City _city;
+    private CityGenerator _city;
 
     public static void Main() {
         var program = new GenCityDemo();
@@ -64,7 +64,7 @@ public class GenCityDemo {
         const int seedStart = 0;
         const int seedOffset = 0;
 
-        _city = new City(width, height);
+        _city = new City(width, height).CreateGenerator();
         _city.Configure(options);
 
         _asciiMap = new Array2D<char>(width, height);
@@ -75,7 +75,6 @@ public class GenCityDemo {
                 Console.WriteLine(options.Seed);
             }
             try {
-                _city.Reset();
                 _city.Start();
                 _city.Grow();
             } catch (Exception e) {
@@ -98,7 +97,7 @@ public class GenCityDemo {
 
     private void GenerateCity(int width, int height, int seed) {
         // Inicializar mapa
-        _city = new City(width, height);
+        _city = new City(width, height).CreateGenerator();
         _asciiMap = new Array2D<char>(width, height);
 
         List<Vector2I> startDirections = [Vector2I.Right, Vector2I.Down, Vector2I.Left, Vector2I.Up];
@@ -122,16 +121,17 @@ public class GenCityDemo {
             BuildingMaxSize = 5, //3,
             BuildingMinSpace = 1,
             BuildingMaxSpace = 2, // 2
-
-            OnUpdate = (_) => {
-                // Render();
-            }
         };
+
+        _city.City.OnUpdate = (_) => {
+            // Render();
+        };
+
 
         _city.Configure(options);
         _city.Start();
         _city.Grow();
-        Render();
+        /*Render();
         _city.CreatePath(new Vector2I(0, 16), new Vector2I(width - 1, 16));
         Render();
         _city.CreatePath(new Vector2I(0, 17), new Vector2I(width - 1, 17));
@@ -145,7 +145,7 @@ public class GenCityDemo {
         _city.CreatePath(new Vector2I(131, 0), new Vector2I(131, height -1));
         Render();
         _city.CreatePath(new Vector2I(111, 0), new Vector2I(111, height -1));
-        Render();
+        Render();*/
 
         _city.GenerateBuildings();
         Render();
@@ -174,7 +174,7 @@ public class GenCityDemo {
 
     private void RenderBuildings() {
         var buildingIndex = 0;
-        foreach (var building in _city.Buildings) {
+        foreach (var building in _city.City.Buildings) {
             var buildingChar = BUILDING_CHARS[buildingIndex % BUILDING_CHARS.Length];
             foreach (var position in building.GetPositions()) {
                 _asciiMap[position] = buildingChar;
@@ -188,23 +188,23 @@ public class GenCityDemo {
     }
 
     private void RenderRoads() {
-        foreach (var path in _city.GetAllPaths()) {
+        foreach (var path in _city.City.GetAllPaths()) {
             var isHorizontal = IsHorizontal(path.Direction);
             var roadChar = isHorizontal ? ROAD_H : ROAD_V;
             var start = path.Start.Position;
             var end = path.End?.Position ?? path.GetCursor();
 
             foreach (var position in path.GetPositions()) {
-                if (position == start && _city.Data[position] != path.Start) {
+                if (position == start && _city.City.Data[position] != path.Start) {
                     throw new Exception("Wrong start position");
                 }
-                if (position == end && path.End == null && _city.Data[position] != path) {
+                if (position == end && path.End == null && _city.City.Data[position] != path) {
                     throw new Exception("Wrong end position (cursor)");
                 }
-                if (position == end && path.End != null && _city.Data[position] != path.End) {
+                if (position == end && path.End != null && _city.City.Data[position] != path.End) {
                     throw new Exception("Wrong end position");
                 }
-                if (position != start && position != end && _city.Data[position] != path) {
+                if (position != start && position != end && _city.City.Data[position] != path) {
                     throw new Exception("Wrong path position");
                 }
                 _asciiMap[position] = roadChar;
@@ -213,9 +213,9 @@ public class GenCityDemo {
     }
 
     private void RenderIntersections() {
-        foreach (var intersection in _city.Intersections) {
+        foreach (var intersection in _city.City.Intersections) {
 
-            if (_city.Data[intersection.Position] != intersection) {
+            if (_city.City.Data[intersection.Position] != intersection) {
                 throw new Exception("Wrong intersection position");
             }
 
@@ -256,7 +256,7 @@ public class GenCityDemo {
 
     private void InitializePlayer(int width, int height) {
         // Colocar al jugador en una carretera disponible
-        foreach (var intersection in _city.Intersections) {
+        foreach (var intersection in _city.City.Intersections) {
             _playerX = intersection.Position.X;
             _playerY = intersection.Position.Y;
 
@@ -302,10 +302,10 @@ public class GenCityDemo {
 
         // Añadir instrucciones
         Console.WriteLine("Muévete con las teclas de flecha. Pulsa 'Q' para salir.");
-        Console.WriteLine("Leyenda: @ = Tú | "
+        Console.WriteLine($"Seed: {_city.Seed} Leyenda: @ = Tú | "
                           + $"{ROAD_H}/{ROAD_V} = Calles | {CROSS} = Intersección | {BUILDING} = Edificio");
 
-        var tile = _city.Data[_playerY, _playerX];
+        var tile = _city.City.Data[_playerY, _playerX];
 
         Func<Vector2I, string> t = d => d == Vector2I.Right ? "->" : d == Vector2I.Down ? "v" : d == Vector2I.Left ? "<-" : "^";
 

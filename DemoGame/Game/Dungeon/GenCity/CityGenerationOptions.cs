@@ -6,9 +6,6 @@ namespace Veronenger.Game.Dungeon.GenCity;
 
 public class CityGenerationOptions {
 
-
-    public Action<Vector2I>? OnUpdate;
-
     /// <summary>
     /// Generation seed
     /// </summary>

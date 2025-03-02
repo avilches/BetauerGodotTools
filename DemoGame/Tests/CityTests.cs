@@ -13,7 +13,6 @@ public class CityTests {
     [SetUp]
     public void Setup() {
         _city = new City(20, 20);
-        _city.Configure(new CityGenerationOptions { Seed = 42 });
     }
 
     [Test]
