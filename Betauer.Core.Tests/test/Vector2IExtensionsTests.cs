@@ -82,7 +82,7 @@ public class Vector2IExtensionsTests {
         var end = new Vector2I(10, 5);
 
         // Act & Assert
-        Assert.IsTrue(start.SameDirection(end));
+        Assert.IsTrue(start.IsOrthogonal(end));
     }
 
     [Test]
@@ -92,7 +92,7 @@ public class Vector2IExtensionsTests {
         var end = new Vector2I(5, 10);
 
         // Act & Assert
-        Assert.IsTrue(start.SameDirection(end));
+        Assert.IsTrue(start.IsOrthogonal(end));
     }
 
     [Test]
@@ -102,7 +102,7 @@ public class Vector2IExtensionsTests {
         var end = new Vector2I(10, 8);
 
         // Act & Assert
-        Assert.IsFalse(start.SameDirection(end));
+        Assert.IsFalse(start.IsOrthogonal(end));
     }
 
     [Test]
@@ -219,10 +219,10 @@ public class Vector2IExtensionsTests {
     [Test]
     public void IsValidDirection_CardinalDirections_ReturnsTrue() {
         // Act & Assert
-        Assert.IsTrue(Vector2I.Up.IsValidDirection());
-        Assert.IsTrue(Vector2I.Right.IsValidDirection());
-        Assert.IsTrue(Vector2I.Down.IsValidDirection());
-        Assert.IsTrue(Vector2I.Left.IsValidDirection());
+        Assert.IsTrue(Vector2I.Up.IsOrthogonalDirection());
+        Assert.IsTrue(Vector2I.Right.IsOrthogonalDirection());
+        Assert.IsTrue(Vector2I.Down.IsOrthogonalDirection());
+        Assert.IsTrue(Vector2I.Left.IsOrthogonalDirection());
     }
 
     [Test]
@@ -233,9 +233,9 @@ public class Vector2IExtensionsTests {
         var big = new Vector2I(2, 0);
 
         // Act & Assert
-        Assert.IsFalse(diag.IsValidDirection());
-        Assert.IsFalse(zero.IsValidDirection());
-        Assert.IsFalse(big.IsValidDirection());
+        Assert.IsFalse(diag.IsOrthogonalDirection());
+        Assert.IsFalse(zero.IsOrthogonalDirection());
+        Assert.IsFalse(big.IsOrthogonalDirection());
     }
 
     [Test]
@@ -346,7 +346,7 @@ public class Vector2IExtensionsTests {
         Assert.AreEqual(new Vector2I(4, 6), pos.DownLeftPos());
         Assert.AreEqual(new Vector2I(6, 6), pos.DownRightPos());
         Assert.AreEqual(new Vector2I(4, 5), pos.LeftPos());
-        Assert.AreEqual(new Vector2I(6, 5), pos.RightLeftPos());
+        Assert.AreEqual(new Vector2I(6, 5), pos.RightPos());
         Assert.AreEqual(new Vector2I(5, 4), pos.UpPos());
         Assert.AreEqual(new Vector2I(5, 6), pos.DownPos());
     }
@@ -424,5 +424,108 @@ public class Vector2IExtensionsTests {
 
         // Assert
         Assert.AreEqual(expectedDistance, distance);
+    }
+
+    [Test]
+    public void IsSameLine_SameLinePoints_ReturnsTrue() {
+        // Arrange
+        var point1 = new Vector2I(5, 5);
+        var direction1 = Vector2I.Right;
+        var point2 = new Vector2I(10, 5);
+        var direction2 = Vector2I.Right;
+
+        // Act & Assert
+        Assert.IsTrue(point1.IsSameLine(direction1, point2, direction2));
+    }
+
+    [Test]
+    public void IsSameLine_SameLineOppositeDirections_ReturnsTrue() {
+        // Arrange
+        var point1 = new Vector2I(5, 5);
+        var direction1 = Vector2I.Right;
+        var point2 = new Vector2I(10, 5);
+        var direction2 = Vector2I.Left;
+
+        // Act & Assert
+        Assert.IsTrue(point1.IsSameLine(direction1, point2, direction2));
+    }
+
+    [Test]
+    public void IsSameLine_DifferentLines_ReturnsFalse() {
+        // Arrange
+        var point1 = new Vector2I(5, 5);
+        var direction1 = Vector2I.Right;
+        var point2 = new Vector2I(5, 10);
+        var direction2 = Vector2I.Right;
+
+        // Act & Assert
+        Assert.IsFalse(point1.IsSameLine(direction1, point2, direction2));
+    }
+
+    [Test]
+    public void IsSameLine_DiagonalSameLines_ReturnsTrue() {
+        // Arrange
+        var point1 = new Vector2I(0, 0);
+        var direction1 = new Vector2I(1, 1);
+        var point2 = new Vector2I(5, 5);
+        var direction2 = new Vector2I(2, 2);
+
+        // Act & Assert
+        Assert.IsTrue(point1.IsSameLine(direction1, point2, direction2));
+    }
+
+    [Test]
+    public void SameDirection_DiagonalDirections_PointsInLine_ReturnsTrue() {
+        // Arrange
+        var start = new Vector2I(0, 0);
+        var direction = new Vector2I(1, 1);
+        var end = new Vector2I(5, 5);
+
+        // Act & Assert
+        Assert.IsTrue(start.SameDirection(direction, end));
+    }
+
+    [Test]
+    public void SameDirection_DiagonalDirections_PointsNotInLine_ReturnsFalse() {
+        // Arrange
+        var start = new Vector2I(0, 0);
+        var direction = new Vector2I(1, 1);
+        var end = new Vector2I(5, 6);
+
+        // Act & Assert
+        Assert.IsFalse(start.SameDirection(direction, end));
+    }
+
+    [Test]
+    public void SameDirection_ZeroDirection_SamePoint_ReturnsTrue() {
+        // Arrange
+        var start = new Vector2I(5, 5);
+        var direction = Vector2I.Zero;
+        var end = new Vector2I(5, 5);
+
+        // Act & Assert
+        Assert.IsTrue(start.SameDirection(direction, end));
+    }
+
+    [Test]
+    public void SameDirection_ZeroDirection_DifferentPoint_ReturnsFalse() {
+        // Arrange
+        var start = new Vector2I(5, 5);
+        var direction = Vector2I.Zero;
+        var end = new Vector2I(6, 5);
+
+        // Act & Assert
+        Assert.IsFalse(start.SameDirection(direction, end));
+    }
+
+    [Test]
+    public void SameDirection_NonMultiplePoints_SameDirection_ReturnsTrue() {
+        // Arrange
+        var start = new Vector2I(0, 0);
+        var direction = new Vector2I(2, 2);
+        var end = new Vector2I(5, 5); // Not a multiple of (2,2)
+
+        // Act & Assert
+        Assert.IsTrue(start.SameDirection(direction, end));
     }
 }

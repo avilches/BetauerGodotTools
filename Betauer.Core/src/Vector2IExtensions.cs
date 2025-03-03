@@ -6,6 +6,7 @@ using Godot;
 namespace Betauer.Core;
 
 public static class Vector2IExtensions {
+
     public static Vector2I Inverse(this Vector2I from) {
         return from * -1;
     }
@@ -26,21 +27,32 @@ public static class Vector2IExtensions {
     }
 
     /// <summary>
-    /// Returns true if the end position is in the same line as the path direction
+    /// Returns true if the end position is in the same line as the path direction from start
+    /// Works with any direction (orthogonal or diagonal)
     /// </summary>
-    /// <param name="start"></param>
-    /// <param name="direction"></param>
-    /// <param name="end"></param>
-    /// <returns></returns>
+    /// <param name="start">Starting position</param>
+    /// <param name="direction">Direction vector</param>
+    /// <param name="end">End position to check</param>
+    /// <returns>True if end is in the same direction from start</returns>
     public static bool SameDirection(this Vector2I start, Vector2I direction, Vector2I end) {
         var delta = end - start;
 
-        if (direction.X != 0) {
-            // Movimiento horizontal
-            return delta.Y == 0 && Math.Sign(delta.X) == Math.Sign(direction.X);
-        }
-        // Movimiento vertical
-        return delta.X == 0 && Math.Sign(delta.Y) == Math.Sign(direction.Y);
+        // Handle zero direction
+        if (direction == Vector2I.Zero)
+            return delta == Vector2I.Zero;
+
+        // Check if the vectors are collinear by comparing their slopes
+        // For vectors to be collinear, cross product must be zero
+        if (delta.X * direction.Y != delta.Y * direction.X)
+            return false;
+
+        // If they're collinear, check that they point in the same (not opposite) direction
+        // If both X components are non-zero, compare their signs
+        if (direction.X != 0)
+            return Math.Sign(delta.X) == Math.Sign(direction.X);
+        // Otherwise compare Y components
+        else
+            return Math.Sign(delta.Y) == Math.Sign(direction.Y);
     }
 
     /// <summary>
@@ -49,12 +61,51 @@ public static class Vector2IExtensions {
     /// <param name="start"></param>
     /// <param name="end"></param>
     /// <returns></returns>
-    public static bool SameDirection(this Vector2I start, Vector2I end) {
+    public static bool IsOrthogonal(this Vector2I start, Vector2I end) {
         var delta = end - start;
         // Horizontal or vertical line
         return delta.X == 0 || delta.Y == 0;
     }
 
+    /// <summary>
+    /// Checks if two lines (each defined by a point and a direction) are on the same infinite line
+    /// </summary>
+    /// <param name="point1">Point on the first line</param>
+    /// <param name="direction1">Direction of the first line</param>
+    /// <param name="point2">Point on the second line</param>
+    /// <param name="direction2">Direction of the second line</param>
+    /// <returns>True if both lines are on the same infinite line, false otherwise</returns>
+    public static bool IsSameLine(this Vector2I point1, Vector2I direction1, Vector2I point2, Vector2I direction2) {
+        // First, check if the directions are parallel (or antiparallel)
+        if (!direction1.IsParallel(direction2)) {
+            return false;
+        }
+
+        // For horizontal and vertical lines, we can simply check if the constant coordinate is the same
+        if (direction1.IsHorizontal()) {
+            // For horizontal lines, the Y coordinate must be the same
+            return point1.Y == point2.Y;
+        }
+
+        if (direction1.IsVertical()) {
+            // For vertical lines, the X coordinate must be the same
+            return point1.X == point2.X;
+        }
+
+        // For non-axis-aligned lines, we need a different approach
+        // Calculate the cross product of the vector from point1 to point2 and direction1
+        // If points are on the same line, this cross product should be zero
+        Vector2I pointDiff = point2 - point1;
+        return pointDiff.X * direction1.Y == pointDiff.Y * direction1.X;
+    }
+
+    /// <summary>
+    /// Returns positions in a line starting from a point in a specified direction for a given length
+    /// </summary>
+    /// <param name="start">The starting position</param>
+    /// <param name="direction">The direction vector</param>
+    /// <param name="length">The number of steps to take in the direction</param>
+    /// <returns>An enumerable of positions including the start position and all positions along the line</returns>
     public static IEnumerable<Vector2I> GetPositions(this Vector2I start, Vector2I direction, int length) {
         var position = start;
         yield return position;
@@ -71,17 +122,15 @@ public static class Vector2IExtensions {
     /// <param name="end">The ending position</param>
     /// <returns>An enumerable of all positions in the straight line from start to end</returns>
     public static IEnumerable<Vector2I> GetPositions(this Vector2I start, Vector2I end) {
-        if (!start.SameDirection(end)) {
+        if (!start.IsOrthogonal(end)) {
             throw new ArgumentException("Points must be aligned horizontally or vertically");
         }
+
         var direction = start.DirectionTo(end);
-        var distance =  Math.Max(Math.Abs(start.X - end.X), Math.Abs(start.Y - end.Y));
-        var position = start;
-        yield return position;
-        for (var i = 0; i < distance; i++) {
-            position += direction;
-            yield return position;
-        }
+        var distance = Math.Max(Math.Abs(start.X - end.X), Math.Abs(start.Y - end.Y));
+
+        // Reuse the other GetPositions method to avoid code duplication
+        return start.GetPositions(direction, distance);
     }
 
     /// <summary>
@@ -106,7 +155,7 @@ public static class Vector2IExtensions {
     /// <summary>
     /// Checks if the vector is a valid cardinal direction
     /// </summary>
-    public static bool IsValidDirection(this Vector2I direction) {
+    public static bool IsOrthogonalDirection(this Vector2I direction) {
         return Math.Abs(direction.X) + Math.Abs(direction.Y) == 1;
     }
 
@@ -174,7 +223,7 @@ public static class Vector2IExtensions {
         return new Vector2I(from.X - 1, from.Y);
     }
 
-    public static Vector2I RightLeftPos(this Vector2I from) {
+    public static Vector2I RightPos(this Vector2I from) {
         return new Vector2I(from.X + 1, from.Y);
     }
 
