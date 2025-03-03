@@ -12,7 +12,7 @@ public class GridAStar {
     private readonly GridGraph _graph;
 
     private Vector2I _goal;
-    private Func<Vector2I, Vector2I, float> _heuristic = Heuristics.Euclidean;
+    private Func<Vector2I, Vector2I, float> _heuristic = Vector2IExtensions.DistanceTo;
 
     public GridAStar(GridGraph graph) {
         ArgumentNullException.ThrowIfNull(graph);

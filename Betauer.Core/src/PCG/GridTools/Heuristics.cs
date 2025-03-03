@@ -12,7 +12,7 @@ public static class Heuristics {
     /// Best for grids with only orthogonal movement
     /// </summary>
     public static float Manhattan(Vector2I a, Vector2I b) {
-        return Math.Abs(a.X - b.X) + Math.Abs(a.Y - b.Y);
+        return a.ManhattanDistanceTo(b);
     }
 
     /// <summary>
@@ -22,9 +22,7 @@ public static class Heuristics {
     /// to compare distances and sqrt is not necessary for A*
     /// </summary>
     public static float Euclidean(Vector2I a, Vector2I b) {
-        var dx = a.X - b.X;
-        var dy = a.Y - b.Y;
-        return dx * dx + dy * dy;
+        return a.DistanceTo(b);
     }
 
     /// <summary>
@@ -32,6 +30,6 @@ public static class Heuristics {
     /// Best for grids with orthogonal and diagonal movement
     /// </summary>
     public static float Chebyshev(Vector2I a, Vector2I b) {
-        return Math.Max(Math.Abs(a.X - b.X), Math.Abs(a.Y - b.Y));
+        return a.ChebyshevDistanceTo(b);
     }
 }
