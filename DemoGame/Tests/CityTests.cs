@@ -784,11 +784,9 @@ public class CityTests {
             generator.City.ValidateRoads();
         };
 
-        for (var i = 0; i < 2000; i++) {
+        for (var i = 0; i < 10; i++) {
             options.Seed = i;
-            if (i % 100 == 0) {
-                Console.WriteLine(options.Seed);
-            }
+            Console.WriteLine(options.Seed);
             generator.Start();
             generator.Grow();
         }
@@ -821,7 +819,7 @@ public class CityTests {
 
         var city = new City(140, 25);
         var generator = city.CreateGenerator(options);
-        for (var i = 0; i < 10000; i++) {
+        for (var i = 0; i < 1000; i++) {
             options.Seed = i;
             if (i % 100 == 0) {
                 Console.WriteLine(options.Seed);

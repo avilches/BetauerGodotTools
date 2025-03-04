@@ -32,7 +32,7 @@ public class City(int width, int height) {
     }
 
     public IEnumerable<Path> GetIncompletePaths() {
-        return Intersections.SelectMany(intersection => intersection.GetInputPaths().Where(p => !p.IsCompleted()));
+        return Intersections.SelectMany(intersection => intersection.GetOutputPaths().Where(p => !p.IsCompleted()));
     }
 
     public void Reset() {
