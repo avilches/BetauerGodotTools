@@ -1,5 +1,8 @@
+using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Betauer.Core;
 using Godot;
 
 namespace Veronenger.Game.Dungeon.GenCity;
@@ -11,8 +14,9 @@ public enum IntersectionType {
 }
 
 public class Intersection(int id, Vector2I position) : ICityTile {
-    public Vector2I Position { get; } = position;
+
     public int Id { get; } = id;
+    public Vector2I Position { get; } = position;
 
     private readonly List<Path> _outputPaths = [];
     private readonly List<Path> _inputPaths = [];
@@ -28,8 +32,13 @@ public class Intersection(int id, Vector2I position) : ICityTile {
     public Path? Right => FindPathTo(Vector2I.Right);
     public Path? Left => FindPathTo(Vector2I.Left);
 
+    private int _pathId = 0;
+
     public Path CreatePathTo(Vector2I direction) {
-        Path path = new Path(this, direction);
+        if (_outputPaths.Any(existingPath => existingPath.Direction == direction)) {
+            throw new ArgumentException($"Can't add an output path, there is another input path from the same direction: {direction.ToDirectionString()}");
+        }
+        var path = new Path($"{id}-{_pathId++}", this, direction);
         _outputPaths.Add(path);
         return path;
     }
@@ -39,6 +48,17 @@ public class Intersection(int id, Vector2I position) : ICityTile {
     }
 
     public void AddInputPath(Path path) {
+        if (!path.Start.Position.IsSameDirection(path.Direction, Position)) {
+            throw new ArgumentException($"Intersection is not in the same line than the input path (starting from {path.Start.Position} to the {path.Direction.ToDirectionString()})");
+        }
+
+        if (_inputPaths.Any(existingPath => existingPath.Direction == path.Direction)) {
+            throw new ArgumentException($"Can't add an input path, there is another input path from the same direction: {path.Direction.ToDirectionString()}");
+        }
+
+        if (_outputPaths.Any(existingPath => existingPath.Direction == -path.Direction)) {
+            throw new ArgumentException($"Can't add an input path from {path.Direction.ToDirectionString()}. There is already an output path to the direction {path.Direction.ToDirectionString()}, which means two paths shares the same direction");
+        }
         path.End?.RemoveInputPath(path);
         _inputPaths.Add(path);
     }
@@ -65,22 +85,45 @@ public class Intersection(int id, Vector2I position) : ICityTile {
         return _outputPaths.FirstOrDefault(path => path.Direction == direction);
     }
 
-    public (Path? inPath, Path? outPath) GetOppositeDirectionPaths() {
-        if (_inputPaths.Count + _outputPaths.Count != 2) return (null, null);
+    public IEnumerable<Path> FindPathsTo(Vector2I direction) {
+        return _inputPaths.Where(path => -path.Direction == direction).Concat(_outputPaths.Where(path => path.Direction == direction));
+    }
 
-        if (_inputPaths.Count == 2 && -_inputPaths[0].Direction == _inputPaths[1].Direction) {
-            return (_inputPaths[0], _inputPaths[1]);
+    public bool CanBeFlatten() {
+        return CanBeFlatten(out _, out _);
+    }
+
+    public bool CanBeFlatten([MaybeNullWhen(false)] out Path path1, [MaybeNullWhen(false)] out Path path2) {
+        // Primero verificar que hay exactamente 2 caminos en total
+        if (_inputPaths.Count + _outputPaths.Count != 2) {
+            path1 = null;
+            path2 = null;
+            return false;
         }
 
-        if (_outputPaths.Count == 2 && -_outputPaths[0].Direction == _outputPaths[1].Direction) {
-            return (_outputPaths[0], _outputPaths[1]);
+        var up = FindPathTo(Vector2I.Up);
+        var down = FindPathTo(Vector2I.Down);
+        var right = FindPathTo(Vector2I.Right);
+        var left = FindPathTo(Vector2I.Left);
+
+        // Case 1: Vertical straight path (up and down)
+        if (up != null && down != null && right == null && left == null) {
+            path1 = up;
+            path2 = down;
+            return true;
         }
 
-        if (_inputPaths.Count == 1 && _outputPaths.Count == 1 && _inputPaths[0].Direction == _outputPaths[0].Direction) {
-            return (_inputPaths[0], _outputPaths[0]);
+        // Case 2: Horizontal straight path (left and right)
+        if (up == null && down == null && right != null && left != null) {
+            path1 = left;
+            path2 = right;
+            return true;
         }
 
-        return (null, null);
+        // No straight path found
+        path1 = null;
+        path2 = null;
+        return false;
     }
 
     public override string ToString() {

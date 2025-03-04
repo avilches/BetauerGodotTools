@@ -5,9 +5,10 @@ using Godot;
 
 namespace Veronenger.Game.Dungeon.GenCity;
 
-public class Path(Intersection start, Vector2I direction) : ICityTile {
-    public Vector2I Direction { get; } = direction;
+public class Path(string id, Intersection start, Vector2I direction) : ICityTile {
 
+    public string Id { get; } = id;
+    public Vector2I Direction { get; } = direction;
     public Intersection? End = null;
     public Intersection Start = start;
 
@@ -30,19 +31,24 @@ public class Path(Intersection start, Vector2I direction) : ICityTile {
         if (position == _cursor) {
             return;
         }
-        if (!Start.Position.SameDirection(Direction, position)) {
-            throw new ArgumentException("Cursor is not in the same line as the path direction");
+        if (!Start.Position.IsSameDirection(Direction, position)) {
+            throw new ArgumentException($"Cursor is not in the same line starting from {Start.Position} to the {Direction.ToDirectionString()}");
         }
         _cursor = position;
     }
 
     public void SetEnd(Intersection end) {
-        if (!Start.Position.SameDirection(Direction, end.Position)) {
-            throw new ArgumentException("End intersection is not in the same line as the path direction");
+        if (!Start.Position.IsSameDirection(Direction, end.Position)) {
+            throw new ArgumentException($"End intersection is not in the same line starting from {Start.Position} to the {Direction.ToDirectionString()}");
         }
         end.AddInputPath(this);
         End = end;
         _cursor = end.Position;
+    }
+
+    public void Remove() {
+        Start.RemoveOutputPath(this);
+        End?.RemoveInputPath(this);
     }
 
     public IEnumerable<Vector2I> GetPositions() {
@@ -55,7 +61,19 @@ public class Path(Intersection start, Vector2I direction) : ICityTile {
     }
 
     public override string ToString() {
-        var endText = End != null ? $" to {End.Position}" : " (incomplete)";
-        return $"Path from {Start.Position}{endText}, Direction: {Direction}, Length: {GetLength()}";
+        var endText = End != null ? $"To Id:'{End.Id}' {End.Position}" : $" To {_cursor} (incomplete)";
+        return $"Path Id:'{Id}' - Start Id:'{Start.Id}' {Start.Position} - {Direction.ToDirectionString()} - {endText}, Length: {GetLength()}";
+    }
+
+    public bool IsPerpendicular(Path other) {
+        return Direction.IsPerpendicular(other.Direction);
+    }
+
+    public bool IsParallel(Path other) {
+        return Direction.IsParallel(other.Direction);
+    }
+
+    public bool IsSameLine(Path other) {
+        return Start.Position.IsSameLine(Direction, other.Start.Position, other.Direction);
     }
 }
