@@ -227,6 +227,24 @@ public class Array2D<T>(T[,] data) : Array2D, IEnumerable<T> {
         }
     }
 
+    public IEnumerable<(Vector2I Position, TO Value)> GetIndexedValues<TO>() {
+        return GetIndexedValues<TO>(0, 0, Width, Height);
+    }
+
+    public IEnumerable<(Vector2I Position, TO Value)> GetIndexedValues<TO>(Rect2I rect) {
+        return GetIndexedValues<TO>(rect.Position.X, rect.Position.Y, rect.End.X, rect.End.Y);
+    }
+
+    public IEnumerable<(Vector2I Position, TO Value)> GetIndexedValues<TO>(int x, int y, int width, int height) {
+        for (var yy = y; yy < height + y; yy++) {
+            for (var xx = x; xx < width + x; xx++) {
+                if (Data[yy, xx] is not TO value) continue;
+                var pos = new Vector2I(xx, yy);
+                yield return (Position: pos, Value: value);
+            }
+        }
+    }
+
     public IEnumerable<T> GetValues() {
         return GetValues(0, 0, Width, Height);
     }

@@ -27,6 +27,18 @@ public static class Vector2IExtensions {
     }
 
     /// <summary>
+    /// Returns true if the end position is in the same horizontal or vertical line as the start position
+    /// </summary>
+    /// <param name="start"></param>
+    /// <param name="end"></param>
+    /// <returns></returns>
+    public static bool IsOrthogonal(this Vector2I start, Vector2I end) {
+        var delta = end - start;
+        // Horizontal or vertical line
+        return delta.X == 0 || delta.Y == 0;
+    }
+
+    /// <summary>
     /// Returns true if the end position is in the same line as the path direction from start
     /// Works with any direction (orthogonal or diagonal)
     /// </summary>
@@ -34,7 +46,7 @@ public static class Vector2IExtensions {
     /// <param name="direction">Direction vector</param>
     /// <param name="end">End position to check</param>
     /// <returns>True if end is in the same direction from start</returns>
-    public static bool SameDirection(this Vector2I start, Vector2I direction, Vector2I end) {
+    public static bool IsSameDirection(this Vector2I start, Vector2I direction, Vector2I end) {
         var delta = end - start;
 
         // Handle zero direction
@@ -53,18 +65,6 @@ public static class Vector2IExtensions {
         // Otherwise compare Y components
         else
             return Math.Sign(delta.Y) == Math.Sign(direction.Y);
-    }
-
-    /// <summary>
-    /// Returns true if the end position is in the same horizontal or vertical line as the start position
-    /// </summary>
-    /// <param name="start"></param>
-    /// <param name="end"></param>
-    /// <returns></returns>
-    public static bool IsOrthogonal(this Vector2I start, Vector2I end) {
-        var delta = end - start;
-        // Horizontal or vertical line
-        return delta.X == 0 || delta.Y == 0;
     }
 
     /// <summary>
@@ -95,7 +95,7 @@ public static class Vector2IExtensions {
         // For non-axis-aligned lines, we need a different approach
         // Calculate the cross product of the vector from point1 to point2 and direction1
         // If points are on the same line, this cross product should be zero
-        Vector2I pointDiff = point2 - point1;
+        var pointDiff = point2 - point1;
         return pointDiff.X * direction1.Y == pointDiff.Y * direction1.X;
     }
 
@@ -123,10 +123,10 @@ public static class Vector2IExtensions {
     /// <returns>An enumerable of all positions in the straight line from start to end</returns>
     public static IEnumerable<Vector2I> GetPositions(this Vector2I start, Vector2I end) {
         if (!start.IsOrthogonal(end)) {
-            throw new ArgumentException("Points must be aligned horizontally or vertically");
+            throw new ArgumentException($"Point {end} must be aligned horizontally or vertically with {start}");
         }
 
-        var direction = start.DirectionTo(end);
+        var direction = start.GetOrthogonalDirectionTo(end);
         var distance = Math.Max(Math.Abs(start.X - end.X), Math.Abs(start.Y - end.Y));
 
         // Reuse the other GetPositions method to avoid code duplication
@@ -134,9 +134,9 @@ public static class Vector2IExtensions {
     }
 
     /// <summary>
-    /// Calculates the direction vector from start to end.
+    /// Calculates the orthogonal unit direction vector from start to end.
     /// </summary>
-    public static Vector2I DirectionTo(this Vector2I start, Vector2I end) {
+    public static Vector2I GetOrthogonalDirectionTo(this Vector2I start, Vector2I end) {
         var (x, y) = end - start;
 
         // Determine direction (only one axis should have non-zero value)
@@ -148,7 +148,7 @@ public static class Vector2IExtensions {
             // Vertical direction
             return new Vector2I(0, Math.Sign(y));
         }
-        throw new ArgumentException("Points must be aligned horizontally or vertically");
+        throw new ArgumentException($"Point {end} must be aligned horizontally or vertically with {start}");
     }
 
 

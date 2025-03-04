@@ -50,7 +50,7 @@ public class Vector2IExtensionsTests {
         var end = new Vector2I(10, 5);
 
         // Act & Assert
-        Assert.IsTrue(start.SameDirection(direction, end));
+        Assert.IsTrue(start.IsSameDirection(direction, end));
     }
 
     [Test]
@@ -61,7 +61,7 @@ public class Vector2IExtensionsTests {
         var end = new Vector2I(10, 6);
 
         // Act & Assert
-        Assert.IsFalse(start.SameDirection(direction, end));
+        Assert.IsFalse(start.IsSameDirection(direction, end));
     }
 
     [Test]
@@ -72,7 +72,7 @@ public class Vector2IExtensionsTests {
         var end = new Vector2I(3, 5);
 
         // Act & Assert
-        Assert.IsFalse(start.SameDirection(direction, end));
+        Assert.IsFalse(start.IsSameDirection(direction, end));
     }
 
     [Test]
@@ -190,8 +190,8 @@ public class Vector2IExtensionsTests {
         var endLeft = new Vector2I(2, 5);
 
         // Act & Assert
-        Assert.AreEqual(Vector2I.Right, start.DirectionTo(endRight));
-        Assert.AreEqual(Vector2I.Left, start.DirectionTo(endLeft));
+        Assert.AreEqual(Vector2I.Right, start.GetOrthogonalDirectionTo(endRight));
+        Assert.AreEqual(Vector2I.Left, start.GetOrthogonalDirectionTo(endLeft));
     }
 
     [Test]
@@ -202,8 +202,8 @@ public class Vector2IExtensionsTests {
         var endDown = new Vector2I(5, 10);
 
         // Act & Assert
-        Assert.AreEqual(Vector2I.Up, start.DirectionTo(endUp));
-        Assert.AreEqual(Vector2I.Down, start.DirectionTo(endDown));
+        Assert.AreEqual(Vector2I.Up, start.GetOrthogonalDirectionTo(endUp));
+        Assert.AreEqual(Vector2I.Down, start.GetOrthogonalDirectionTo(endDown));
     }
 
     [Test]
@@ -213,7 +213,7 @@ public class Vector2IExtensionsTests {
         var end = new Vector2I(7, 8);
 
         // Act & Assert
-        Assert.Throws<ArgumentException>(() => start.DirectionTo(end));
+        Assert.Throws<ArgumentException>(() => start.GetOrthogonalDirectionTo(end));
     }
 
     [Test]
@@ -482,7 +482,7 @@ public class Vector2IExtensionsTests {
         var end = new Vector2I(5, 5);
 
         // Act & Assert
-        Assert.IsTrue(start.SameDirection(direction, end));
+        Assert.IsTrue(start.IsSameDirection(direction, end));
     }
 
     [Test]
@@ -493,7 +493,7 @@ public class Vector2IExtensionsTests {
         var end = new Vector2I(5, 6);
 
         // Act & Assert
-        Assert.IsFalse(start.SameDirection(direction, end));
+        Assert.IsFalse(start.IsSameDirection(direction, end));
     }
 
     [Test]
@@ -504,7 +504,7 @@ public class Vector2IExtensionsTests {
         var end = new Vector2I(5, 5);
 
         // Act & Assert
-        Assert.IsTrue(start.SameDirection(direction, end));
+        Assert.IsTrue(start.IsSameDirection(direction, end));
     }
 
     [Test]
@@ -515,7 +515,7 @@ public class Vector2IExtensionsTests {
         var end = new Vector2I(6, 5);
 
         // Act & Assert
-        Assert.IsFalse(start.SameDirection(direction, end));
+        Assert.IsFalse(start.IsSameDirection(direction, end));
     }
 
     [Test]
@@ -526,6 +526,6 @@ public class Vector2IExtensionsTests {
         var end = new Vector2I(5, 5); // Not a multiple of (2,2)
 
         // Act & Assert
-        Assert.IsTrue(start.SameDirection(direction, end));
+        Assert.IsTrue(start.IsSameDirection(direction, end));
     }
 }
