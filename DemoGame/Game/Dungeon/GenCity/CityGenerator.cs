@@ -38,14 +38,14 @@ public class CityGenerator(City city) {
         var random = new Random(Options.Seed);
         var deleted = new HashSet<Path>();
         while (!isCompleted) {
-            var paths = City.GetAllPaths().ToArray();
+            var paths = City.GetIncompletePaths().ToArray();
             foreach (var path in paths) {
                 if (!deleted.Contains(path) && !path.IsCompleted()) {
                     // A path could be completed by other path when joining
                     GrowPath(path);
                 }
             }
-            isCompleted = City.GetAllPaths().All(path => path.IsCompleted());
+            isCompleted = !City.GetIncompletePaths().Any();
         }
         return;
 
@@ -53,8 +53,6 @@ public class CityGenerator(City city) {
             var currentPos = path.GetCursor();
             var nextPos = currentPos + path.Direction;
 
-            if (path.Id == "121-0" || path.Id == "103-1") {
-            }
             if (!City.Data.IsInBounds(nextPos)) {
                 // The path is heading to the border, close it
                 if (path.GetLength() == 0) {
@@ -62,19 +60,18 @@ public class CityGenerator(City city) {
                     RemovePath(path);
                 } else {
                     // Close the path creating a new intersection
-                    ClosePath(path);
+                    CreateDeadEnd(path);
                 }
             } else {
                 var tile = City.Data[nextPos];
 
                 if (tile is Intersection intersection) {
                     // The path collides with an intersection, join to it
-                    JoinIntersection(path, intersection);
+                    JoinPathToIntersection(path, intersection);
 
                 } else if (tile is Path perpendicularPath && path.IsPerpendicular(perpendicularPath)) {
                     // The other path is perpendicular, split the path creating a new intersection in the middle and joint to it
-                    var splitJoin = City.SplitPath(perpendicularPath, nextPos);
-                    JoinIntersection(path, splitJoin);
+                    JoinPathToPerpendicularPath(path, perpendicularPath, nextPos);
 
                 } else if (tile is Path otherPath && path.GetLength() == 0) {
                     // (since now, colliding paths ARE NOT PERPENDICULAR)
@@ -88,11 +85,11 @@ public class CityGenerator(City city) {
                     // There is other path coming from the same direction (not perpendicular)
                     // - We use the current position (not new position, which is already used by the other path)
                     // to create a new intersection
-                    JoinPaths(path, sameLinePath);
+                    JoinSameLinePaths(path, sameLinePath);
 
                 } else if (random.NextBool(Options.ProbabilityStreetEnd) || StopPathHeadingToBorder(path)) {
                     path.SetCursor(nextPos);
-                    ClosePath(path);
+                    CreateDeadEnd(path);
 
                 } else {
                     path.SetCursor(nextPos);
@@ -119,10 +116,12 @@ public class CityGenerator(City city) {
 
         void RemovePath(Path path) {
             City.RemovePath(path);
+            City.FlatIntersection(path.Start);
+            if (path.End != null) City.FlatIntersection(path.End);
             City.OnUpdate?.Invoke(path.GetCursor());
         }
 
-        Intersection ClosePath(Path path) {
+        Intersection CreateDeadEnd(Path path) {
             var cursor = path.GetCursor();
             City.Data[cursor] = null;
             var intersection = City.AddIntersection(cursor);
@@ -132,7 +131,13 @@ public class CityGenerator(City city) {
             return intersection;
         }
 
-        void JoinIntersection(Path path, Intersection intersection) {
+        void JoinPathToPerpendicularPath(Path path, Path perpendicularPath, Vector2I position) {
+            var splitJoin = City.SplitPath(perpendicularPath, position);
+            JoinPathToIntersection(path, splitJoin);
+            City.FlatIntersection(perpendicularPath.Start);
+        }
+
+        void JoinPathToIntersection(Path path, Intersection intersection) {
             // If the intersection has an output path in the opposite direction, remove it
             var other = intersection.GetOutputPaths().FirstOrDefault(p => p.Direction == -path.Direction && !p.IsCompleted() && p.GetLength() == 0);
             if (other != null) {
@@ -146,19 +151,18 @@ public class CityGenerator(City city) {
             City.OnUpdate?.Invoke(intersection.Position);
         }
 
-        void JoinPaths(Path path, Path sameLinePath) {
-            var join = ClosePath(path);
-            if (City.FlatIntersection(path.Start)) {
-            }
+        void JoinSameLinePaths(Path path, Path sameLinePath) {
+            var join = CreateDeadEnd(path);
             sameLinePath.SetEnd(join);
-            City.FlatIntersection(sameLinePath.Start);
             City.FlatIntersection(join);
+            City.FlatIntersection(path.Start);
+            City.FlatIntersection(sameLinePath.Start);
             City.OnUpdate?.Invoke(join.Position);
         }
 
         void CreateCrossPath(Path path) {
             var directions = ForkDirection(path.Direction).ToList();
-            var intersection = ClosePath(path);
+            var intersection = CreateDeadEnd(path);
             foreach (var direction in directions) {
                 intersection.CreatePathTo(direction);
             }
@@ -169,7 +173,7 @@ public class CityGenerator(City city) {
             List<Vector2I> directions = ForkDirection(path.Direction)
                 .OrderBy(x => random.Next())
                 .ToList();
-            var intersection = ClosePath(path);
+            var intersection = CreateDeadEnd(path);
             foreach (var direction in directions.Take(directions.Count - 1)) {
                 intersection.CreatePathTo(direction);
             }
@@ -178,7 +182,7 @@ public class CityGenerator(City city) {
 
         void CreateTurnPath(Path path) {
             var direction = random.Next(TurnDirection(path.Direction));
-            var intersection = ClosePath(path);
+            var intersection = CreateDeadEnd(path);
             intersection.CreatePathTo(direction);
             City.OnUpdate?.Invoke(intersection.Position);
         }

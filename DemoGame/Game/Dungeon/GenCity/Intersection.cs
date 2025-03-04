@@ -107,14 +107,18 @@ public class Intersection(int id, Vector2I position) : ICityTile {
         var left = FindPathTo(Vector2I.Left);
 
         // Case 1: Vertical straight path (up and down)
-        if (up != null && down != null && right == null && left == null) {
+        if (up != null && down != null &&
+            right == null && left == null &&
+            up.IsCompleted() && down.IsCompleted()) {
             path1 = up;
             path2 = down;
             return true;
         }
 
         // Case 2: Horizontal straight path (left and right)
-        if (up == null && down == null && right != null && left != null) {
+        if (up == null && down == null &&
+            right != null && left != null &&
+            right.IsCompleted() && left.IsCompleted()) {
             path1 = left;
             path2 = right;
             return true;

@@ -11,28 +11,15 @@ using Godot;
 namespace Veronenger.Game.Dungeon.GenCity;
 
 public class GenCityDemo {
-    // Caracteres ASCII para la representación
-    private const char EMPTY = ' '; // Espacio vacío
-    private const char ROAD_H = '═'; // Carretera horizontal
-    private const char CROSS_H = '-'; // Carretera horizontal
-    private const char ROAD_V = '║'; // Carretera vertical
-    private const char CROSS_V = '|'; // Carretera vertical
-    private const char CROSS = '╬'; // Intersección
-    private const char TURN_NE = '╚'; // Giro noreste
-    private const char TURN_NW = '╝'; // Giro noroeste
-    private const char TURN_SE = '╔'; // Giro sureste
-    private const char TURN_SW = '╗'; // Giro suroeste
-    private const char END = '•'; // Fin de carretera
-    private const char BUILDING = '#'; // Edificio
     private const char PLAYER = '@'; // Jugador
 
     private readonly char[] BUILDING_CHARS = { '#', '■', '□', '▣', '▤', '▥', '▦', '▧', '▨', '▩' };
 
-    private Array2D<char> _asciiMap;
     private int _playerX;
     private int _playerY;
     private bool _running = true;
     private CityGenerator _generator;
+    private CityRender _render;
 
     public const int Width = 140;
     public const int Height = 25;
@@ -47,7 +34,6 @@ public class GenCityDemo {
     }
 
     public void ValidateStart() {
-        _asciiMap = new Array2D<char>(Width, Height);
         _generator = new City(Width, Height).CreateGenerator(CreateOptions(Seed));
 
         for (var i = Seed; i < 100000; i++) {
@@ -83,12 +69,12 @@ public class GenCityDemo {
     }
 
     private void GenerateCity(int seed) {
-        _asciiMap = new Array2D<char>(Width, Height);
         _generator = new City(Width, Height).CreateGenerator(CreateOptions(seed));
+        _render = new CityRender(_generator.City);
         _generator.City.OnUpdate = (_) => {
             Render();
             _generator.City.ValidateRoads();
-            _generator.City.ValidateIntersections();
+            _generator.City.ValidateIntersections(true);
         };
         _generator.Start();
         _generator.Grow();
@@ -129,15 +115,9 @@ public class GenCityDemo {
     }
 
     private void Render() {
-        ClearRender();
-        RenderRoads();
-        RenderIntersections();
+        _render.Render();
         RenderBuildings();
         RenderGame();
-    }
-
-    private void ClearRender() {
-        _asciiMap.Fill(EMPTY);
     }
 
     private void RenderBuildings() {
@@ -145,57 +125,10 @@ public class GenCityDemo {
         foreach (var building in _generator.City.Buildings) {
             var buildingChar = BUILDING_CHARS[buildingIndex % BUILDING_CHARS.Length];
             foreach (var position in building.GetPositions()) {
-                _asciiMap[position] = buildingChar;
+                _render.AsciiMap[position] = buildingChar;
             }
             buildingIndex++;
         }
-    }
-
-    private void RenderRoads() {
-        foreach (var path in _generator.City.GetAllPaths()) {
-            var isHorizontal = path.Direction.IsHorizontal();
-            var roadChar = isHorizontal ? ROAD_H : ROAD_V;
-            foreach (var position in path.GetPositions()) {
-                _asciiMap[position] = roadChar;
-            }
-        }
-    }
-
-    private void RenderIntersections() {
-        foreach (var intersection in _generator.City.Intersections) {
-            var hasNorth = intersection.Up != null;
-            var hasSouth = intersection.Down != null;
-            var hasEast = intersection.Right != null;
-            var hasWest = intersection.Left != null;
-            var intersectionChar = DetermineIntersectionChar(hasNorth, hasSouth, hasEast, hasWest);
-            _asciiMap[intersection.Position] = intersectionChar;
-        }
-    }
-
-    private static char DetermineIntersectionChar(bool hasNorth, bool hasSouth, bool hasEast, bool hasWest) {
-        // Intersección completa
-        if (hasNorth && hasSouth && hasEast && hasWest) {
-            return CROSS;
-        }
-
-        // Intersecciones en T
-        if (hasNorth && hasSouth && hasEast) return '╠';
-        if (hasNorth && hasSouth && hasWest) return '╣';
-        if (hasNorth && hasEast && hasWest) return '╩';
-        if (hasSouth && hasEast && hasWest) return '╦';
-
-        // Giros
-        if (hasNorth && hasEast) return TURN_NE; // ╚
-        if (hasNorth && hasWest) return TURN_NW; // ╝
-        if (hasSouth && hasEast) return TURN_SE; // ╔
-        if (hasSouth && hasWest) return TURN_SW; // ╗
-
-        // Calles rectas
-        if (hasNorth && hasSouth) return CROSS_V;
-        if (hasEast && hasWest) return CROSS_H;
-
-        // Caso por defecto para un solo camino o casos no manejados
-        return END;
     }
 
     private void InitializePlayer() {
@@ -214,50 +147,36 @@ public class GenCityDemo {
     private void RenderGame() {
         // Console.Clear();
 
-        var (width, height) = (_asciiMap.Width, _asciiMap.Height);
+        var asciiMap = _render.AsciiMap;
+
+        var (width, height) = (asciiMap.Width, asciiMap.Height);
 
         // Crear una copia del mapa para añadir al jugador
         var displayMap = new char[height, width];
-        Array.Copy(_asciiMap.Data, displayMap, _asciiMap.Data.Length);
+        Array.Copy(asciiMap.Data, displayMap, asciiMap.Data.Length);
 
         // Añadir jugador
         displayMap[_playerY, _playerX] = PLAYER;
 
-        // Construir la representación ASCII
-        StringBuilder mapOutput = new StringBuilder();
+        StringBuilder buffer = new StringBuilder();
+        buffer.AppendLine("┌" + new string('─', width) + "┐");
 
-        // Añadir borde superior
-        mapOutput.AppendLine("┌" + new string('─', width) + "┐");
-
-        // Añadir filas del mapa
         for (var y = 0; y < height; y++) {
-            mapOutput.Append('│');
+            buffer.Append('│');
             for (var x = 0; x < width; x++) {
-                mapOutput.Append(displayMap[y, x]);
+                buffer.Append(displayMap[y, x]);
             }
-            mapOutput.AppendLine("│");
+            buffer.AppendLine("│");
         }
+        buffer.AppendLine("└" + new string('─', width) + "┘");
 
-        // Añadir borde inferior
-        mapOutput.AppendLine("└" + new string('─', width) + "┘");
-
-        // Mostrar en la consola
-        Console.Write(mapOutput.ToString());
-
-        // Añadir instrucciones
-        Console.WriteLine("Muévete con las teclas de flecha. Pulsa 'Q' para salir.");
-        Console.WriteLine($"Seed: {_generator.Seed} Leyenda: @ = Tú | "
-                          + $"{ROAD_H}/{ROAD_V} = Calles | {CROSS} = Intersección | {BUILDING} = Edificio");
+        Console.Write(buffer.ToString());
+        Console.WriteLine($"Seed: {_generator.Seed} R = Next seed - Q = Quit");
 
         var tile = _generator.City.Data[_playerY, _playerX];
-
         Func<Vector2I, string> t = d => d == Vector2I.Right ? "->" : d == Vector2I.Down ? "v" : d == Vector2I.Left ? "<-" : "^";
 
-        if (tile is Intersection i) {
-            Console.WriteLine($"Intersección: {i.Position} | Caminos entrantes: {i.GetInputPaths().Count} {string.Join(",", i.GetInputPaths().Select(p => t(p.Direction)))}| Caminos salientes: {i.GetOutputPaths().Count} {string.Join(",", i.GetOutputPaths().Select(p => t(p.Direction)))}");
-        } else {
-            Console.WriteLine($"Posición: {_playerX}, {_playerY} | Tipo de tile: {tile?.GetType().Name ?? "N/A"}");
-        }
+        Console.WriteLine($"Pos: {_playerX}, {_playerY} | {tile}");
     }
 
     private void HandleInput() {

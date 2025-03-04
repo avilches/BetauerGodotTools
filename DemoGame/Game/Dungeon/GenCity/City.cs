@@ -21,8 +21,18 @@ public class City(int width, int height) {
     private int _intersectionId = 0;
 
     public IEnumerable<Path> GetAllPaths() {
-        // Only get output paths or input path, never both or you will get duplicates
+        // A completed path is a path that has a start and an end
+        // An incomplete path is a path that has a start but not an end
         return Intersections.SelectMany(intersection => intersection.GetOutputPaths());
+    }
+
+    public IEnumerable<Path> GetCompletedPaths() {
+        // Return the inputs ensure returns only path completed
+        return Intersections.SelectMany(intersection => intersection.GetInputPaths());
+    }
+
+    public IEnumerable<Path> GetIncompletePaths() {
+        return Intersections.SelectMany(intersection => intersection.GetInputPaths().Where(p => !p.IsCompleted()));
     }
 
     public void Reset() {
@@ -47,57 +57,58 @@ public class City(int width, int height) {
         }
         if (startPoint == endPoint) return [];
         var direction = startPoint.GetOrthogonalDirectionTo(endPoint); // This will fail if not orthogonal
-        var startIntersection = GetOrCreateIntersectionAt(startPoint);
-        var endIntersection = GetOrCreateIntersectionAt(endPoint);
 
-        List<Intersection> intersections = [startIntersection, endIntersection];
+        // First, split all perpendicular paths that are in the way, creating intersections
+        var intersections = GetIntersections(startPoint, endPoint, direction);
 
         List<Path> createdPaths = [];
-
-        // Create initial path
-        var path = startIntersection.CreatePathTo(direction);
-        createdPaths.Add(path);
-
-        // Current position as we trace the path
-        var currentPos = startIntersection.Position + direction;
-
-        // Path tracer
-        while (currentPos != endIntersection.Position) {
-            var tile = Data[currentPos];
-            if (tile is Intersection intersection) {
-                intersections.Add(intersection);
-                path?.SetEnd(intersection);
-                // Found an intersection on the way
-                if (intersection.FindPathTo(direction) != null) {
-                    // The intersection has a path in the same direction - we don't create a new path, but continue
-                    path = null;
-                } else {
-                    // The intersection doesn't have a path in the same direction (its the start of the end of a perpendicular path)
-                    // Start a new path from this intersection
-                    path = intersection.CreatePathTo(direction);
-                    createdPaths.Add(path);
-                }
-            } else if (tile is Path crossPath) {
-                if (path == null) {
-                    // When path is null, it means we are overlapping with another path, so we ignore it
-                } else {
-                    // Found a crossing path - split it
-                    var newIntersection = SplitPath(crossPath, currentPos);
-                    path.SetEnd(newIntersection);
-                    // Start a new path from this intersection
-                    path = newIntersection.CreatePathTo(direction);
-                    createdPaths.Add(path);
-                }
-            } else {
-                // Mark this position as part of the path
-                Data[currentPos] = path;
+        for (var n = 1; n < intersections.Count; n++) {
+            var start = intersections[n - 1];
+            var end = intersections[n];
+            if (start.FindPathTo(direction) != null) {
+                // There is already a path between these two intersections
+                continue;
             }
-            OnUpdate?.Invoke(currentPos);
-            currentPos += direction;
+            CreateSegment(start, end);
         }
-        path?.SetEnd(endIntersection);
-        OnUpdate?.Invoke(endIntersection.Position);
+
         return createdPaths;
+
+        void CreateSegment(Intersection start, Intersection end) {
+            var path = start.CreatePathTo(direction);
+            path.SetEnd(end);
+            var pos = start.Position + direction;
+            while (pos != end.Position) {
+                Data[pos] = path;
+                OnUpdate?.Invoke(pos);
+                pos += direction;
+            }
+            createdPaths.Add(path);
+        }
+
+        List<Intersection> GetIntersections(Vector2I start, Vector2I end, Vector2I dir) {
+            var pos = start;
+            List<Intersection> intersections = [];
+            while (true) {
+                var tile = Data[pos];
+                if (tile == null && (pos == start || pos == end)) {
+                    var intersection = AddIntersection(pos);
+                    OnUpdate?.Invoke(pos);
+                    intersections.Add(intersection);
+                } else if (tile is Intersection i) {
+                    intersections.Add(i);
+                } else if (tile is Path p && p.Direction.IsPerpendicular(dir)) {
+                    var intersection = SplitPath(p, pos);
+                    intersections.Add(intersection);
+                } else {
+                    // tile is null but the position is not the start or the end
+                    // tile is a path but it's in the same line of the direction
+                }
+                if (pos == end) break;
+                pos += dir;
+            }
+            return intersections;
+        }
     }
 
     /// <summary>
@@ -145,7 +156,6 @@ public class City(int width, int height) {
         foreach (var tilePosition in path.GetPositions()) {
             if (Data[tilePosition] is Path p && p == path) {
                 Data[tilePosition] = null;
-                OnUpdate?.Invoke(tilePosition);
             }
         }
 
@@ -153,9 +163,6 @@ public class City(int width, int height) {
         if (startIntersection.GetAllPaths().Count == 0) {
             Intersections.Remove(startIntersection);
             Data[startIntersection.Position] = null;
-            OnUpdate?.Invoke(startIntersection.Position);
-        } else {
-            FlatIntersection(startIntersection);
         }
 
         if (endIntersection != null) {
@@ -163,9 +170,6 @@ public class City(int width, int height) {
             if (endIntersection.GetAllPaths().Count == 0) {
                 Intersections.Remove(endIntersection);
                 Data[endIntersection.Position] = null;
-                OnUpdate?.Invoke(endIntersection.Position);
-            } else {
-                FlatIntersection(endIntersection);
             }
         }
     }
@@ -200,11 +204,9 @@ public class City(int width, int height) {
             }
         }
         path.SetEnd(newIntersection);
-        FlatIntersection(path.Start);
         return newIntersection;
     }
 
-    /*
     public int FlatAllIntersections() {
         var count = 0;
         while (true) {
@@ -215,7 +217,6 @@ public class City(int width, int height) {
         }
         return count;
     }
-    */
 
 
     /// <summary>
@@ -230,20 +231,13 @@ public class City(int width, int height) {
             return false;
         }
 
-        // Both paths must be completed (have start and end)
-        // This is only possible for output paths, as input paths are always completed by definition
-        if (!path1.IsCompleted() || !path2.IsCompleted()) {
-            // Console.WriteLine("Can't flatten intersection - paths are not completed: " + intersection);
-            return false;
-        }
-
         // Get the other two intersections at the ends of these paths
         (Intersection start, Intersection end) = (path1, path2) switch {
             var (p1, p2) when p1.Start == intersection &&
                               p2.Start == intersection => (p1.End!, p2.End!), // Both are output paths
 
             var (p1, p2) when p1.End == intersection &&
-                              p2.End == intersection => (p1.Start, p2.Start),  // Both are input paths
+                              p2.End == intersection => (p1.Start, p2.Start), // Both are input paths
 
             var (p1, p2) when p1.Start == intersection &&
                               p2.End == intersection => (p1.End!, p2.Start), // path1 is output, path2 is input
@@ -301,13 +295,13 @@ public class City(int width, int height) {
     }
 
     public void ValidateIntersectionPaths() {
-        var output = Intersections.SelectMany(intersection => intersection.GetOutputPaths()).ToHashSet();
+        var output = Intersections.SelectMany(intersection => intersection.GetOutputPaths().Where(p => p.IsCompleted())).ToHashSet();
         var input = Intersections.SelectMany(intersection => intersection.GetInputPaths()).ToHashSet();
         if (!output.SetEquals(input)) {
             var outputOnly = output.Except(input).ToList();
             var inputOnly = input.Except(output).ToList();
             throw new Exception($"Output paths and input paths do not contain the same elements. " +
-                       $"Only in output: {outputOnly.Count}, Only in input: {inputOnly.Count}");
+                                $"Only in output: {outputOnly.Count}, Only in input: {inputOnly.Count}");
         }
     }
 

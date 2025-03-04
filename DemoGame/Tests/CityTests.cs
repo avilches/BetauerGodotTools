@@ -490,84 +490,271 @@ public class CityTests {
     }
 
     [Test]
-    public void CreatePath_ShouldHandleOverlappingPathsOnSameAxis() {
-        // Arrange - First create a horizontal path
-        var firstStart = new Vector2I(5, 0);
-        var firstEnd = new Vector2I(10, 0);
-        var firstPaths = _city.CreatePath(firstStart, firstEnd);
+    public void CreatePath() {
+        _city = new City(20, 1);
+        var render = new CityRender(_city);
 
-        // Verify first path was created correctly
-        Assert.AreEqual(1, firstPaths.Count);
-        var firstPath = firstPaths[0];
-        Assert.AreEqual(Vector2I.Right, firstPath.Direction);
+        var paths = _city.CreatePath(new Vector2I(2, 0), new Vector2I(10, 0));
+        Console.WriteLine(render.ToString());
+        Assert.AreEqual("  ╞═══════╡         ", render.ToString());
+        Assert.AreEqual(1, paths.Count);
+        Assert.AreEqual(8, paths[0].GetLength());
         Assert.AreEqual(2, _city.Intersections.Count);
-
-        // Act - Create a longer path that overlaps the first one
-        var secondStart = new Vector2I(1, 0);
-        var secondEnd = new Vector2I(20, 0);
-        var secondPaths = _city.CreatePath(secondStart, secondEnd);
-
-        // Assert
-        // We should have 4 total intersections now (the original 2 plus the new start/end)
-        Assert.AreEqual(4, _city.Intersections.Count);
-
-        // Should have 3 paths total (the original path gets reused, not duplicated)
-        var allPaths = _city.GetAllPaths().ToList();
-        Assert.AreEqual(3, allPaths.Count);
-
-        // Check that we reused the existing intersections
-        var firstStartIntersection = _city.Data[firstStart] as Intersection;
-        var firstEndIntersection = _city.Data[firstEnd] as Intersection;
-
-        Assert.IsNotNull(firstStartIntersection);
-        Assert.IsNotNull(firstEndIntersection);
-
-        // The second path should be split into 3 segments:
-        // 1. secondStart to firstStart
-        // 2. firstStart to firstEnd (reusing the original path)
-        // 3. firstEnd to secondEnd
-
-        // Let's verify each segment
-
-        // Segment 1: secondStart to firstStart
-        var segment1 = _city.Data[secondStart] as Intersection;
-        Assert.IsNotNull(segment1);
-        var pathToFirstStart = segment1.FindPathTo(Vector2I.Right);
-        Assert.IsNotNull(pathToFirstStart);
-        Assert.AreEqual(firstStartIntersection, pathToFirstStart.End);
-
-        // Segment 2: Check if the original path is still intact
-        var originalPath = firstStartIntersection.FindPathTo(Vector2I.Right);
-        Assert.IsNotNull(originalPath);
-        Assert.AreEqual(firstEndIntersection, originalPath.End);
-
-        // Segment 3: firstEnd to secondEnd
-        var segment3 = firstEndIntersection.FindPathTo(Vector2I.Right);
-        Assert.IsNotNull(segment3);
-        var secondEndIntersection = _city.Data[secondEnd] as Intersection;
-        Assert.IsNotNull(secondEndIntersection);
-        Assert.AreEqual(secondEndIntersection, segment3.End);
-
-        // Verify paths are properly represented in the grid
-        // Check a point in each segment
-        Assert.IsInstanceOf<Path>(_city.Data[new Vector2I(3, 0)]); // Segment 1
-        Assert.IsInstanceOf<Path>(_city.Data[new Vector2I(7, 0)]); // Segment 2 (original path)
-        Assert.IsInstanceOf<Path>(_city.Data[new Vector2I(15, 0)]); // Segment 3
-
-        // Every position along the entire path should be filled
-        for (int x = secondStart.X + 1; x < secondEnd.X; x++) {
-            var pos = new Vector2I(x, 0);
-            if (pos != firstStart && pos != firstEnd) {
-                Assert.IsInstanceOf<Path>(_city.Data[pos], $"Position {pos} should contain a Path");
-            } else {
-                Assert.IsInstanceOf<Intersection>(_city.Data[pos], $"Position {pos} should contain an Intersection");
-            }
-        }
+        Assert.AreEqual(1, _city.GetAllPaths().Count());
     }
 
     [Test]
-    [Ignore("Slow tests")]
-    public void Grow() {
+    public void CreatePath_OnPoint() {
+        _city = new City(20, 1);
+        var render = new CityRender(_city);
+
+        var paths = _city.CreatePath(new Vector2I(2, 0), new Vector2I(3, 0));
+        Console.WriteLine(render.ToString());
+        Assert.AreEqual("  ╞╡                ", render.ToString());
+        Assert.AreEqual(1, paths.Count);
+        Assert.AreEqual(1, paths[0].GetLength());
+        Assert.AreEqual(2, _city.Intersections.Count);
+        Assert.AreEqual(1, _city.GetAllPaths().Count());
+    }
+
+    [Test]
+    public void CreatePath_OverlapsWithBiggerPath() {
+        _city = new City(20, 1);
+        var render = new CityRender(_city);
+
+        _city.CreatePath(new Vector2I(2, 0), new Vector2I(10, 0));
+        Console.WriteLine(render.ToString());
+        Assert.AreEqual("  ╞═══════╡         ", render.ToString());
+        var paths = _city.CreatePath(new Vector2I(0, 0), new Vector2I(12, 0));
+        Console.WriteLine(render.ToString());
+        Assert.AreEqual("╞═-═══════-═╡       ", render.ToString());
+        Assert.AreEqual(2, paths.Count);
+        Assert.AreEqual(4, _city.Intersections.Count);
+        Assert.AreEqual(3, _city.GetAllPaths().Count());
+    }
+
+    [Test]
+    public void CreatePath_OverlapsTotal() {
+        _city = new City(20, 1);
+        var render = new CityRender(_city);
+
+        _city.CreatePath(new Vector2I(2, 0), new Vector2I(10, 0));
+        Console.WriteLine(render.ToString());
+        Assert.AreEqual("  ╞═══════╡         ", render.ToString());
+        var paths = _city.CreatePath(new Vector2I(2, 0), new Vector2I(10, 0));
+        Console.WriteLine(render.ToString());
+        Assert.AreEqual("  ╞═══════╡         ", render.ToString());
+        Assert.AreEqual(0, paths.Count);
+        Assert.AreEqual(2, _city.Intersections.Count);
+        Assert.AreEqual(1, _city.GetAllPaths().Count());
+    }
+
+    [Test]
+    public void CreatePath_OverlapsWithOffsetLeft() {
+        _city = new City(20, 1);
+        var render = new CityRender(_city);
+
+        _city.CreatePath(new Vector2I(2, 0), new Vector2I(10, 0));
+        Console.WriteLine(render.ToString());
+        Assert.AreEqual("  ╞═══════╡         ", render.ToString());
+        var paths = _city.CreatePath(new Vector2I(0, 0), new Vector2I(8, 0));
+        Console.WriteLine(render.ToString());
+        Assert.AreEqual("╞═-═══════╡         ", render.ToString());
+        Assert.AreEqual(1, paths.Count);
+        Assert.AreEqual(3, _city.Intersections.Count);
+        Assert.AreEqual(2, _city.GetAllPaths().Count());
+    }
+
+    [Test]
+    public void CreatePath_ShareLeft() {
+        _city = new City(20, 1);
+        var render = new CityRender(_city);
+
+        _city.CreatePath(new Vector2I(2, 0), new Vector2I(10, 0));
+        Console.WriteLine(render.ToString());
+        Assert.AreEqual("  ╞═══════╡         ", render.ToString());
+        var paths = _city.CreatePath(new Vector2I(0, 0), new Vector2I(2, 0));
+        Console.WriteLine(render.ToString());
+        Assert.AreEqual("╞═-═══════╡         ", render.ToString());
+        Assert.AreEqual(1, paths.Count);
+        Assert.AreEqual(3, _city.Intersections.Count);
+        Assert.AreEqual(2, _city.GetAllPaths().Count());
+    }
+
+    [Test]
+    public void CreatePath_OverlapsWithOffsetRight() {
+        _city = new City(20, 1);
+        var render = new CityRender(_city);
+
+        _city.CreatePath(new Vector2I(2, 0), new Vector2I(10, 0));
+        Console.WriteLine(render.ToString());
+        Assert.AreEqual("  ╞═══════╡         ", render.ToString());
+        var paths = _city.CreatePath(new Vector2I(5, 0), new Vector2I(12, 0));
+        Console.WriteLine(render.ToString());
+        Assert.AreEqual("  ╞═══════-═╡       ", render.ToString());
+        Assert.AreEqual(1, paths.Count);
+        Assert.AreEqual(3, _city.Intersections.Count);
+        Assert.AreEqual(2, _city.GetAllPaths().Count());
+    }
+
+    [Test]
+    public void CreatePath_OverlapsShareRight() {
+        _city = new City(20, 1);
+        var render = new CityRender(_city);
+
+        _city.CreatePath(new Vector2I(2, 0), new Vector2I(10, 0));
+        Console.WriteLine(render.ToString());
+        Assert.AreEqual("  ╞═══════╡         ", render.ToString());
+        var paths = _city.CreatePath(new Vector2I(10, 0), new Vector2I(12, 0));
+        Console.WriteLine(render.ToString());
+        Assert.AreEqual("  ╞═══════-═╡       ", render.ToString());
+        Assert.AreEqual(1, paths.Count);
+        Assert.AreEqual(3, _city.Intersections.Count);
+        Assert.AreEqual(2, _city.GetAllPaths().Count());
+    }
+
+    [Test]
+    public void CreatePath_OverlapsWithSmallerPath() {
+        _city = new City(20, 1);
+        var render = new CityRender(_city);
+
+        _city.CreatePath(new Vector2I(0, 0), new Vector2I(12, 0));
+        Console.WriteLine(render.ToString());
+        Assert.AreEqual("╞═══════════╡       ", render.ToString());
+        var paths = _city.CreatePath(new Vector2I(0, 0), new Vector2I(12, 0));
+        Console.WriteLine(render.ToString());
+        Assert.AreEqual("╞═══════════╡       ", render.ToString());
+        Assert.AreEqual(0, paths.Count);
+        Assert.AreEqual(2, _city.Intersections.Count);
+        Assert.AreEqual(1, _city.GetAllPaths().Count());
+    }
+
+    [Test]
+    public void CreatePath_OverlapsMultiple() {
+        _city = new City(20, 1);
+        var render = new CityRender(_city);
+
+        _city.CreatePath(new Vector2I(1, 0), new Vector2I(2, 0));
+        _city.CreatePath(new Vector2I(3, 0), new Vector2I(4, 0));
+        _city.CreatePath(new Vector2I(8, 0), new Vector2I(10, 0));
+        Console.WriteLine(render.ToString());
+        Assert.AreEqual(" ╞╡╞╡   ╞═╡         ", render.ToString());
+        var paths = _city.CreatePath(new Vector2I(0, 0), new Vector2I(12, 0));
+        Console.WriteLine(render.ToString());
+        Assert.AreEqual("╞----═══-═-═╡       ", render.ToString());
+        Assert.AreEqual(4, paths.Count);
+        Assert.AreEqual(8, _city.Intersections.Count);
+        Assert.AreEqual(7, _city.GetAllPaths().Count());
+    }
+
+    [Test]
+    public void FlatAll() {
+        _city = new City(20, 3);
+        var render = new CityRender(_city);
+
+        _city.CreatePath(new Vector2I(1, 0), new Vector2I(2, 0));
+        _city.CreatePath(new Vector2I(2, 0), new Vector2I(3, 0));
+        _city.CreatePath(new Vector2I(3, 0), new Vector2I(4, 0));
+        _city.CreatePath(new Vector2I(8, 0), new Vector2I(10, 0));
+        _city.CreatePath(new Vector2I(0, 0), new Vector2I(12, 0));
+
+        _city.CreatePath(new Vector2I(3, 0), new Vector2I(3, 1));
+        _city.CreatePath(new Vector2I(3, 1), new Vector2I(3, 2));
+        Console.WriteLine(render.ToString());
+        Assert.AreEqual("╞--╦-═══-═-═╡       \n" +
+                        "   |                \n" +
+                        "   ╨                ", render.ToString());
+
+        _city.FlatAllIntersections();
+        Console.WriteLine(render.ToString());
+        Assert.AreEqual("╞══╦════════╡       \n" +
+                        "   ║                \n" +
+                        "   ╨                ", render.ToString());
+    }
+
+    [Test]
+    public void CreatePath_OverlapsPerpendicular() {
+        _city = new City(20, 3);
+        var render = new CityRender(_city);
+
+        _city.CreatePath(new Vector2I(3, 1), new Vector2I(3, 2));
+        _city.CreatePath(new Vector2I(5, 0), new Vector2I(5, 2));
+        _city.CreatePath(new Vector2I(7, 0), new Vector2I(7, 1));
+        Console.WriteLine(render.ToString());
+        Assert.AreEqual("     ╥ ╥            \n" +
+                        "   ╥ ║ ╨            \n" +
+                        "   ╨ ╨              ", render.ToString());
+        var paths = _city.CreatePath(new Vector2I(0, 1), new Vector2I(12, 1));
+        Console.WriteLine(render.ToString());
+
+        Assert.AreEqual("     ╥ ╥            \n" +
+                        "╞══╦═╬═╩════╡       \n" +
+                        "   ╨ ╨              ", render.ToString());
+
+        Assert.AreEqual(4, paths.Count);
+        Assert.AreEqual(9, _city.Intersections.Count);
+        Assert.AreEqual(8, _city.GetAllPaths().Count());
+
+        var paths2 = _city.CreatePath(new Vector2I(3, 2), new Vector2I(5, 2));
+        Console.WriteLine(render.ToString());
+
+        Assert.AreEqual("     ╥ ╥            \n" +
+                        "╞══╦═╬═╩════╡       \n" +
+                        "   ╚═╝              ", render.ToString());
+
+        Assert.AreEqual(1, paths2.Count);
+        Assert.AreEqual(9, _city.Intersections.Count);
+        Assert.AreEqual(9, _city.GetAllPaths().Count());
+    }
+
+    [Test]
+    public void RemovePaths() {
+        var options = new CityGenerationOptions {
+            StreetMinLength = 3,
+
+            ProbabilityIntersection = 0.20f,
+
+            ProbabilityCross = 0.42f,
+            ProbabilityFork = 0.42f,
+            ProbabilityTurn = 0.12f,
+
+            ProbabilityStreetEnd = 0.001f,
+
+            BuildingMinSize = 2, //2,
+            BuildingMaxSize = 5, //3,
+            BuildingMinSpace = 1,
+            BuildingMaxSpace = 2, // 2
+
+            Seed = 1,
+        };
+
+        var city = new City(140, 25);
+        city.OnUpdate = (_) => {
+            city.ValidateIntersections(true);
+            city.ValidateRoads();
+            city.ValidateIntersectionPaths();
+        };
+        var generator = city.CreateGenerator(options);
+        generator.Start();
+        generator.Grow();
+        generator.City.ValidateIntersections(true);
+        generator.City.ValidateIntersectionPaths();
+        generator.City.ValidateRoads();
+
+        while (_city.GetAllPaths().Any()) {
+            var path = _city.GetAllPaths().First();
+            city.RemovePath(path);
+            city.ValidateIntersections(true);
+            city.ValidateRoads();
+            city.ValidateIntersectionPaths();
+        }
+
+    }
+
+    [Test]
+    // [Only]
+    // [Ignore("Slow tests")]
+    public void Grow_ValidateOnUpdate() {
         List<Vector2I> startDirections = [Vector2I.Right, Vector2I.Down, Vector2I.Left, Vector2I.Up];
 
         var options = new CityGenerationOptions {
@@ -591,20 +778,56 @@ public class CityTests {
 
         var city = new City(140, 25);
         var generator = city.CreateGenerator(options);
+        city.OnUpdate = (_) => {
+            generator.City.ValidateIntersections();
+            generator.City.ValidateIntersectionPaths();
+            generator.City.ValidateRoads();
+        };
 
-        for (var i = 0; i < 10; i++) {
+        for (var i = 0; i < 2000; i++) {
             options.Seed = i;
-            if (i % 10 == 0) {
+            if (i % 100 == 0) {
                 Console.WriteLine(options.Seed);
             }
             generator.Start();
-            generator.City.OnUpdate = (_) => {
-                generator.City.ValidateIntersections();
-                generator.City.ValidateRoads();
-            };
             generator.Grow();
+        }
+    }
 
-            generator.City.OnUpdate = null;
+    [Test]
+    // [Only]
+    // [Ignore("Slow tests")]
+    public void Grow_ValidateFinalState() {
+        List<Vector2I> startDirections = [Vector2I.Right, Vector2I.Down, Vector2I.Left, Vector2I.Up];
+
+        var options = new CityGenerationOptions {
+            StartDirections = startDirections,
+
+            StreetMinLength = 3,
+
+            ProbabilityIntersection = 0.20f,
+
+            ProbabilityCross = 0.42f,
+            ProbabilityFork = 0.42f,
+            ProbabilityTurn = 0.12f,
+
+            ProbabilityStreetEnd = 0.001f,
+
+            BuildingMinSize = 2, //2,
+            BuildingMaxSize = 5, //3,
+            BuildingMinSpace = 1,
+            BuildingMaxSpace = 2, // 2
+        };
+
+        var city = new City(140, 25);
+        var generator = city.CreateGenerator(options);
+        for (var i = 0; i < 10000; i++) {
+            options.Seed = i;
+            if (i % 100 == 0) {
+                Console.WriteLine(options.Seed);
+            }
+            generator.Start();
+            generator.Grow();
             generator.City.ValidateIntersections(true);
             generator.City.ValidateIntersectionPaths();
             generator.City.ValidateRoads();
