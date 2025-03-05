@@ -6,7 +6,6 @@ using Betauer.Core.DataMath;
 namespace Veronenger.Game.Dungeon.GenCity;
 
 public class CityRender(City city) {
-
     public char EMPTY = ' '; // Espacio vacío
 
     public char ROAD_H = '═'; // Carretera horizontal

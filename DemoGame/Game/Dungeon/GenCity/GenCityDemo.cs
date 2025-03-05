@@ -180,9 +180,8 @@ public class GenCityDemo {
         // Añadir jugador
         displayMap[_playerY, _playerX] = PLAYER;
 
-        StringBuilder buffer = new StringBuilder();
+        var buffer = new StringBuilder();
         buffer.AppendLine("┌" + new string('─', width) + "┐");
-
         for (var y = 0; y < height; y++) {
             buffer.Append('│');
             for (var x = 0; x < width; x++) {

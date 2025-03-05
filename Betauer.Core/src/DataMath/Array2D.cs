@@ -168,6 +168,25 @@ public class Array2D<T>(T[,] data) : Array2D, IEnumerable<T> {
         return Clone(v => v);
     }
 
+    public Array2D<T> Expand(int scale) {
+        if (scale < 1) throw new ArgumentException("Scale must be greater than 0");
+        if (scale == 1) return this;
+
+        var array2D = new Array2D<T>(Width * scale, Height * scale);
+        for (var y = 0; y < Height; y++) {
+            for (var x = 0; x < Width; x++) {
+                var value = Data[y, x];
+
+                for (var dy = 0; dy < scale; dy++) {
+                    for (var dx = 0; dx < scale; dx++) {
+                        array2D[y * scale + dy, x * scale + dx] = value;
+                    }
+                }
+            }
+        }
+        return array2D;
+    }
+
     public Array2D<TOut> Clone<TOut>(Func<T, TOut> transformer) {
         return Clone(0, 0, Width, Height, transformer);
     }
