@@ -64,6 +64,12 @@ public class CityRender(City city) {
             var intersectionChar = DetermineIntersectionChar(hasNorth, hasSouth, hasEast, hasWest);
             AsciiMap[intersection.Position] = intersectionChar;
         }
+
+        foreach (var (p, e) in City.Data.GetIndexedValues()) {
+            if (e is Other other) {
+                AsciiMap[p] = other.C;
+            }
+        }
     }
 
     private char DetermineIntersectionChar(bool hasNorth, bool hasSouth, bool hasEast, bool hasWest) {

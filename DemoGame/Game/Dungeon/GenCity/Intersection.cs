@@ -8,9 +8,11 @@ using Godot;
 namespace Veronenger.Game.Dungeon.GenCity;
 
 public enum IntersectionType {
-    Turn,
-    Cross,
-    End
+    Cross,  // 4
+    Fork,   // 3
+    Road,   // 2 straight
+    Turn,   // 2 turn right or left
+    DeadEnd // 1
 }
 
 public class Intersection(int id, Vector2I position) : ICityTile {
@@ -71,9 +73,10 @@ public class Intersection(int id, Vector2I position) : ICityTile {
         get {
             var pathsCount = _outputPaths.Count + _inputPaths.Count;
             return pathsCount switch {
-                2 => IntersectionType.Turn,
-                1 => IntersectionType.End,
-                _ => IntersectionType.Cross
+                4 => IntersectionType.Cross,
+                3 => IntersectionType.Fork,
+                2 => Up != null && Down != null ? IntersectionType.Road : IntersectionType.Turn,
+                1 => IntersectionType.DeadEnd,
             };
         }
     }
@@ -131,6 +134,6 @@ public class Intersection(int id, Vector2I position) : ICityTile {
     }
 
     public override string ToString() {
-        return $"Intersection {Id} at {Position} ({IntersectionType})";
+        return $"Intersection \"{Id}\" {Position} - ({IntersectionType})";
     }
 }

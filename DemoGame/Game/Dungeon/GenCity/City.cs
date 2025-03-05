@@ -9,6 +9,11 @@ namespace Veronenger.Game.Dungeon.GenCity;
 
 public interface ICityTile;
 
+public class Other(char c) : ICityTile {
+    public char C = c;
+}
+
+
 public class City(int width, int height) {
     public int Width { get; } = width;
     public int Height { get; } = height;
@@ -16,7 +21,6 @@ public class City(int width, int height) {
     public List<Intersection> Intersections { get; } = [];
     public List<Building> Buildings { get; } = [];
     public Action<Vector2I>? OnUpdate;
-
 
     private int _intersectionId = 0;
 
@@ -43,6 +47,19 @@ public class City(int width, int height) {
         }
         Intersections.Clear();
         Buildings.Clear();
+        _intersectionId = 0;
+    }
+
+    public float GetDensity() {
+        var totalCells = Data.Width * Data.Height;
+        var occupied = 0;
+        foreach (var tile in Data.GetValues()) {
+            if (tile is Intersection or Path) {
+                occupied++;
+            }
+        }
+        var density = (float)occupied / totalCells;
+        return density;
     }
 
     /// <summary>

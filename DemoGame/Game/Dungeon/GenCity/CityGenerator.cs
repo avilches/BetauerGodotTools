@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Betauer.Core;
+using Betauer.Core.DataMath;
+using Betauer.Core.DataMath.Geometry;
 using Godot;
 
 namespace Veronenger.Game.Dungeon.GenCity;
@@ -68,17 +70,14 @@ public class CityGenerator(City city) {
                 if (tile is Intersection intersection) {
                     // The path collides with an intersection, join to it
                     JoinPathToIntersection(path, intersection);
-
                 } else if (tile is Path perpendicularPath && path.IsPerpendicular(perpendicularPath)) {
                     // The other path is perpendicular, split the path creating a new intersection in the middle and joint to it
                     JoinPathToPerpendicularPath(path, perpendicularPath, nextPos);
-
                 } else if (tile is Path otherPath && path.GetLength() == 0) {
                     // (since now, colliding paths ARE NOT PERPENDICULAR)
                     // There is other path coming from the same direction
                     // - And the current path is just starting, so remove it
                     RemovePath(path);
-
                 } else if (tile is Path sameLinePath) {
                     // (since now, colliding paths ARE NOT PERPENDICULAR and HAVE A LENGTH > 0)
 
@@ -86,11 +85,9 @@ public class CityGenerator(City city) {
                     // - We use the current position (not new position, which is already used by the other path)
                     // to create a new intersection
                     JoinSameLinePaths(path, sameLinePath);
-
                 } else if (random.NextBool(Options.ProbabilityStreetEnd) || StopPathHeadingToBorder(path)) {
                     path.SetCursor(nextPos);
                     CreateDeadEnd(path);
-
                 } else {
                     path.SetCursor(nextPos);
                     City.Data[nextPos] = path;
@@ -100,7 +97,6 @@ public class CityGenerator(City city) {
                     if (path.GetLength() > streetLength &&
                         GetFirstOccupiedPosition(nextPos, path.Direction, streetLength) == null &&
                         random.NextBool(Options.ProbabilityIntersection)) {
-
                         // Randomly end path with an intersection and create a new path/fork/turn
                         var action = random.Pick(new (Action<Path>, float)[] {
                             (CreateCrossPath, Options.ProbabilityCross),
@@ -108,7 +104,6 @@ public class CityGenerator(City city) {
                             (CreateTurnPath, Options.ProbabilityTurn)
                         });
                         action.Invoke(path);
-
                     }
                 }
             }
@@ -275,5 +270,337 @@ public class CityGenerator(City city) {
 
     public static IList<Vector2I> ForkDirection(Vector2I direction) {
         return [direction, direction.Rotate90Left(), direction.Rotate90Right()];
+    }
+
+    public List<Rect2I> FillGaps(int? minGapSize = null) {
+        var minSize = minGapSize ?? Options.StreetMinLength * 1.5;
+        var gaps = FindAllGaps()
+            .Where(gap => gap.Size.X >= minSize && gap.Size.Y >= minSize).ToList();
+        // Ordenar los huecos por tamaño (de mayor a menor)
+
+        gaps.Sort((a, b) => b.Area.CompareTo(a.Area));
+
+        var c = 'A';
+        foreach (var gap in gaps) {
+            // foreach (var p in gap.GetPositions()) City.Data[p] = new Other(c);
+            c++;
+        }
+
+        foreach (var gap in gaps) {
+            TryAddRoadsToGap(gap);
+        }
+        return gaps;
+    }
+
+    public IEnumerable<Rect2I> FindAllGaps() {
+        var visited = new bool[City.Height, City.Width];
+        for (var y = 0; y < City.Height; y++) {
+            for (var x = 0; x < City.Width; x++) {
+                if (!visited[y, x] && City.Data[y, x] == null) {
+                    var gap = FillRect(new Vector2I(x, y), visited);
+                    yield return gap;
+                }
+            }
+        }
+    }
+
+    public Dictionary<Vector2I, Rect2I> FindGaps(IEnumerable<Vector2I> positions) {
+        var visited = new bool[City.Height, City.Width];
+        Dictionary<Vector2I, Rect2I> result = [];
+        foreach (var pos in positions) {
+            var gap = FillRect(pos, visited);
+            result[pos] = gap;
+        }
+        return result;
+    }
+
+    private Rect2I FillRect(Vector2I start, bool[,] visited) {
+        // Buscar los límites del área vacía en las cuatro direcciones
+        var minX = start.X;
+        var maxX = start.X;
+        var minY = start.Y;
+        var maxY = start.Y;
+
+        if (!IsPositionValid(start, visited)) {
+            return new Rect2I(start, Vector2I.Zero);
+        }
+
+        // Marcar el punto inicial como visitado
+        visited[start.Y, start.X] = true;
+
+        // Intentar expandir en todas las direcciones
+        var expandedAny = true;
+        while (expandedAny) {
+            expandedAny = false;
+
+            // Intentar expandir hacia la derecha
+            if (CanExpandHorizontally(maxX + 1, minY, maxY)) {
+                for (var y = minY; y <= maxY; y++) {
+                    visited[y, maxX + 1] = true;
+                }
+                maxX++;
+                expandedAny = true;
+            }
+
+            // Intentar expandir hacia la izquierda
+            if (CanExpandHorizontally(minX - 1, minY, maxY)) {
+                for (var y = minY; y <= maxY; y++) {
+                    visited[y, minX - 1] = true;
+                }
+                minX--;
+                expandedAny = true;
+            }
+
+            // Intentar expandir hacia abajo
+            if (CanExpandVertically(minX, maxX, maxY + 1)) {
+                for (var x = minX; x <= maxX; x++) {
+                    visited[maxY + 1, x] = true;
+                }
+                maxY++;
+                expandedAny = true;
+            }
+
+            // Intentar expandir hacia arriba
+            if (CanExpandVertically(minX, maxX, minY - 1)) {
+                for (var x = minX; x <= maxX; x++) {
+                    visited[minY - 1, x] = true;
+                }
+                minY--;
+                expandedAny = true;
+            }
+        }
+        return new Rect2I(minX, minY, maxX - minX + 1, maxY - minY + 1);
+
+        // Función auxiliar para verificar si se puede expandir horizontalmente (columna)
+        bool CanExpandHorizontally(int x, int yStart, int yEnd) {
+            if (x < 0 || x >= City.Width) return false;
+            for (var y = yStart; y <= yEnd; y++) {
+                if (!IsPositionValid(new Vector2I(x, y), visited)) return false;
+            }
+            return true;
+        }
+
+        // Función auxiliar para verificar si se puede expandir verticalmente (fila)
+        bool CanExpandVertically(int xStart, int xEnd, int y) {
+            if (y < 0 || y >= City.Height) return false;
+            for (var x = xStart; x <= xEnd; x++) {
+                if (!IsPositionValid(new Vector2I(x, y), visited)) return false;
+            }
+            return true;
+        }
+
+        // Método auxiliar para comprobar si una posición es válida y está disponible
+        bool IsPositionValid(Vector2I pos, bool[,] visitedMap) {
+            return City.Data.IsInBounds(pos) && !visitedMap[pos.Y, pos.X] && City.Data[pos] == null;
+        }
+    }
+
+    public void FillGapsUntil(float minDensity = 1f) {
+        var density = City.GetDensity();
+        var minGap = Options.StreetMinLength * 2;
+        while (density < minDensity && minGap > 2) {
+            FillGaps(minGap);
+            Grow();
+            density = City.GetDensity();
+            minGap--;
+        }
+    }
+
+    private void TryAddRoadsToGap(Rect2I gap) {
+        // Encontrar caminos existentes cerca del hueco
+        List<Path> nearbyPaths = FindPathsNearGap(gap);
+        if (nearbyPaths.Count == 0) return;
+
+        HashSet<Vector2I> visited = [];
+
+        // Intentar diferentes posibles direcciones para nuevos caminos
+        foreach (var sourcePath in nearbyPaths) {
+            foreach (var direction in TurnDirection(sourcePath.Direction)) {
+                // Verificar si podemos añadir un camino perpendicular desde este camino existente
+                if (!CanAddPathInDirection(sourcePath, direction, gap)) continue;
+
+                // Intentar encontrar una posición adecuada a lo largo del camino existente
+                var startPoint = FindSuitableStartPoint(sourcePath, direction, gap);
+                if (!startPoint.HasValue || !visited.Add(startPoint.Value)) continue;
+
+                // Crear una nueva intersección y camino
+                var intersection = City.GetOrCreateIntersectionAt(startPoint.Value);
+                intersection.CreatePathTo(direction);
+                break;
+            }
+        }
+
+        List<Path> FindPathsNearGap(Rect2I gap) {
+            HashSet<Path> addedPaths = [];
+            var minX = gap.Position.X;
+            var minY = gap.Position.Y;
+            var maxX = gap.Position.X + gap.Size.X - 1;
+            var maxY = gap.Position.Y + gap.Size.Y - 1;
+
+            // Top edge
+            for (var x = minX; x <= maxX; x++) {
+                CheckNeighborForPath(new Vector2I(x, minY) + Vector2I.Up);
+            }
+
+            // Bottom edge
+            for (var x = minX; x <= maxX; x++) {
+                CheckNeighborForPath(new Vector2I(x, maxY) + Vector2I.Down);
+            }
+
+            // Left edge (excluding corners already checked)
+            for (var y = minY + 1; y < maxY; y++) {
+                CheckNeighborForPath(new Vector2I(minX, y) + Vector2I.Left);
+            }
+
+            // Right edge (excluding corners already checked)
+            for (var y = minY + 1; y < maxY; y++) {
+                CheckNeighborForPath(new Vector2I(maxX, y) + Vector2I.Right);
+            }
+
+            return addedPaths.ToList();
+
+            void CheckNeighborForPath(Vector2I pos) {
+                if (City.Data.IsInBounds(pos) && City.Data[pos] is Path path) {
+                    addedPaths.Add(path);
+                }
+            }
+        }
+
+        bool CanAddPathInDirection(Path sourcePath, Vector2I direction, Rect2I gap) {
+            // Verificar si podemos añadir un camino en la dirección dada
+            foreach (var pathPos in sourcePath.GetPositions()) {
+                // El punto de inicio de la nueva carretera sería desde el camino existente
+                // Verificamos si desde este punto es posible crear un camino perpendicular
+                if (City.Data.IsInBounds(pathPos)) {
+                    // Comprobar el punto de inicio
+                    Vector2I nextPos = pathPos + direction;
+
+                    // Verificar que el primer paso esté dentro del gap
+                    if (City.Data.IsInBounds(nextPos) && City.Data[nextPos] == null && gap.GetPositions().Contains(nextPos)) {
+                        // Verificar que tengamos espacio para un camino de longitud mínima
+                        if (HasEnoughSpaceInGap(pathPos, direction, gap)) {
+                            // Verificar que no haya caminos paralelos cercanos
+                            if (!HasParallelPathsNearby(pathPos, direction)) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        Vector2I? FindSuitableStartPoint(Path sourcePath, Vector2I direction, Rect2I gap) {
+            List<Vector2I> candidates = [];
+
+            foreach (var pos in sourcePath.GetPositions()) {
+                // Verificar si es posible empezar un camino desde aquí
+                var nextPos = pos + direction;
+
+                // La primera celda debe estar libre y dentro del gap
+                if (!City.Data.IsInBounds(nextPos) ||
+                    City.Data[nextPos] != null ||
+                    !gap.GetPositions().Contains(nextPos)) continue;
+
+                // Verificar espacio y caminos paralelos
+                if (HasEnoughSpaceInGap(pos, direction, gap) &&
+                    !HasParallelPathsNearby(pos, direction)) {
+                    candidates.Add(pos);
+                }
+            }
+
+            if (candidates.Count == 0) return null;
+
+            // Elegir un punto que esté aproximadamente en el centro del camino,
+            // para evitar crear intersecciones demasiado cerca de los extremos
+            return candidates[candidates.Count / 2];
+        }
+
+        bool HasEnoughSpaceInGap(Vector2I start, Vector2I direction, Rect2I gap) {
+            var count = 0;
+            var pos = start;
+
+            // Necesitamos contar al menos StreetMinLength celdas libres
+            for (var i = 1; i <= Options.StreetMinLength * 2; i++) { // Verificamos el doble para tener margen
+                pos += direction;
+
+                // Verificar si la posición está fuera de los límites
+                if (!City.Data.IsInBounds(pos)) {
+                    break;
+                }
+
+                // Verificar si la posición tiene algo
+                if (City.Data[pos] != null) {
+                    break;
+                }
+
+                // Verificar si la posición está en el gap
+                if (!gap.GetPositions().Contains(pos)) {
+                    break;
+                }
+
+                count++;
+
+                // Si ya tenemos suficiente longitud, devolver true
+                if (count >= Options.StreetMinLength) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        bool HasParallelPathsNearby(Vector2I start, Vector2I direction) {
+            // La dirección perpendicular para verificar caminos paralelos
+            Vector2I perpendicular = direction.Rotate90Left();
+
+            // Comprobar en ambas direcciones perpendiculares hasta StreetMinLength de distancia
+            for (var dist = 1; dist <= Options.StreetMinLength; dist++) {
+                // Comprobar en ambas direcciones perpendiculares
+                if (HasParallelPathInLine(start + perpendicular * dist, direction) ||
+                    HasParallelPathInLine(start - perpendicular * dist, direction)) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        bool HasParallelPathInLine(Vector2I pos, Vector2I direction) {
+            // Verificar si esta posición está dentro de los límites
+            if (!City.Data.IsInBounds(pos)) {
+                return false;
+            }
+
+            // Verificar si hay un camino en esta posición
+            if (City.Data[pos] is Path path) {
+                // Si es un camino paralelo, devolver true
+                if (path.Direction == direction || path.Direction == -direction) {
+                    return true;
+                }
+            }
+
+            // Comprobar a lo largo de la línea en ambas direcciones
+            for (var offset = 1; offset <= Options.StreetMinLength; offset++) {
+                // Verificar hacia adelante
+                Vector2I checkPos = pos + direction * offset;
+                if (City.Data.IsInBounds(checkPos) && City.Data[checkPos] is Path forwardPath) {
+                    if (forwardPath.Direction == direction || forwardPath.Direction == -direction) {
+                        return true;
+                    }
+                }
+
+                // Verificar hacia atrás
+                checkPos = pos - direction * offset;
+                if (City.Data.IsInBounds(checkPos) && City.Data[checkPos] is Path backwardPath) {
+                    if (backwardPath.Direction == direction || backwardPath.Direction == -direction) {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
     }
 }

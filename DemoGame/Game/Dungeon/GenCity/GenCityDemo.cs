@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Betauer.Core;
 using Betauer.Core.DataMath;
+using Betauer.Core.DataMath.Geometry;
 using Godot;
 
 namespace Veronenger.Game.Dungeon.GenCity;
@@ -19,6 +20,7 @@ public class GenCityDemo {
     private int _playerY;
     private bool _running = true;
     private CityGenerator _generator;
+    private City _city;
     private CityRender _render;
 
     public const int Width = 140;
@@ -26,15 +28,18 @@ public class GenCityDemo {
     public const int Seed = 0;
 
     public static void Show() {
+        Console.OutputEncoding = Encoding.UTF8; // Para caracteres especiales
         new GenCityDemo().Start();
     }
 
     public static void Validate() {
+        Console.OutputEncoding = Encoding.UTF8; // Para caracteres especiales
         new GenCityDemo().ValidateStart();
     }
 
     public void ValidateStart() {
-        _generator = new City(Width, Height).CreateGenerator(CreateOptions(Seed));
+        _city = new City(Width, Height);
+        _generator = _city.CreateGenerator(CreateOptions());
 
         for (var i = Seed; i < 100000; i++) {
             _generator.Options.Seed = i;
@@ -45,10 +50,9 @@ public class GenCityDemo {
                 _generator.Start();
                 _generator.Grow();
 
-                _generator.City.ValidateIntersections(true);
-                _generator.City.ValidateRoads();
-                _generator.City.ValidateIntersectionPaths();
-
+                _city.ValidateIntersections(true);
+                _city.ValidateRoads();
+                _city.ValidateIntersectionPaths();
             } catch (Exception e) {
                 Render();
                 Console.WriteLine($"Seed:{_generator.Options.Seed}");
@@ -59,9 +63,12 @@ public class GenCityDemo {
     }
 
     public void Start() {
-        Console.OutputEncoding = Encoding.UTF8; // Para caracteres especiales
+        _city = new City(Width, Height);
+        _generator = _city.CreateGenerator(CreateOptions());
+        _render = new CityRender(_city);
         GenerateCity(Seed);
         InitializePlayer();
+        Render();
         while (_running) {
             HandleInput();
             Thread.Sleep(50); // Pequeña pausa para reducir el uso de CPU
@@ -69,34 +76,29 @@ public class GenCityDemo {
     }
 
     private void GenerateCity(int seed) {
-        _generator = new City(Width, Height).CreateGenerator(CreateOptions(seed));
-        _render = new CityRender(_generator.City);
-        _generator.City.OnUpdate = (_) => {
-            Render();
-            _generator.City.ValidateRoads();
-            _generator.City.ValidateIntersections(true);
+        _city.OnUpdate = (_) => {
+            // Render();
+            _city.ValidateRoads();
+            _city.ValidateIntersections();
         };
+        _generator.Options.Seed = seed;
         _generator.Start();
         _generator.Grow();
 
-        Render();
+        _city.ValidateIntersections(true);
+        _city.ValidateIntersectionPaths();
+        _city.ValidateRoads();
 
-        _generator.City.ValidateIntersections(true);
-        _generator.City.ValidateIntersectionPaths();
-        _generator.City.ValidateRoads();
-
-        _generator.GenerateBuildings();
-        Render();
+        // _generator.GenerateBuildings();
     }
 
-    private static CityGenerationOptions CreateOptions(int seed) {
+    private static CityGenerationOptions CreateOptions() {
         List<Vector2I> startDirections = [Vector2I.Right, Vector2I.Down, Vector2I.Left, Vector2I.Up];
 
         var options = new CityGenerationOptions {
-            Seed = seed,
             StartDirections = startDirections,
 
-            StreetMinLength = 3,
+            StreetMinLength = 6,
 
             ProbabilityIntersection = 0.20f,
 
@@ -122,7 +124,7 @@ public class GenCityDemo {
 
     private void RenderBuildings() {
         var buildingIndex = 0;
-        foreach (var building in _generator.City.Buildings) {
+        foreach (var building in _city.Buildings) {
             var buildingChar = BUILDING_CHARS[buildingIndex % BUILDING_CHARS.Length];
             foreach (var position in building.GetPositions()) {
                 _render.AsciiMap[position] = buildingChar;
@@ -133,7 +135,7 @@ public class GenCityDemo {
 
     private void InitializePlayer() {
         // Colocar al jugador en una carretera disponible
-        foreach (var intersection in _generator.City.Intersections) {
+        foreach (var intersection in _city.Intersections) {
             _playerX = intersection.Position.X;
             _playerY = intersection.Position.Y;
 
@@ -171,21 +173,17 @@ public class GenCityDemo {
         buffer.AppendLine("└" + new string('─', width) + "┘");
 
         Console.Write(buffer.ToString());
-        Console.WriteLine($"Seed: {_generator.Seed} R = Next seed - Q = Quit");
+        Console.WriteLine($"Seed: {_generator.Seed} | J/K/L = Seed | F = Fill ({_city.GetDensity()*100:0}%)f | Q = Quit");
 
-        var tile = _generator.City.Data[_playerY, _playerX];
-        Func<Vector2I, string> t = d => d == Vector2I.Right ? "->" : d == Vector2I.Down ? "v" : d == Vector2I.Left ? "<-" : "^";
-
+        var tile = _city.Data[_playerY, _playerX];
         Console.WriteLine($"Pos: {_playerX}, {_playerY} | {tile}");
     }
 
     private void HandleInput() {
         if (Console.KeyAvailable) {
             var key = Console.ReadKey(true).Key;
-
-            int newX = _playerX;
-            int newY = _playerY;
-
+            var newX = _playerX;
+            var newY = _playerY;
             switch (key) {
                 case ConsoleKey.UpArrow:
                     newY--;
@@ -202,10 +200,50 @@ public class GenCityDemo {
                 case ConsoleKey.Q:
                     _running = false;
                     return;
-                case ConsoleKey.R:
-                    // Regenerar la ciudad
+                case ConsoleKey.A:
+                    GenerateCity(_generator.Seed);
+                    _generator.FillGapsUntil(0.1f);
+                    Render();
+                    return;
+                case ConsoleKey.S:
+                    GenerateCity(_generator.Seed);
+                    _generator.FillGapsUntil(0.15f);
+                    Render();
+                    return;
+                case ConsoleKey.D:
+                    GenerateCity(_generator.Seed);
+                    _generator.FillGapsUntil(0.23f);
+                    Render();
+                    return;
+                case ConsoleKey.F:
+                    GenerateCity(_generator.Seed);
+                    _generator.FillGapsUntil(0.25f);
+                    Render();
+                    return;
+                case ConsoleKey.G:
+                    GenerateCity(_generator.Seed);
+                    _generator.FillGapsUntil(0.35f);
+                    Render();
+                    return;
+                case ConsoleKey.H:
+                    GenerateCity(_generator.Seed);
+                    _generator.FillGapsUntil(0.5f);
+                    Render();
+                    return;
+                case ConsoleKey.J:
+                    GenerateCity(_generator.Seed - 1);
+                    InitializePlayer();
+                    Render();
+                    return;
+                case ConsoleKey.K:
+                    GenerateCity(_generator.Seed);
+                    InitializePlayer();
+                    Render();
+                    return;
+                case ConsoleKey.L:
                     GenerateCity(_generator.Seed + 1);
                     InitializePlayer();
+                    Render();
                     return;
             }
 
