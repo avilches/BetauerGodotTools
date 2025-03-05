@@ -11,6 +11,11 @@ public class CityGenerationOptions {
     public int Seed { get; set; } = 1;
 
     /// <summary>
+    /// Change it to make the current seed different but still deterministic
+    /// </summary>
+    public int SeedOffset { get; set; } = 0;
+
+    /// <summary>
     /// Start generation position.
     /// Default: Center of map size
     /// </summary>

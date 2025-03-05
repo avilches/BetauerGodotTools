@@ -39,15 +39,20 @@ public class City(int width, int height) {
         return Intersections.SelectMany(intersection => intersection.GetOutputPaths().Where(p => !p.IsCompleted()));
     }
 
-    public void Reset() {
-        for (var y = 0; y < Height; y++) {
-            for (var x = 0; x < Width; x++) {
-                Data[y, x] = null;
-            }
-        }
+    public void Clear() {
+        Data.Fill(null);
         Intersections.Clear();
         Buildings.Clear();
         _intersectionId = 0;
+    }
+
+    public void RemoveBuildings() {
+        Buildings.Clear();
+        foreach (var (p, e) in Data.GetIndexedValues()) {
+            if (e is Building) {
+                Data[p] = null;
+            }
+        }
     }
 
     public float GetDensity() {

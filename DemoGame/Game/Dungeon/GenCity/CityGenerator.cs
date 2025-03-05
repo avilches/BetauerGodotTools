@@ -26,7 +26,7 @@ public class CityGenerator(City city) {
     public int Seed => Options.Seed;
 
     public void Start() {
-        City.Reset();
+        City.Clear();
         var startPosition = Options.StartPosition ?? new Vector2I(City.Width / 2, City.Height / 2);
         var intersection = City.GetOrCreateIntersectionAt(startPosition);
         foreach (var direction in Options.StartDirections) {
@@ -38,6 +38,11 @@ public class CityGenerator(City city) {
     public void Grow() {
         var isCompleted = false;
         var random = new Random(Options.Seed);
+        for (var n = 0; n < Options.SeedOffset; n++) {
+            random.NextDouble();
+        }
+        Options.SeedOffset = 0;
+
         var deleted = new HashSet<Path>();
         while (!isCompleted) {
             var paths = City.GetIncompletePaths().ToArray();
@@ -272,27 +277,7 @@ public class CityGenerator(City city) {
         return [direction, direction.Rotate90Left(), direction.Rotate90Right()];
     }
 
-    public List<Rect2I> FillGaps(int? minGapSize = null) {
-        var minSize = minGapSize ?? Options.StreetMinLength * 1.5;
-        var gaps = FindAllGaps()
-            .Where(gap => gap.Size.X >= minSize && gap.Size.Y >= minSize).ToList();
-        // Ordenar los huecos por tamaño (de mayor a menor)
-
-        gaps.Sort((a, b) => b.Area.CompareTo(a.Area));
-
-        var c = 'A';
-        foreach (var gap in gaps) {
-            // foreach (var p in gap.GetPositions()) City.Data[p] = new Other(c);
-            c++;
-        }
-
-        foreach (var gap in gaps) {
-            TryAddRoadsToGap(gap);
-        }
-        return gaps;
-    }
-
-    public IEnumerable<Rect2I> FindAllGaps() {
+    public IEnumerable<Rect2I> FindGaps() {
         var visited = new bool[City.Height, City.Width];
         for (var y = 0; y < City.Height; y++) {
             for (var x = 0; x < City.Width; x++) {
@@ -304,7 +289,7 @@ public class CityGenerator(City city) {
         }
     }
 
-    public Dictionary<Vector2I, Rect2I> FindGaps(IEnumerable<Vector2I> positions) {
+    public Dictionary<Vector2I, Rect2I> GetGaps(IEnumerable<Vector2I> positions) {
         var visited = new bool[City.Height, City.Width];
         Dictionary<Vector2I, Rect2I> result = [];
         foreach (var pos in positions) {
@@ -312,6 +297,56 @@ public class CityGenerator(City city) {
             result[pos] = gap;
         }
         return result;
+    }
+
+    /// <summary>
+    /// It will stop when the density reaches the minDensity, or no more paths can be added
+    /// </summary>
+    /// <param name="minDensity"></param>
+    public bool FillGaps(float minDensity = 1f) {
+        var density = City.GetDensity();
+        while (density < minDensity) {
+            var gaps = FindGaps().ToList();
+            if (gaps.Count == 0) {
+                return false;
+            }
+
+            // Ordenar los huecos por tamaño (de mayor a menor)
+            gaps.Sort((a, b) => b.Area.CompareTo(a.Area));
+
+            var addedAnyRoads = false;
+            foreach (var gap in gaps) {
+                if (TryAddRoadsToGap(gap).Count > 0) {
+                    addedAnyRoads = true;
+                    break;
+                }
+            }
+            if (!addedAnyRoads) {
+                return false;
+            }
+            Grow();
+            density = City.GetDensity();
+        }
+        return true;
+    }
+
+    public bool Generate(float desiredDensity, float timeout = 0.1f) {
+        City.Clear();
+        var subSeed = 1;
+        Start();
+        Grow();
+
+        var startTime = DateTime.Now;
+        while (!FillGaps(desiredDensity)) {
+            if ((DateTime.Now - startTime).TotalSeconds > timeout) {
+                return false;
+            }
+            Options.SeedOffset = ++subSeed;
+            City.Clear();
+            Start();
+            Grow();
+        }
+        return true;
     }
 
     private Rect2I FillRect(Vector2I start, bool[,] visited) {
@@ -395,23 +430,13 @@ public class CityGenerator(City city) {
         }
     }
 
-    public void FillGapsUntil(float minDensity = 1f) {
-        var density = City.GetDensity();
-        var minGap = Options.StreetMinLength * 2;
-        while (density < minDensity && minGap > 2) {
-            FillGaps(minGap);
-            Grow();
-            density = City.GetDensity();
-            minGap--;
-        }
-    }
-
-    private void TryAddRoadsToGap(Rect2I gap) {
+    private List<Path> TryAddRoadsToGap(Rect2I gap) {
         // Encontrar caminos existentes cerca del hueco
         List<Path> nearbyPaths = FindPathsNearGap(gap);
-        if (nearbyPaths.Count == 0) return;
+        if (nearbyPaths.Count == 0) return [];
 
         HashSet<Vector2I> visited = [];
+        List<Path> newPaths = [];
 
         // Intentar diferentes posibles direcciones para nuevos caminos
         foreach (var sourcePath in nearbyPaths) {
@@ -425,10 +450,12 @@ public class CityGenerator(City city) {
 
                 // Crear una nueva intersección y camino
                 var intersection = City.GetOrCreateIntersectionAt(startPoint.Value);
-                intersection.CreatePathTo(direction);
+                var newPath = intersection.CreatePathTo(direction);
+                newPaths.Add(newPath);
                 break;
             }
         }
+        return newPaths;
 
         List<Path> FindPathsNearGap(Rect2I gap) {
             HashSet<Path> addedPaths = [];
@@ -473,7 +500,7 @@ public class CityGenerator(City city) {
                 // Verificamos si desde este punto es posible crear un camino perpendicular
                 if (City.Data.IsInBounds(pathPos)) {
                     // Comprobar el punto de inicio
-                    Vector2I nextPos = pathPos + direction;
+                    var nextPos = pathPos + direction;
 
                     // Verificar que el primer paso esté dentro del gap
                     if (City.Data.IsInBounds(nextPos) && City.Data[nextPos] == null && gap.GetPositions().Contains(nextPos)) {
@@ -553,7 +580,7 @@ public class CityGenerator(City city) {
 
         bool HasParallelPathsNearby(Vector2I start, Vector2I direction) {
             // La dirección perpendicular para verificar caminos paralelos
-            Vector2I perpendicular = direction.Rotate90Left();
+            var perpendicular = direction.Rotate90Left();
 
             // Comprobar en ambas direcciones perpendiculares hasta StreetMinLength de distancia
             for (var dist = 1; dist <= Options.StreetMinLength; dist++) {

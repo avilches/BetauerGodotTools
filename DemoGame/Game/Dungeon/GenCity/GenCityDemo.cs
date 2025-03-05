@@ -40,8 +40,13 @@ public class GenCityDemo {
     public void ValidateStart() {
         _city = new City(Width, Height);
         _generator = _city.CreateGenerator(CreateOptions());
+        _render = new CityRender(_city);
+        var accDensity = 0f;
+        var minDensity = float.MaxValue;
+        var maxDensity = float.MinValue;
 
-        for (var i = Seed; i < 100000; i++) {
+        const int count = 10;
+        for (var i = Seed; i < count; i++) {
             _generator.Options.Seed = i;
             if (i % 100 == 0) {
                 Console.WriteLine(_generator.Options.Seed);
@@ -49,6 +54,18 @@ public class GenCityDemo {
             try {
                 _generator.Start();
                 _generator.Grow();
+                _generator.FillGaps();
+
+                /*
+                if (!_generator.Generate(0.26f, 0.5f)) {
+                    Console.WriteLine(_generator.Options.Seed + " nop");
+                }
+                */
+
+                var density = _city.GetDensity();
+                accDensity += density;
+                minDensity = Math.Min(minDensity, density);
+                maxDensity = Math.Max(maxDensity, density);
 
                 _city.ValidateIntersections(true);
                 _city.ValidateRoads();
@@ -60,6 +77,9 @@ public class GenCityDemo {
                 throw;
             }
         }
+        Console.WriteLine($"Average density {(accDensity * 100 / count):0.00}%");
+        Console.WriteLine($"Min density {minDensity * 100:0.00}%");
+        Console.WriteLine($"Max density {maxDensity * 100:0.00}%");
     }
 
     public void Start() {
@@ -173,7 +193,7 @@ public class GenCityDemo {
         buffer.AppendLine("└" + new string('─', width) + "┘");
 
         Console.Write(buffer.ToString());
-        Console.WriteLine($"Seed: {_generator.Seed} | J/K/L = Seed | F = Fill ({_city.GetDensity()*100:0}%)f | Q = Quit");
+        Console.WriteLine($"Seed: {_generator.Seed} | J/K/L = Seed | F = Fill ({_city.GetDensity() * 100:0}%)f | Q = Quit");
 
         var tile = _city.Data[_playerY, _playerX];
         Console.WriteLine($"Pos: {_playerX}, {_playerY} | {tile}");
@@ -201,33 +221,39 @@ public class GenCityDemo {
                     _running = false;
                     return;
                 case ConsoleKey.A:
-                    GenerateCity(_generator.Seed);
-                    _generator.FillGapsUntil(0.1f);
+                    var c = 'A';
+                    foreach (var gap in _generator.FindGaps()) {
+                        var ratio = (float)gap.Size.X / gap.Size.Y;
+                        if (ratio < 1) ratio = 1f / ratio;
+                        if (ratio < 2) continue;
+                        Console.WriteLine($"{c}: {ratio:0.00}");
+                        foreach (var p in gap.GetPositions()) _city.Data[p] = new Other(c);
+                        c++;
+                    }
                     Render();
                     return;
                 case ConsoleKey.S:
                     GenerateCity(_generator.Seed);
-                    _generator.FillGapsUntil(0.15f);
+                    _generator.FillGaps(0.15f);
                     Render();
                     return;
                 case ConsoleKey.D:
                     GenerateCity(_generator.Seed);
-                    _generator.FillGapsUntil(0.23f);
+                    _generator.FillGaps(0.18f);
                     Render();
                     return;
                 case ConsoleKey.F:
                     GenerateCity(_generator.Seed);
-                    _generator.FillGapsUntil(0.25f);
+                    _generator.FillGaps(0.25f);
                     Render();
                     return;
                 case ConsoleKey.G:
                     GenerateCity(_generator.Seed);
-                    _generator.FillGapsUntil(0.35f);
+                    _generator.FillGaps(0.35f);
                     Render();
                     return;
                 case ConsoleKey.H:
-                    GenerateCity(_generator.Seed);
-                    _generator.FillGapsUntil(0.5f);
+                    _generator.Generate(0.22f);
                     Render();
                     return;
                 case ConsoleKey.J:
@@ -243,6 +269,16 @@ public class GenCityDemo {
                 case ConsoleKey.L:
                     GenerateCity(_generator.Seed + 1);
                     InitializePlayer();
+                    Render();
+                    return;
+
+                case ConsoleKey.Z:
+                    _generator.GenerateBuildings();
+                    Render();
+                    return;
+
+                case ConsoleKey.X:
+                    _city.RemoveBuildings();
                     Render();
                     return;
             }
