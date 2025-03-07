@@ -13,11 +13,11 @@ public abstract class Array2D {
     public abstract int Height { get; }
     public abstract Rect2I Bounds { get; }
 
-    public static readonly ImmutableArray<Vector2I> VonNeumannDirections = ImmutableArray.Create(
+    public static readonly ImmutableArray<Vector2I> VonNeumannDirections = [
         Vector2I.Up, Vector2I.Right, Vector2I.Down, Vector2I.Left
-    );
+    ];
 
-    public static readonly ImmutableArray<Vector2I> MooreDirections = ImmutableArray.Create(
+    public static readonly ImmutableArray<Vector2I> MooreDirections = [
         Vector2I.Up,
         Vector2I.Up + Vector2I.Right,
         Vector2I.Right,
@@ -26,14 +26,14 @@ public abstract class Array2D {
         Vector2I.Down + Vector2I.Left,
         Vector2I.Left,
         Vector2I.Up + Vector2I.Left
-    );
+    ];
 
-    public static readonly ImmutableArray<Vector2I> DiagonalDirections = ImmutableArray.Create(
+    public static readonly ImmutableArray<Vector2I> DiagonalDirections = [
         Vector2I.Up + Vector2I.Right,
         Vector2I.Down + Vector2I.Right,
         Vector2I.Down + Vector2I.Left,
         Vector2I.Up + Vector2I.Left
-    );
+    ];
 
     public static Array2D<T> Parse<T>(string template, Dictionary<char, T> transform) {
         return Parse(template, c => transform[c]);
