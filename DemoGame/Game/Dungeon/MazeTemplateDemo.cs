@@ -24,9 +24,9 @@ public class MazeTemplateDemo {
     public static void AddFlags(MazeZones zones) {
         foreach (var node in zones.GetNodes()) {
             var score = zones.GetScore(node);
-            
+
             // if (score.) {
-                // node.AddOptionalFlag("corridor");
+            // node.AddOptionalFlag("corridor");
             // }
         }
     }
@@ -43,7 +43,8 @@ public class MazeTemplateDemo {
         AddFlags(zones);
 
         // Crear el gestor de patrones con un tamaño de celda de 5x5
-        var templateSet = new TemplateSet(cellSize: 9);
+        var cellSize = 9;
+        var templateSet = new TemplateSet(cellSize);
 
         // Cargar patrones de diferentes archivos
         try {
@@ -52,28 +53,21 @@ public class MazeTemplateDemo {
             templateSet.ValidateAll(c => c is '#' or '.', true);
             templateSet.ApplyTransformations(c => c is '#' or '.');
 
-            var array2D = zones.MazeGraph.Render((pos, node) => {
+            var templates = zones.MazeGraph.ToArray2D((pos, node) => {
                 var templates = templateSet.FindTemplates(node.GetDirectionFlags()).ToArray();
                 return rng.Next(templates).Body;
             });
 
+            var array2D = templates.Expand(cellSize, (pos, value) => value);
+
             MazeGraphZonedDemo.PrintGraph(zones.MazeGraph, zones);
-            PrintArray2D(array2D);
+            // Print the array2D to the console, replacing '.' characters with spaces
+            // for better visualization of the maze structure
+            Console.WriteLine(array2D.GetString(v => v == '.' ? " " : v.ToString()));
         } catch (FileNotFoundException e) {
             Console.WriteLine(e.Message);
             Console.WriteLine($"{nameof(TemplatePath)} is '{TemplatePath}'");
             Console.WriteLine("Ensure the working directory is the root of the project");
-        }
-    }
-
-    private static void PrintArray2D(Array2D<char> array2D) {
-        for (var y = 0; y < array2D.Height; y++) {
-            for (var x = 0; x < array2D.Width; x++) {
-                var value = array2D[y, x];
-                if (value == '.') value = ' ';
-                Console.Write(value);
-            }
-            Console.WriteLine();
         }
     }
 }
