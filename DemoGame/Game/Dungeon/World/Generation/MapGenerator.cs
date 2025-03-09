@@ -13,7 +13,6 @@ using Godot;
 namespace Veronenger.Game.Dungeon.World.Generation;
 
 public class MapGenerator {
-    // The MazeNode contains two attributes
     public record MapGenerationResult(MazeZones Zones, Array2D<WorldCell?> WorldCellMap);
 
     public static MapGenerationResult GenerateMap(MapType mapType, int seed) {
@@ -21,27 +20,33 @@ public class MapGenerator {
         var zones = mapTypeConfig.GenerateZones(seed);
         var templateSet = mapTypeConfig.TemplateSet;
 
-        // Creates an empty array2D of templates. This will be used in the Render method to track the template used for
+        // Creates an empty array2D of templates. This will be filled later step by step to track the template used for
         // each node during the selection the next one. The first one will be random, but the next one should try to match the
         // previous: the down side of the top template should match to the up side, the some for the node at the left: the right side of it
         // should match the left side of the current node.
-        var templateArray = zones.MazeGraph.ToArray2D(Template? (_, _) => null);
+        var templateArray = new Array2D<Template?>(zones.MazeGraph.GetSize());
         var rngMap = new Random(seed);
+        var size = templateSet.CellSize;
+        var nodeArray = zones.MazeGraph.ToArray2D<MazeNode>((nodePos, node) => {
+            var template = GetTemplate(rngMap, templateArray, templateSet, nodePos, node);
+            node.SetTemplate(template);
+            return node;
+        });
 
-        Template lastTemplate = null!;
-        Array2D<WorldCell?> worldCellMap = zones.MazeGraph.Render((nodePos, node) => {
-                lastTemplate = GetTemplate(rngMap, templateArray, templateSet, nodePos, node);
-                node.SetTemplate(lastTemplate);
-                return lastTemplate.Body;
-            },
-            (nodePos, node, cellPosition, cellChar) => {
-                var worldCell = CellDefinitionConfig.CreateCell(cellChar, cellPosition);
+        var worldCellMap = templateArray.Expand<WorldCell>(size, (pos, template) => {
+            if (template == null) return null;
+            var node = nodeArray[pos];
+            var expandedPart = new Array2D<WorldCell?>(size, size);
+            foreach (var (innerPos, templateCell) in template.Body.GetIndexedValues()) {
+                var worldCell = CellDefinitionConfig.CreateCell(templateCell, pos * size  + innerPos);
                 if (worldCell != null) {
                     node.AddWorldCell(worldCell);
                     worldCell.SetMazeNode(node);
                 }
-                return worldCell;
-            });
+                expandedPart[innerPos] = worldCell;
+            }
+            return expandedPart;
+        });
 
         MazeGraphZonedDemo.PrintGraph(zones.MazeGraph, zones);
         // PrintTemplates(templateSet.FindTemplates().ToList());

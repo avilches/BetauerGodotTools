@@ -1,0 +1,88 @@
+@ Define=Deadend  dir=N       transform:all dir:N:size=3
+@ Define=Corner   dir=S-E     transform:all dir:S:size=3 dir:E:size=3
+@ Define=Corridor dir=N-S     transform:all dir:N:size=3 dir:S:size=3
+@ Define=Fork     dir=N-E-S   transform:all dir:N:size=3 dir:S:size=3 dir:E:size=3
+@ Define=Cross    dir=N-S-E-W transform:all dir:N:size=3 dir:S:size=3 dir:E:size=3 dir:W:size=3
+
+// ------------------------------------------------------------
+// Dead ends
+// ------------------------------------------------------------
+
+@ Template=Deadend id=0
+.#o#.
+.###.
+.#o#.
+.###.
+.....
+
+@ Template=Deadend id=1
+
+.#o#.
+.###.
+.#o#.
+.....
+.....
+
+@ Template=Deadend id=2
+
+.#o#.
+.###.
+.###.
+.....
+.....
+
+
+// ------------------------------------------------------------
+// Corners
+// ------------------------------------------------------------
+
+@ Template=Corner id=10
+.....
+.####
+.##oo
+.#o##
+.#o#.
+
+@ Template=Corner id=11
+.....
+..###
+.##oo
+.#o##
+.#o#.
+
+
+
+// ------------------------------------------------------------
+// Corridors
+// ------------------------------------------------------------
+
+@ Template=Corridor id=20
+
+.#o#.
+.###.
+.#o#.
+.###.
+.#o#.
+
+
+// ----------
+// Forks
+// ----------
+
+@ Template=Fork id=30
+.oo##
+.###o
+.#ooo
+.####
+.#oo#
+
+// ------------------------------------------------------------
+// Crossroads
+// ------------------------------------------------------------
+
+@ Template=Cross id=40 mirror:bt mirror:lr
+#oo##
+####o
+o#o#o
+o####
+##oo#

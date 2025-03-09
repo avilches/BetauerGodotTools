@@ -41,7 +41,6 @@ public class CityGenerator(City city) {
         for (var n = 0; n < Options.SeedOffset; n++) {
             random.NextDouble();
         }
-        Options.SeedOffset = 0;
 
         var deleted = new HashSet<Path>();
         while (!isCompleted) {
@@ -331,22 +330,24 @@ public class CityGenerator(City city) {
     }
 
     public bool Generate(float desiredDensity, float timeout = 0.1f) {
-        City.Clear();
-        var subSeed = 1;
-        Start();
-        Grow();
+        Options.SeedOffset = 0;
+        Regenerate();
 
         var startTime = DateTime.Now;
         while (!FillGaps(desiredDensity)) {
             if ((DateTime.Now - startTime).TotalSeconds > timeout) {
                 return false;
             }
-            Options.SeedOffset = ++subSeed;
+            Options.SeedOffset++;
+            Regenerate();
+        }
+        return true;
+        
+        void Regenerate() {
             City.Clear();
             Start();
             Grow();
         }
-        return true;
     }
 
     private Rect2I FillRect(Vector2I start, bool[,] visited) {

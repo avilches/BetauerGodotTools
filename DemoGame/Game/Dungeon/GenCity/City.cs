@@ -7,12 +7,16 @@ using Godot;
 
 namespace Veronenger.Game.Dungeon.GenCity;
 
-public interface ICityTile;
+public interface ICityTile {
+    byte GetDirectionFlags();
+}
 
 public class Other(char c) : ICityTile {
     public char C = c;
+    public byte GetDirectionFlags() {
+        return 0;
+    }
 }
-
 
 public class City(int width, int height) {
     public int Width { get; } = width;

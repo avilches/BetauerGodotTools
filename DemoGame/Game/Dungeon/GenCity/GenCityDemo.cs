@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -7,6 +8,8 @@ using System.Threading.Tasks;
 using Betauer.Core;
 using Betauer.Core.DataMath;
 using Betauer.Core.DataMath.Geometry;
+using Betauer.Core.Examples;
+using Betauer.Core.PCG.GridTemplate;
 using Godot;
 
 namespace Veronenger.Game.Dungeon.GenCity;
@@ -14,7 +17,11 @@ namespace Veronenger.Game.Dungeon.GenCity;
 public class GenCityDemo {
     private const char PLAYER = '@'; // Jugador
 
-    private readonly char[] BUILDING_CHARS = { '#', '■', '□', '▣', '▤', '▥', '▦', '▧', '▨', '▩' };
+    const string TemplatePath = "/Users/avilches/Library/Mobile Documents/com~apple~CloudDocs/Shared/Godot/Betauer4/DemoGame/Game/Dungeon/CityTemplateDemos3-line.txt";
+    const int TemplateCellSize = 3;
+
+    // private readonly char[] BUILDING_CHARS = { '#', '■', '□', '▣', '▤', '▥', '▦', '▧', '▨', '▩' };
+    private readonly char[] BUILDING_CHARS = { '▓', '█', '▒', '▞' };
 
     private int _playerX;
     private int _playerY;
@@ -86,7 +93,7 @@ public class GenCityDemo {
         _city = new City(Width, Height);
         _generator = _city.CreateGenerator(CreateOptions());
         _render = new CityRender(_city);
-        GenerateCity(Seed);
+        GenerateCity(Seed, 0);
         InitializePlayer();
         Render();
         while (_running) {
@@ -95,21 +102,20 @@ public class GenCityDemo {
         }
     }
 
-    private void GenerateCity(int seed) {
+    private void GenerateCity(int seed, int seedOffset) {
         _city.OnUpdate = (_) => {
             // Render();
             _city.ValidateRoads();
             _city.ValidateIntersections();
         };
         _generator.Options.Seed = seed;
+        _generator.Options.SeedOffset = seedOffset;
         _generator.Start();
         _generator.Grow();
 
         _city.ValidateIntersections(true);
         _city.ValidateIntersectionPaths();
         _city.ValidateRoads();
-
-        // _generator.GenerateBuildings();
     }
 
     private static CityGenerationOptions CreateOptions() {
@@ -137,9 +143,29 @@ public class GenCityDemo {
     }
 
     private void Render() {
+        // RenderScaled();
         _render.Render();
         RenderBuildings();
         RenderGame();
+    }
+
+    private void RenderScaled() {
+        var rng = new Random(_generator.Options.Seed);
+        var templateSet = new TemplateSet(TemplateCellSize);
+
+        var content = File.ReadAllText(TemplatePath);
+        templateSet.LoadFromString(content);
+        // templateSet.ValidateAll(c => c is '.', true);
+        // templateSet.ApplyTransformations(c => c is '.');
+
+        var empty = new Array2D<char>(TemplateCellSize, TemplateCellSize);
+        empty.Fill(' ');
+        var array2D = _city.Data.Expand(TemplateCellSize, (pos, tile) => {
+            if (tile == null) return empty;
+            var templates = templateSet.FindTemplates(tile.GetDirectionFlags()).ToArray();
+            return rng.Next(templates).Body;
+        });
+        Console.WriteLine(array2D);
     }
 
     private void RenderBuildings() {
@@ -192,7 +218,7 @@ public class GenCityDemo {
         buffer.AppendLine("└" + new string('─', width) + "┘");
 
         Console.Write(buffer.ToString());
-        Console.WriteLine($"Seed: {_generator.Seed} | J/K/L = Seed | F = Fill ({_city.GetDensity() * 100:0}%)f | Q = Quit");
+        Console.WriteLine($"Seed: {_generator.Seed}/{_generator.Options.SeedOffset} | J/K/L = Seed | F = Fill ({_city.GetDensity() * 100:0}%)f | Q = Quit");
 
         var tile = _city.Data[_playerY, _playerX];
         Console.WriteLine($"Pos: {_playerX}, {_playerY} | {tile}");
@@ -232,22 +258,22 @@ public class GenCityDemo {
                     Render();
                     return;
                 case ConsoleKey.S:
-                    GenerateCity(_generator.Seed);
+                    GenerateCity(_generator.Seed, _generator.Options.SeedOffset);
                     _generator.FillGaps(0.15f);
                     Render();
                     return;
                 case ConsoleKey.D:
-                    GenerateCity(_generator.Seed);
+                    GenerateCity(_generator.Seed, _generator.Options.SeedOffset);
                     _generator.FillGaps(0.18f);
                     Render();
                     return;
                 case ConsoleKey.F:
-                    GenerateCity(_generator.Seed);
+                    GenerateCity(_generator.Seed, _generator.Options.SeedOffset);
                     _generator.FillGaps(0.25f);
                     Render();
                     return;
                 case ConsoleKey.G:
-                    GenerateCity(_generator.Seed);
+                    GenerateCity(_generator.Seed, _generator.Options.SeedOffset);
                     _generator.FillGaps(0.35f);
                     Render();
                     return;
@@ -256,17 +282,17 @@ public class GenCityDemo {
                     Render();
                     return;
                 case ConsoleKey.J:
-                    GenerateCity(_generator.Seed - 1);
+                    GenerateCity(_generator.Seed - 1, _generator.Options.SeedOffset);
                     InitializePlayer();
                     Render();
                     return;
                 case ConsoleKey.K:
-                    GenerateCity(_generator.Seed);
+                    GenerateCity(_generator.Seed, 0);
                     InitializePlayer();
                     Render();
                     return;
                 case ConsoleKey.L:
-                    GenerateCity(_generator.Seed + 1);
+                    GenerateCity(_generator.Seed + 1, _generator.Options.SeedOffset);
                     InitializePlayer();
                     Render();
                     return;

@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using Betauer.Core;
+using Betauer.Core.PCG.GridTemplate;
 using Godot;
 
 namespace Veronenger.Game.Dungeon.GenCity;
 
 public class Path(string id, Intersection start, Vector2I direction) : ICityTile {
-
     public string Id { get; } = id;
     public Vector2I Direction { get; } = direction;
     public Intersection? End = null;
@@ -63,6 +63,13 @@ public class Path(string id, Intersection start, Vector2I direction) : ICityTile
     public override string ToString() {
         var endText = End != null ? $"To Id:'{End.Id}' {End.Position}" : $" To {_cursor} (incomplete)";
         return $"Path \"{Id}\" - Length: {GetLength()} - Start Id:\"{Start.Id}\" {Start.Position} - {Direction.ToDirectionString()} - {endText}";
+    }
+
+    public byte GetDirectionFlags() {
+        byte directions = 0;
+        directions |= (byte)DirectionFlagTools.Vector2IToDirectionFlag(Direction);
+        directions |= (byte)DirectionFlagTools.Vector2IToDirectionFlag(-Direction);
+        return directions;
     }
 
     public bool IsPerpendicular(Path other) {

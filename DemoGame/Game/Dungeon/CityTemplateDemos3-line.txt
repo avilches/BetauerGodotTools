@@ -1,0 +1,107 @@
+@ Define=Deadend  dir:N:size=3 dir:S:size=3 dir:E:size=3 dir:W:size=3
+@ Define=Corner   dir:N:size=3 dir:S:size=3 dir:E:size=3 dir:W:size=3
+@ Define=Corridor dir:N:size=3 dir:S:size=3 dir:E:size=3 dir:W:size=3
+@ Define=Fork     dir:N:size=3 dir:S:size=3 dir:E:size=3 dir:W:size=3
+@ Define=Cross    dir:N:size=3 dir:S:size=3 dir:E:size=3 dir:W:size=3
+
+
+// ------------------------------------------------------------
+// Dead ends
+// ------------------------------------------------------------
+
+@ Template=Deadend id=0 dir=N
+│.│
+│.│
+┴─┴
+
+@ Template=Deadend id=1 dir=S
+┬─┬
+│.│
+│.│
+
+@ Template=Deadend id=2 dir=E
+├──
+│..
+├──
+
+
+@ Template=Deadend id=3 dir=W
+──┤
+..│
+──┤
+
+
+// ------------------------------------------------------------
+// Corners
+// ------------------------------------------------------------
+
+@ Template=Corner id=10 dir=S-E
+┌──
+│##
+│#┌
+
+@ Template=Corner id=11 dir=S-W
+──┐
+##│
+┐#│
+
+
+@ Template=Corner id=12 dir=N-E
+│#└
+│##
+└──
+
+@ Template=Corner id=13 dir=N-W
+┘#│
+##│
+──┘
+
+
+
+// ------------------------------------------------------------
+// Corridors
+// ------------------------------------------------------------
+
+@ Template=Corridor id=20 dir=N-S
+│#│
+│#│
+│#│
+
+@ Template=Corridor id=21 dir=E-W
+───
+###
+───
+
+
+// ----------
+// Forks
+// ----------
+
+@ Template=Fork id=30 dir=N-S-E
+│#└
+│##
+│#┌
+
+@ Template=Fork id=31 dir=N-S-W
+┘#│
+##│
+┐#│
+
+@ Template=Fork id=32 dir=N-E-W
+┘#└
+###
+───
+
+@ Template=Fork id=33 dir=S-E-W
+───
+###
+┐#┌
+
+// ------------------------------------------------------------
+// Crossroads
+// ------------------------------------------------------------
+
+@ Template=Cross id=40 dir=N-S-E-W
+┘#└
+###
+┐#┌

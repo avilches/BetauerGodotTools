@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Betauer.Core;
+using Betauer.Core.PCG.GridTemplate;
 using Godot;
 
 namespace Veronenger.Game.Dungeon.GenCity;
@@ -16,7 +17,6 @@ public enum IntersectionType {
 }
 
 public class Intersection(int id, Vector2I position) : ICityTile {
-
     public int Id { get; } = id;
     public Vector2I Position { get; } = position;
 
@@ -33,6 +33,15 @@ public class Intersection(int id, Vector2I position) : ICityTile {
     public Path? Down => FindPathTo(Vector2I.Down);
     public Path? Right => FindPathTo(Vector2I.Right);
     public Path? Left => FindPathTo(Vector2I.Left);
+
+    public byte GetDirectionFlags() {
+        byte directions = 0;
+        if (Left != null) directions |= (byte)DirectionFlag.Left;
+        if (Right != null) directions |= (byte)DirectionFlag.Right;
+        if (Up != null) directions |= (byte)DirectionFlag.Up;
+        if (Down != null) directions |= (byte)DirectionFlag.Down;
+        return directions;
+    }
 
     private int _pathId = 0;
 

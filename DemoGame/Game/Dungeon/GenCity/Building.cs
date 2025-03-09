@@ -12,6 +12,10 @@ public class Building : ICityTile {
     public int Height { get;  }
     public Path Path { get; private set; }
 
+    public byte GetDirectionFlags() {
+        return 0;
+    }
+
     public Building(Path path, List<Vector2I> vertices) {
         if (vertices.Count != 4) {
             throw new ArgumentException("Invalid building vertices");
