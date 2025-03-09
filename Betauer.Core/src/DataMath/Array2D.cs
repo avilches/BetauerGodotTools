@@ -187,6 +187,43 @@ public class Array2D<T>(T[,] data) : Array2D, IEnumerable<T> {
         return array2D;
     }
 
+    public Array2D<TCell> Expand<TCell>(int scale, Action<Vector2I, T, Array2D<TCell>> valueFunc) {
+        if (scale < 1) throw new ArgumentException("Scale must be greater than 0");
+
+        var value = new Array2D<TCell>(Height * scale, Width * scale);
+        var array2D = new Array2D<TCell>(Width * scale, Height * scale);
+        for (var y = 0; y < Height; y++) {
+            for (var x = 0; x < Width; x++) {
+                valueFunc.Invoke(new Vector2I(x, y), Data[y, x], value);
+                for (var dy = 0; dy < scale; dy++) {
+                    for (var dx = 0; dx < scale; dx++) {
+                        array2D[y * scale + dy, x * scale + dx] = value[dy, dx];
+                    }
+                }
+            }
+        }
+        return array2D;
+    }
+
+    public Array2D<TCell> Expand<TCell>(int scale, Func<Vector2I, T, Array2D<TCell>> valueFunc) {
+        if (scale < 1) throw new ArgumentException("Scale must be greater than 0");
+
+        var array2D = new Array2D<TCell>(Width * scale, Height * scale);
+        for (var y = 0; y < Height; y++) {
+            for (var x = 0; x < Width; x++) {
+                var value = valueFunc.Invoke(new Vector2I(x, y), Data[y, x]);
+
+                if (value == null) continue;
+                for (var dy = 0; dy < scale; dy++) {
+                    for (var dx = 0; dx < scale; dx++) {
+                        array2D[y * scale + dy, x * scale + dx] = value[dy, dx];
+                    }
+                }
+            }
+        }
+        return array2D;
+    }
+
     public Array2D<TOut> Clone<TOut>(Func<T, TOut> transformer) {
         return Clone(0, 0, Width, Height, transformer);
     }
