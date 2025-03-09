@@ -88,8 +88,8 @@ public class TemplateSet(int cellSize) {
     public void LoadFromString(string content, Func<Template, bool> filter, char lineSeparator = '\n') {
         var buffer = new List<string>();
         Template? template = null;
-        Core.AttributeParser.ParseResult? currentParseResult = null;
-        var defines = new Dictionary<string, Core.AttributeParser.ParseResult>(StringComparer.OrdinalIgnoreCase) {
+        AttributeParser.ParseResult? currentParseResult = null;
+        var defines = new Dictionary<string, AttributeParser.ParseResult>(StringComparer.OrdinalIgnoreCase) {
             [DefaultToken] = new(StringComparer.OrdinalIgnoreCase)
         };
 
@@ -101,8 +101,10 @@ public class TemplateSet(int cellSize) {
             }
 
             if (line.StartsWith("@ ", StringComparison.Ordinal) || line.StartsWith("@\t", StringComparison.Ordinal)) {
+                ProcessPreviousTemplate();
+                
                 // Parseamos toda la línea como un conjunto de atributos y tags
-                var lineParserResult = Core.AttributeParser.Parse(line[1..], true);
+                var lineParserResult = AttributeParser.Parse(line[1..], true);
 
                 // Define template
                 if (IsTemplateDefinition(lineParserResult, defines)) {
@@ -111,7 +113,7 @@ public class TemplateSet(int cellSize) {
 
                 if (template == null || currentParseResult == null) {
                     template = new Template();
-                    currentParseResult = new Core.AttributeParser.ParseResult(StringComparer.OrdinalIgnoreCase);
+                    currentParseResult = new AttributeParser.ParseResult(StringComparer.OrdinalIgnoreCase);
                 }
 
                 // Use a template
@@ -188,20 +190,20 @@ public class TemplateSet(int cellSize) {
         }
     }
 
-    private bool IsTemplateDefinition(AttributeParser.ParseResult lineParserResult, Dictionary<string, Core.AttributeParser.ParseResult> defines) {
-        if (lineParserResult.Attributes.Remove(DefineId, out var defineName)) {
-            if (defines.TryGetValue(defineName.ToString()!, out var previous)) {
-                foreach (var tag in lineParserResult.Tags) previous.Tags.Add(tag);
-                foreach (var (k, value) in lineParserResult.Attributes) previous.Attributes[k] = value;
-            } else {
-                defines[defineName.ToString()!] = lineParserResult;
-            }
-            return true;
+    private bool IsTemplateDefinition(AttributeParser.ParseResult lineParserResult, Dictionary<string, AttributeParser.ParseResult> defines) {
+        if (!lineParserResult.Attributes.Remove(DefineId, out var defineName)) {
+            return false;
         }
-        return false;
+        if (defines.TryGetValue(defineName.ToString()!, out var previous)) {
+            foreach (var tag in lineParserResult.Tags) previous.Tags.Add(tag);
+            foreach (var (k, value) in lineParserResult.Attributes) previous.Attributes[k] = value;
+        } else {
+            defines[defineName.ToString()!] = lineParserResult;
+        }
+        return true;
     }
 
-    private void UseTemplateDefinition(Core.AttributeParser.ParseResult lineParserResult, Core.AttributeParser.ParseResult currentParseResult, int lineNumber, string line, Dictionary<string, Core.AttributeParser.ParseResult> defines) {
+    private void UseTemplateDefinition(AttributeParser.ParseResult lineParserResult, AttributeParser.ParseResult currentParseResult, int lineNumber, string line, Dictionary<string, AttributeParser.ParseResult> defines) {
         if (lineParserResult.Attributes.TryGetValue(TemplateId, out var templateName)) {
             if (currentParseResult.Attributes.TryGetValue(TemplateId, out var previousTemplateName)) {
                 throw new ArgumentException($"Error in line #{lineNumber}: {line}\nCan't use template definition \"{templateName}\", it already has a template \"{previousTemplateName}\": {currentParseResult}");
@@ -217,7 +219,7 @@ public class TemplateSet(int cellSize) {
         }
     }
 
-    private Array2D<char> ParseTemplateBody(List<string> lines, Core.AttributeParser.ParseResult currentParseResult) {
+    private Array2D<char> ParseTemplateBody(List<string> lines, AttributeParser.ParseResult currentParseResult) {
         if (lines.Count == 0) {
             throw new ArgumentException($"Empty template for: {currentParseResult}");
         }
@@ -315,17 +317,17 @@ public class TemplateSet(int cellSize) {
                     tag.StartsWith("flip:") ? "flip:" :
                     tag.StartsWith("mirror:") ? "mirror:" : null;
 
-                if (prefix != null) {
-                    var found = false;
-                    foreach (var (tags, transform) in Transformations) {
-                        if (tags.Contains(tag)) {
-                            transformsToApply.Add(transform);
-                            found = true;
-                            break;
-                        }
+                if (prefix == null) continue;
+                
+                var found = false;
+                foreach (var (tags, transform) in Transformations) {
+                    if (tags.Contains(tag)) {
+                        transformsToApply.Add(transform);
+                        found = true;
+                        break;
                     }
-                    if (!found) ThrowUnknownTransformationError(prefix, tag);
                 }
+                if (!found) ThrowUnknownTransformationError(prefix, tag);
             }
 
             if (transformsToApply.Count > 0) {

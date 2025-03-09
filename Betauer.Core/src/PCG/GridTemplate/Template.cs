@@ -70,7 +70,7 @@ public class Template {
     public IEnumerable<string> MatchingTags(string[] tags) => tags.Where(tag => Tags.Contains(tag));
 
     public override string ToString() {
-        return $"Id: {Core.AttributeParser.ParseResult.Print(Id)} DirectionFlags: \"{DirectionFlagTools.FlagsToString(DirectionFlags)}\" ({DirectionFlags}) Tags: {string.Join(",", Tags.OrderBy(s => s))} {Attributes.Count} Attributes: {string.Join(" ", Attributes.Select(pair => pair.Key + "=" + Core.AttributeParser.ParseResult.Print(pair.Value)).OrderBy(t => t))}".Trim();
+        return $"Id: {AttributeParser.ParseResult.Print(Id)} DirectionFlags: \"{DirectionFlagTools.FlagsToString(DirectionFlags)}\" ({DirectionFlags}) Tags: {string.Join(",", Tags.OrderBy(s => s))} {Attributes.Count} Attributes: {string.Join(" ", Attributes.Select(pair => pair.Key + "=" + AttributeParser.ParseResult.Print(pair.Value)).OrderBy(t => t))}".Trim();
     }
 
     public Template Transform(Transformations.Type type) {
@@ -109,16 +109,19 @@ public class Template {
                 for (var i = 0; i < length; i++) {
                     var pos = horizontal ? new Vector2I(i, startPos.Y) : new Vector2I(startPos.X, i);
                     if (!isBlocked(Body[pos])) {
-                        if (throwException) throw new Exception($"Invalid template {Id} in side {DirectionFlagTools.DirectionFlagToString(flag)}: Position {pos} should be blocked");
+                        if (throwException) throw new Exception($"Invalid template {Id} in side {DirectionFlagTools.DirectionFlagToString(flag)}: Position {pos} should be blocked:\n{Body}");
                         return false;
                     }
                 }
             } else {
                 // Si hay salida, validar que el tamaño es correcto (1, 3 o 5)
-                var width = GetAttributeOr(flag, "size", 1);
+                var width = GetAttributeOr(flag, "size", -1);
+                if (width < 0) {
+                    if (throwException) throw new Exception($"Invalid template {Id}. No exit 'size' attribute defined in {DirectionFlagTools.DirectionFlagToString(flag)}.");
+                    throwException = true;
+                }
                 if (width % 2 == 0) {
                     if (throwException) throw new Exception($"Invalid template {Id}. Direction size {DirectionFlagTools.DirectionFlagToString(flag)} should be an odd number: {width}");
-                    ;
                     return false;
                 }
 
