@@ -13,7 +13,7 @@ namespace Betauer.Core.PCG.Maze;
 public class MazeGraph {
     protected readonly Dictionary<Vector2I, MazeNode> NodeGrid = [];
     protected readonly Dictionary<int, MazeNode> Nodes = [];
-
+             
     /// <summary>
     /// By default, up, right, down and left directions are considered as adjacent.
     /// Change to use a different set of directions, like Array2D.MooreDirections for diagonal connections.
@@ -387,6 +387,16 @@ public class MazeGraph {
         }
 
         return string.Join(lineSeparator, grid.Select(row => new string(row)));
+    }
+    
+    public Array2D<TCell> ToArray2D<TCell>(Func<Vector2I, MazeNode, TCell> transformer) {
+        var graphOffset = GetOffset();
+        var array2D = new Array2D<TCell>(GetSize());
+        foreach (var node in GetNodes()) {
+            var pos = node.Position - graphOffset;
+            array2D[pos] = transformer(pos, node);
+        }
+        return array2D;
     }
 
     /// <summary>
