@@ -121,6 +121,28 @@ public class MazeGraphCatalog {
     }
 
     /// <summary>
+    /// 4 zone of one single corridor, all of them start in the zone 0 
+    /// </summary>
+    /// <param name="rng"></param>
+    /// <param name="config"></param>
+    /// <returns></returns>
+    public static MazeZones City(Random rng, Action<MazeGraph>? config = null) {
+        var constraints = new MazePerZoneConstraints()
+            .Zone(nodes: 3, corridor: true)
+            .Zone(nodes: 3, parts: 2, corridor: true)
+            .Zone(nodes: 6, parts: 1, corridor: false)
+            .Zone(nodes: 2, parts: 1, corridor: true, flexibleParts: false);
+        var maze = new MazeGraph();
+        config?.Invoke(maze);
+        var zones = maze.GrowZoned(Vector2I.Zero, constraints, rng);
+        maze.GetPotentialCycles().Query().WhereNodesInSameZone().ConnectAll().ForEach(c => {
+            c.nodeA.GetEdgeTo(c.nodeB)!.Attributes().Set("cycle", true);
+            c.nodeB.GetEdgeTo(c.nodeA)!.Attributes().Set("cycle", true);
+        });
+        return zones;
+    }
+
+    /// <summary>
     /// Medium start node and a lot of corridors 
     /// </summary>
     /// <param name="rng"></param>

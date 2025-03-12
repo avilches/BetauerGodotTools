@@ -204,18 +204,19 @@ public class TemplateSet(int cellSize) {
     }
 
     private void UseTemplateDefinition(AttributeParser.ParseResult lineParserResult, AttributeParser.ParseResult currentParseResult, int lineNumber, string line, Dictionary<string, AttributeParser.ParseResult> defines) {
-        if (lineParserResult.Attributes.TryGetValue(TemplateId, out var templateName)) {
-            if (currentParseResult.Attributes.TryGetValue(TemplateId, out var previousTemplateName)) {
-                throw new ArgumentException($"Error in line #{lineNumber}: {line}\nCan't use template definition \"{templateName}\", it already has a template \"{previousTemplateName}\": {currentParseResult}");
+        if (!lineParserResult.Attributes.TryGetValue(TemplateId, out var templateName)) {
+            return;
+        }
+        if (currentParseResult.Attributes.TryGetValue(TemplateId, out var previousTemplateName)) {
+            throw new ArgumentException($"Error in line #{lineNumber}: {line}\nCan't use template definition \"{templateName}\", it already has a template \"{previousTemplateName}\": {currentParseResult}");
+        }
+        if (defines.TryGetValue(templateName.ToString()!, out var templateParseResult)) {
+            foreach (var tag in templateParseResult.Tags) currentParseResult.Tags.Add(tag);
+            foreach (var (k, value) in templateParseResult.Attributes) {
+                currentParseResult.Attributes.TryAdd(k, value);
             }
-            if (defines.TryGetValue(templateName.ToString()!, out var templateParseResult)) {
-                foreach (var tag in templateParseResult.Tags) currentParseResult.Tags.Add(tag);
-                foreach (var (k, value) in templateParseResult.Attributes) {
-                    currentParseResult.Attributes.TryAdd(k, value);
-                }
-            } else {
-                throw new ArgumentException($"Error in line #{lineNumber}: {line}\nCan't find template \"{templateName}\"");
-            }
+        } else {
+            throw new ArgumentException($"Error in line #{lineNumber}: {line}\nCan't find template \"{templateName}\"");
         }
     }
 
@@ -296,11 +297,6 @@ public class TemplateSet(int cellSize) {
     /// </summary>
     public void ApplyTransformations(Func<char, bool> isBlocked) {
         foreach (var template in FindTemplates().ToArray() /* Clone to allow adding templates during the loop*/) {
-            if (template.HasTag("transform:all")) {
-                ApplyTransformations(template, Enum.GetValues<DataMath.Transformations.Type>(), isBlocked);
-                continue;
-            }
-
             var transformsToApply = new HashSet<Transformations.Type>();
             foreach (var tag in template.Tags
                          .Where(t => t.Contains(':'))

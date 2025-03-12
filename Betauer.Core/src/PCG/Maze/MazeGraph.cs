@@ -392,9 +392,10 @@ public class MazeGraph {
     public Array2D<TCell> ToArray2D<TCell>(Func<Vector2I, MazeNode, TCell> transformer) {
         var graphOffset = GetOffset();
         var array2D = new Array2D<TCell>(GetSize());
-        foreach (var node in GetNodes()) {
-            var pos = node.Position - graphOffset;
-            array2D[pos] = transformer(pos, node);
+        foreach (var arrayPos in array2D.GetPositions()) {
+            var nodePos = arrayPos + graphOffset;
+            var node = GetNodeAtOrNull(nodePos);
+            array2D[arrayPos] = transformer(arrayPos, node);
         }
         return array2D;
     }

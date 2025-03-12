@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using Betauer.Core.Signal;
 using Godot;
@@ -11,14 +12,14 @@ public static class TaskExtensions {
     public static Task OnCanceled(this Task task, Action action) => OnCanceled(task, _ => action());
     public static Task OnCanceled(this Task task, Action<Task> action) => task.ContinueWith(action, TaskContinuationOptions.OnlyOnCanceled);
     public static Task OnFaulted(this Task task, Action<Task> action) => task.ContinueWith(action, TaskContinuationOptions.OnlyOnFaulted);
-    public static Task OnException(this Task task, Action<Exception> action) =>
+    public static Task OnException(this Task task, Action<ExceptionDispatchInfo> action) =>
         task.OnFaulted(t => {
             var ex = t.Exception?.GetBaseException();
             if (ex != null) {
                 ex = t.Exception.InnerExceptions.Count == 1
                     ? t.Exception.InnerExceptions[0]
                     : t.Exception;
-                action(ex);
+                action(ExceptionDispatchInfo.Capture(ex));
             }
         });        
 

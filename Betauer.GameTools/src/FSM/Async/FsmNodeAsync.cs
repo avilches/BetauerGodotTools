@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using Betauer.Core;
 using Betauer.Tools.FastReflection;
@@ -29,10 +30,11 @@ public partial class FsmNodeAsync<TStateKey, TEventKey> :
     }
 
     private readonly RealFSMNodeAsync _stateMachine;
+    private ExceptionDispatchInfo? _exceptionDispatchInfo = null;
+
     public override IFsmEvents<TStateKey> GetFsmEvents() => _stateMachine;
 
     public StateNodeAsync<TStateKey, TEventKey> CurrentState => (StateNodeAsync<TStateKey, TEventKey>)_stateMachine.CurrentState;
-    private Exception? _exception = null;
     public bool Available => _stateMachine.Available;
     public new string? Name => _stateMachine.Name; 
     public double Delta { get; private set; }
@@ -86,13 +88,13 @@ public partial class FsmNodeAsync<TStateKey, TEventKey> :
 
     private void Execute(double delta) {
         if (IsQueuedForDeletion()) return;
-        if (_exception != null) {
-            var e = _exception;
-            _exception = null;
-            throw e;
+        if (_exceptionDispatchInfo != null) {
+            var e = _exceptionDispatchInfo;
+            _exceptionDispatchInfo = null;
+            e.Throw();
         }
         if (!Available) return;
         Delta = delta;
-        _stateMachine.Execute().OnException(e => _exception = e);
+        _stateMachine.Execute().OnException(e => _exceptionDispatchInfo = e);
     }
 }

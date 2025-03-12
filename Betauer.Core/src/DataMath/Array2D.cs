@@ -190,14 +190,15 @@ public class Array2D<T>(T[,] data) : Array2D, IEnumerable<T> {
     public Array2D<TCell> Expand<TCell>(int scale, Action<Vector2I, T, Array2D<TCell>> valueFunc) {
         if (scale < 1) throw new ArgumentException("Scale must be greater than 0");
 
-        var value = new Array2D<TCell>(Height * scale, Width * scale);
+        var buffer = new Array2D<TCell>(scale, scale);
         var array2D = new Array2D<TCell>(Width * scale, Height * scale);
         for (var y = 0; y < Height; y++) {
             for (var x = 0; x < Width; x++) {
-                valueFunc.Invoke(new Vector2I(x, y), Data[y, x], value);
+                buffer.Fill(default);
+                valueFunc.Invoke(new Vector2I(x, y), Data[y, x], buffer);
                 for (var dy = 0; dy < scale; dy++) {
                     for (var dx = 0; dx < scale; dx++) {
-                        array2D[y * scale + dy, x * scale + dx] = value[dy, dx];
+                        array2D[y * scale + dy, x * scale + dx] = buffer[dy, dx];
                     }
                 }
             }

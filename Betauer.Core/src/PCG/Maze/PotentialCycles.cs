@@ -40,11 +40,16 @@ public class PotentialCycles {
 
     public class PotentialCyclesQuery {
         private readonly PotentialCycles _cycles;
-        private readonly List<Func<MazeNode, MazeNode, int, bool>> _filters = new();
+        private readonly List<Func<MazeNode, MazeNode, int, bool>> _filters = [];
         private bool _orderByDescending = true;
 
         internal PotentialCyclesQuery(PotentialCycles cycles) {
             _cycles = cycles;
+        }
+
+        public PotentialCyclesQuery Where(Func<MazeNode, MazeNode, int, bool> filter) {
+            _filters.Add(filter);
+            return this;
         }
 
         public PotentialCyclesQuery WhereNodesInSameZone() {
@@ -124,7 +129,7 @@ public class PotentialCycles {
         /// Execute the query and connect the nodes that match the criteria, up to maxCycles connections.
         /// The query is re-executed after each connection since distances between nodes might change.
         /// </summary>
-        public List<(MazeNode nodeA, MazeNode nodeB, int distance)> Connect(int maxCycles = 1) {
+        public List<(MazeNode nodeA, MazeNode nodeB, int distance)> Connect(int maxCycles) {
             List<(MazeNode nodeA, MazeNode nodeB, int distance)> cyclesAdded = [];
 
             while (cyclesAdded.Count < maxCycles) {
@@ -137,6 +142,19 @@ public class PotentialCycles {
                 nextCycle.nodeA.ConnectTo(nextCycle.nodeB);
                 nextCycle.nodeB.ConnectTo(nextCycle.nodeA);
                 cyclesAdded.Add(nextCycle);
+            }
+            return cyclesAdded;
+        }
+        /// <summary>
+        /// Execute the query and connect the nodes that match the criteria, up to maxCycles connections.
+        /// The query is re-executed after each connection since distances between nodes might change.
+        /// </summary>
+        public List<(MazeNode nodeA, MazeNode nodeB, int distance)> ConnectAll() {
+            List<(MazeNode nodeA, MazeNode nodeB, int distance)> cyclesAdded = [];
+            foreach (var cycle in Execute()) {
+                cycle.nodeA.ConnectTo(cycle.nodeB);
+                cycle.nodeB.ConnectTo(cycle.nodeA);
+                cyclesAdded.Add(cycle);
             }
             return cyclesAdded;
         }
