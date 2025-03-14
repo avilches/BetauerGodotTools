@@ -12,6 +12,7 @@ public abstract class Array2D {
     public abstract int Width { get; }
     public abstract int Height { get; }
     public abstract Rect2I Bounds { get; }
+    public abstract Vector2I Size { get; }
 
     public static readonly ImmutableArray<Vector2I> VonNeumannDirections = [
         Vector2I.Up, Vector2I.Right, Vector2I.Down, Vector2I.Left
@@ -102,7 +103,8 @@ public abstract class Array2D {
 public class Array2D<T>(T[,] data) : Array2D, IEnumerable<T> {
     public override int Width => Data.GetLength(1);
     public override int Height => Data.GetLength(0);
-    public override Rect2I Bounds => new(0, 0, Width, Height);
+    public override Rect2I Bounds => new(0, 0, Size);
+    public override Vector2I Size => new(Width, Height);
     public T[,] Data { get; set; } = data;
 
     public Array2D(Vector2I size) : this(size.X, size.Y) {
@@ -314,6 +316,39 @@ public class Array2D<T>(T[,] data) : Array2D, IEnumerable<T> {
         for (var yy = y; yy < height + y; yy++) {
             for (var xx = x; xx < width + x; xx++) {
                 yield return Data[yy, xx];
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Divides the array into smaller sub-arrays of the specified width and height.
+    /// The width and height parameters must be divisible by the array's dimensions.
+    /// </summary>
+    /// <param name="width">The width of each sub-array. Must be a divisor of the array's width.</param>
+    /// <param name="height">The height of each sub-array. Must be a divisor of the array's height.</param>
+    /// <returns>An enumerable of sub-arrays with the specified dimensions.</returns>
+    public IEnumerable<(Vector2I Position, Array2D<T> Section)> GetSubArray2D(int width, int height) {
+        foreach (var (pos, rect) in GetRects(width, height)) {
+            var data = new Array2D<T>(width, height);
+            CopyTo(rect.Position.X, rect.Position.Y, width, height, data.Data);
+            yield return (pos, data);
+        }
+    }
+
+    public IEnumerable<(Vector2I Position, Rect2I Section)> GetRects(int width, int height) {
+        if (Width % width != 0) {
+            throw new ArgumentException($"Width {width} is not a divisor of the array width {Width}");
+        }
+        if (Height % height != 0) {
+            throw new ArgumentException($"Height {height} is not a divisor of the array height {Height}");
+        }
+    
+        var numHorizontalArrays = Width / width;
+        var numVerticalArrays = Height / height;
+    
+        for (var y = 0; y < numVerticalArrays; y++) {
+            for (var x = 0; x < numHorizontalArrays; x++) {
+                yield return (new Vector2I(x, y), new Rect2I(x * width, y * height, width, height));
             }
         }
     }
