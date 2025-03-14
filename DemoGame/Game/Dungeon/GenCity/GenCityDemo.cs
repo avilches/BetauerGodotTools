@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using Betauer.Core;
 using Betauer.Core.DataMath;
 using Betauer.Core.DataMath.Geometry;
@@ -27,9 +26,11 @@ public class GenCityDemo {
     private int _playerY;
     private bool _running = true;
     private CityGenerator _generator;
+    private CityMaze _cityMaze;
     private City _city;
     private CityRender _render;
 
+    const int SectionSize = 24;
     public const int Width = 140;
     public const int Height = 25;
     public const int Seed = 0;
@@ -52,13 +53,14 @@ public class GenCityDemo {
         var minDensity = float.MaxValue;
         var maxDensity = float.MinValue;
 
-        const int count = 10;
+        const int count = 1000;
         for (var i = Seed; i < count; i++) {
             _generator.Options.Seed = i;
             if (i % 100 == 0) {
                 Console.WriteLine(_generator.Options.Seed);
             }
             try {
+                _generator.City.RemoveAllPaths();
                 _generator.Start();
                 _generator.Grow();
                 _generator.FillGaps();
@@ -75,7 +77,7 @@ public class GenCityDemo {
                 maxDensity = Math.Max(maxDensity, density);
 
                 _city.ValidateIntersections(true);
-                _city.ValidateRoads();
+                _city.ValidatePaths();
                 _city.ValidateIntersectionPaths();
             } catch (Exception e) {
                 Render();
@@ -90,9 +92,6 @@ public class GenCityDemo {
     }
 
     public void Start() {
-        _city = new City(Width, Height);
-        _generator = _city.CreateGenerator(CreateOptions());
-        _render = new CityRender(_city);
         GenerateCity(Seed, 0);
         InitializePlayer();
         Render();
@@ -102,10 +101,10 @@ public class GenCityDemo {
         }
     }
 
-    private void GenerateCity(int seed, int seedOffset) {
+    private void GenerateSingleCity(int seed, int seedOffset) {
         _city.OnUpdate = (_) => {
             // Render();
-            _city.ValidateRoads();
+            _city.ValidatePaths();
             _city.ValidateIntersections();
         };
         _generator.Options.Seed = seed;
@@ -115,7 +114,46 @@ public class GenCityDemo {
 
         _city.ValidateIntersections(true);
         _city.ValidateIntersectionPaths();
-        _city.ValidateRoads();
+        _city.ValidatePaths();
+    }
+
+    private void GenerateCity(int seed, int seedOffset) {
+        _cityMaze = new CityMaze(MazeGraphCatalog.City(new Random(seed)), SectionSize);
+        _city = _cityMaze.City;
+        _render = new CityRender(_city);
+        _generator = _cityMaze.Generator;
+
+        MazeGraphZonedDemo.PrintGraph(_cityMaze.MazeGraph, _cityMaze.MazeZones);
+
+        _cityMaze.AddLimits(new Other('#'));
+
+        _generator.Options = CreateOptions();
+        _generator.Options.StartPosition = _cityMaze.GetStartPosition();
+        _generator.Options.Seed = seed;
+        _generator.Options.SeedOffset = seedOffset;
+
+        _generator.Start();
+        _generator.Grow();
+        _generator.FillGaps(0.2f);
+
+        /*
+        zones.MazeGraph.ToArray2D<bool>((nodePos, node) => {
+            for (var x = 0; x < zoneSize; x++) {
+                for (var y = 0; y < zoneSize; y++) {
+                    var p = new Vector2I(nodePos.X * zoneSize + x, nodePos.Y * zoneSize + y);
+                    if (_city.Data[p] == null) {
+                        // _city.Data[p] = node == null ? new Other(z % 2 == 0 ?'·' : '%') : null;
+                        // _city.Data[p] = node != null ? new Other((char)(node.ZoneId+'0')) : null;
+                    }
+                }
+            }
+            return false;
+        });
+        */
+
+        _city.ValidateIntersections(false);
+        _city.ValidateIntersectionPaths();
+        _city.ValidatePaths();
     }
 
     private static CityGenerationOptions CreateOptions() {
@@ -245,6 +283,10 @@ public class GenCityDemo {
                 case ConsoleKey.Q:
                     _running = false;
                     return;
+                case ConsoleKey.P:
+                    _cityMaze.ProcessSectionsWithMazeNodes();
+                    Render();
+                    break;
                 case ConsoleKey.A:
                     var c = 'A';
                     foreach (var gap in _generator.FindGaps()) {
@@ -278,7 +320,7 @@ public class GenCityDemo {
                     Render();
                     return;
                 case ConsoleKey.H:
-                    _generator.Generate(0.22f);
+                    _generator.Generate(() => _cityMaze.Validate(), 0.22f);
                     Render();
                     return;
                 case ConsoleKey.J:
@@ -308,7 +350,7 @@ public class GenCityDemo {
                     return;
             }
 
-            if (newX >= 0 && newX < Width && newY >= 0 && newY < Height) {
+            if (newX >= 0 && newX < _city.Width && newY >= 0 && newY < _city.Height) {
                 _playerX = newX;
                 _playerY = newY;
             }

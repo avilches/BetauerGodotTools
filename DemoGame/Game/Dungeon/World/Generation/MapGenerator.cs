@@ -5,6 +5,7 @@ using System.Linq;
 using Betauer.Core;
 using Betauer.Core.DataMath;
 using Betauer.Core.Examples;
+using Betauer.Core.PCG;
 using Betauer.Core.PCG.GridTemplate;
 using Betauer.Core.PCG.Maze;
 using Betauer.Core.PCG.Maze.Zoned;
@@ -28,6 +29,7 @@ public class MapGenerator {
         var rngMap = new Random(seed);
         var size = templateSet.CellSize;
         var nodeArray = zones.MazeGraph.ToArray2D<MazeNode>((nodePos, node) => {
+            if (node == null) return null;
             var template = GetTemplate(rngMap, templateArray, templateSet, nodePos, node);
             node.SetTemplate(template);
             return node;
@@ -47,6 +49,45 @@ public class MapGenerator {
             }
             return expandedPart;
         });
+
+        var r = new RegionConnections(worldCellMap.Clone(c => c != null));
+        r.Update();
+
+        Console.WriteLine(r.Labels.GetString(tile =>
+            tile == 0
+                ? " "
+                : tile.ToString("x8").Substring(7, 1)));
+
+        /*
+        // Double the size to create a 2x2 grid for each cell in the template
+        var doubledSize = size * 2;
+        var worldCellMap = templateArray.Expand<WorldCell>(doubledSize, (pos, template) => {
+            if (template == null) return null;
+            var node = nodeArray[pos];
+            var expandedPart = new Array2D<WorldCell?>(doubledSize, doubledSize);
+
+            foreach (var (innerPos, templateCell) in template.Body.GetIndexedValues()) {
+                // For each template cell, create a 2x2 grid of world cells
+                for (int dy = 0; dy < 2; dy++) {
+                    for (int dx = 0; dx < 2; dx++) {
+                        // Calculate the doubled position
+                        var doubledInnerPos = new Vector2I(innerPos.X * 2 + dx, innerPos.Y * 2 + dy);
+                        // Create the world cell at the new position
+                        var worldCell = CellDefinitionConfig.CreateCell(templateCell, pos * doubledSize + doubledInnerPos);
+                        if (worldCell != null) {\\\\\
+                            node.AddWorldCell(worldCell);
+                            worldCell.SetMazeNode(node);
+                        }
+                        expandedPart[doubledInnerPos] = worldCell;
+                    }
+                }
+            }
+            return expandedPart;
+        });
+        */
+
+
+
 
         MazeGraphZonedDemo.PrintGraph(zones.MazeGraph, zones);
         // PrintTemplates(templateSet.FindTemplates().ToList());
@@ -138,7 +179,6 @@ public class MapGenerator {
         var x = candidates.Count;
 
         RemoveSimilarCandidates(candidates, templateArray);
-        Console.WriteLine($"Candidates before: {x} - after: {candidates.Count} = {x - candidates.Count} delted");
         Template template = null!;
         if (candidates.Count == 0) {
             throw new Exception($"Warning: no matching template for node {node} at position {pos}. Direction: {DirectionFlagTools.FlagsToString(node.GetDirectionFlags())} ");

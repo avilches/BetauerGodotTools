@@ -10,6 +10,7 @@ using Betauer.NodePath;
 using Betauer.Nodes;
 using Betauer.Tools.Logging;
 using Veronenger.Game.Dungeon.World;
+using Veronenger.Game.Dungeon.World.Generation;
 
 namespace Veronenger.Game.Dungeon;
 
@@ -90,14 +91,17 @@ public partial class DungeonMap : Node2D, IInjectable {
 
     private void PlayerEvent(InputEvent @event) {
         if (DungeonPlayerActions.Right.IsJustPressed) {
-            Logger.Debug("Right pressed");
             MoveTo(PlayerPos + Vector2I.Right);
+            Console.WriteLine(RogueWorld.WorldMap[PlayerPos]?.GetMazeNode()?.GetTemplate());
         } else if (DungeonPlayerActions.Left.IsJustPressed) {
             MoveTo(PlayerPos + Vector2I.Left);
+            Console.WriteLine(RogueWorld.WorldMap[PlayerPos]?.GetMazeNode()?.GetTemplate());
         } else if (DungeonPlayerActions.Up.IsJustPressed) {
             MoveTo(PlayerPos + Vector2I.Up);
+            Console.WriteLine(RogueWorld.WorldMap[PlayerPos]?.GetMazeNode()?.GetTemplate());
         } else if (DungeonPlayerActions.Down.IsJustPressed) {
             MoveTo(PlayerPos + Vector2I.Down);
+            Console.WriteLine(RogueWorld.WorldMap[PlayerPos]?.GetMazeNode()?.GetTemplate());
         }
     }
 

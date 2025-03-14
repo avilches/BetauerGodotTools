@@ -21,12 +21,16 @@ public class Other(char c) : ICityTile {
 public class City(int width, int height) {
     public int Width { get; } = width;
     public int Height { get; } = height;
+    public Vector2I Size => new(Width, Height);
     public Array2D<ICityTile?> Data { get; } = new(width, height);
     public List<Intersection> Intersections { get; } = [];
     public List<Building> Buildings { get; } = [];
     public Action<Vector2I>? OnUpdate;
 
     private int _intersectionId = 0;
+
+    public City(Vector2I size) : this(size.X, size.Y) {
+    }
 
     public IEnumerable<Path> GetAllPaths() {
         // A completed path is a path that has a start and an end
@@ -45,6 +49,17 @@ public class City(int width, int height) {
 
     public void Clear() {
         Data.Fill(null);
+        Intersections.Clear();
+        Buildings.Clear();
+        _intersectionId = 0;
+    }
+
+    public void RemoveAllPaths() {
+        foreach (var path in GetAllPaths()) {
+            foreach (var position in path.GetPositions()) {
+                Data[position] = null;
+            }
+        }
         Intersections.Clear();
         Buildings.Clear();
         _intersectionId = 0;
@@ -200,6 +215,21 @@ public class City(int width, int height) {
         }
     }
 
+    public IEnumerable<Path> FindPathsInSection(Rect2I sectionRect) {
+        for (var y = sectionRect.Position.Y; y < sectionRect.Position.Y + sectionRect.Size.Y; y++) {
+            for (var x = sectionRect.Position.X; x < sectionRect.Position.X + sectionRect.Size.X; x++) {
+                if (Data[y, x] is Path path) {
+                    yield return path;
+                } else if (Data[y, x] is Intersection intersection) {
+                    foreach (var ipath in intersection.GetAllPaths()) {
+                        yield return ipath;
+                    }
+                }
+            }
+        }
+    }
+
+
     /// <summary>
     /// Adds a new intersection in the middle of a path, creating two paths.
     /// </summary>
@@ -233,12 +263,19 @@ public class City(int width, int height) {
         return newIntersection;
     }
 
-    public int FlatAllIntersections() {
+    public int FlatAllIntersections(Func<Intersection, bool>? predicate = null) {
         var count = 0;
         while (true) {
-            var i = Intersections.FirstOrDefault(i => i.CanBeFlatten(out var one, out var other) && one.IsCompleted() && other.IsCompleted());
-            if (i == null) break;
-            if (!FlatIntersection(i)) throw new Exception("Can't flatten intersection. Check if the condition to filter intersections is correct");
+            var first = Intersections.FirstOrDefault(intersection =>
+                intersection.CanBeFlatten(out var one, out var other) &&
+                one.IsCompleted() &&
+                other.IsCompleted() && (predicate == null || predicate(intersection)));
+            if (first == null) {
+                break;
+            }
+            if (!FlatIntersection(first)) {
+                throw new Exception($"Bug: can't flatten intersection. Check if {nameof(first.CanBeFlatten)}() and {nameof(FlatIntersection)}");
+            }
             count++;
         }
         return count;
@@ -331,7 +368,7 @@ public class City(int width, int height) {
         }
     }
 
-    public void ValidateRoads() {
+    public void ValidatePaths() {
         var errors = new List<string>();
         var output = Intersections.SelectMany(intersection => intersection.GetOutputPaths()).ToHashSet();
         foreach (var path in output) {
@@ -368,7 +405,7 @@ public class City(int width, int height) {
             }
         }
         if (errors.Count > 0) {
-            throw new Exception("City roads are invalid:\n" + string.Join("\n", errors));
+            throw new Exception("Invalid paths:\n" + string.Join("\n", errors));
         }
     }
 

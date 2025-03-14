@@ -1,8 +1,8 @@
-@ Define=Deadend  dir=N       transform:all
-@ Define=Corner   dir=N-E     transform:all
-@ Define=Corridor dir=N-S     transform:all
-@ Define=Fork     dir=N-E-S   transform:all
-@ Define=Cross    dir=N-S-E-W transform:all
+@ Define=Deadend  dir=N       rotate:all flip:all dir:N:size=1
+@ Define=Corner   dir=N-E     rotate:all flip:all dir:N:size=1 dir:E:size=1
+@ Define=Corridor dir=N-S     rotate:all flip:all dir:N:size=1 dir:S:size=1
+@ Define=Fork     dir=N-S-E   rotate:all flip:all dir:N:size=1 dir:E:size=1 dir:S:size=1
+@ Define=Cross    dir=N-S-E-W rotate:all flip:all dir:N:size=1 dir:E:size=1 dir:S:size=1 dir:W:size=1
 
 // ------------------------------------------------------------
 // Dead ends

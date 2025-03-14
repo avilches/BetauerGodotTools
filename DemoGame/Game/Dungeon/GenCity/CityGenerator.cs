@@ -26,7 +26,6 @@ public class CityGenerator(City city) {
     public int Seed => Options.Seed;
 
     public void Start() {
-        City.Clear();
         var startPosition = Options.StartPosition ?? new Vector2I(City.Width / 2, City.Height / 2);
         var intersection = City.GetOrCreateIntersectionAt(startPosition);
         foreach (var direction in Options.StartDirections) {
@@ -61,27 +60,25 @@ public class CityGenerator(City city) {
 
             if (!City.Data.IsInBounds(nextPos)) {
                 // The path is heading to the border, close it
-                if (path.GetLength() == 0) {
-                    // A zero-length path is just an intersection with a fresh new output path that hasn’t even started yet.
-                    RemovePath(path);
-                } else {
-                    // Close the path creating a new intersection
-                    CreateDeadEnd(path);
-                }
+                CreateDeadEnd(path);
+                
             } else {
                 var tile = City.Data[nextPos];
 
                 if (tile is Intersection intersection) {
                     // The path collides with an intersection, join to it
                     JoinPathToIntersection(path, intersection);
+                    
                 } else if (tile is Path perpendicularPath && path.IsPerpendicular(perpendicularPath)) {
                     // The other path is perpendicular, split the path creating a new intersection in the middle and joint to it
                     JoinPathToPerpendicularPath(path, perpendicularPath, nextPos);
+                    
                 } else if (tile is Path otherPath && path.GetLength() == 0) {
                     // (since now, colliding paths ARE NOT PERPENDICULAR)
                     // There is other path coming from the same direction
                     // - And the current path is just starting, so remove it
                     RemovePath(path);
+                    
                 } else if (tile is Path sameLinePath) {
                     // (since now, colliding paths ARE NOT PERPENDICULAR and HAVE A LENGTH > 0)
 
@@ -89,9 +86,14 @@ public class CityGenerator(City city) {
                     // - We use the current position (not new position, which is already used by the other path)
                     // to create a new intersection
                     JoinSameLinePaths(path, sameLinePath);
+                    
+                } else if (tile != null) {
+                    CreateDeadEnd(path);
+                    
                 } else if (random.NextBool(Options.ProbabilityStreetEnd) || StopPathHeadingToBorder(path)) {
                     path.SetCursor(nextPos);
                     CreateDeadEnd(path);
+                    
                 } else {
                     path.SetCursor(nextPos);
                     City.Data[nextPos] = path;
@@ -121,6 +123,11 @@ public class CityGenerator(City city) {
         }
 
         Intersection CreateDeadEnd(Path path) {
+            if (path.GetLength() == 0) {
+                // A zero-length path is just an intersection with a fresh new output path that has not even started yet
+                RemovePath(path);
+                return null;
+            }
             var cursor = path.GetCursor();
             City.Data[cursor] = null;
             var intersection = City.AddIntersection(cursor);
@@ -329,27 +336,55 @@ public class CityGenerator(City city) {
         return true;
     }
 
-    public bool Generate(float desiredDensity, float timeout = 0.1f) {
-        Options.SeedOffset = 0;
-        Regenerate();
+    /// <summary>
+    /// Generates a valid city and tries to make it have the desired density. If it does not achieve the desired density, it will keep
+    /// the one with the highest density that it has achieved during all the retries.
+    /// Returns true if it achieves the desired density. In any case, it will always generate a valid city, no matter how many tries
+    ///
+    /// Una desiredDensity de 0 significa que se quedará con la primera ciudad generada que sea valida, sin necesidad de intentar añadir mas caminos.
+    /// Una desiredDensity de 1 significa que consumirá todos los tries y se quedará con la que tenga mayor densidad. 
+    /// </summary>
+    /// <param name="desiredDensity"></param>
+    /// <param name="validate"></param>
+    /// <param name="tries"></param>
+    /// <returns></returns>
+    public bool Generate(Func<bool> validate, float desiredDensity = 0, int tries = 20) {
+        var best = (Offset: -1, Density: 0f);
+        var count = 0;
 
-        var startTime = DateTime.Now;
-        while (!FillGaps(desiredDensity)) {
-            if ((DateTime.Now - startTime).TotalSeconds > timeout) {
-                return false;
-            }
-            Options.SeedOffset++;
-            Regenerate();
-        }
-        return true;
-        
-        void Regenerate() {
-            City.Clear();
+        Options.SeedOffset = 0;
+        while (count < tries || best.Offset == -1) {
+            City.RemoveAllPaths();
             Start();
             Grow();
+            FillGaps(desiredDensity);
+            if (validate()) {
+                var density = City.GetDensity();
+                if (density >= desiredDensity) {
+                    // Console.WriteLine(":) Dense enough! Offset: "+Options.SeedOffset);
+                    return true;
+                }
+                if (density > best.Density) {
+                    // Console.WriteLine($"  No dense enough: {density} Offset : "+Options.SeedOffset+ " has more density "+density+" than the best one "+best.Density);
+                    best = (Offset: Options.SeedOffset, Density: density);
+                } else {
+                    // Console.WriteLine($"  No dense enough: {density} Offset : "+Options.SeedOffset);
+                }
+                count++;
+            } else {
+                // Console.WriteLine("Invalid Offset: "+Options.SeedOffset);
+            }
+            Options.SeedOffset++;
         }
+        
+        Options.SeedOffset = best.Offset;
+        City.RemoveAllPaths();
+        Start();
+        Grow();
+        FillGaps(desiredDensity);
+        return false;
     }
-
+    
     private Rect2I FillRect(Vector2I start, bool[,] visited) {
         // Buscar los límites del área vacía en las cuatro direcciones
         var minX = start.X;

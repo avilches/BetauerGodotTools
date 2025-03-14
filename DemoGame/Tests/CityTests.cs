@@ -731,21 +731,22 @@ public class CityTests {
         var city = new City(140, 25);
         city.OnUpdate = (_) => {
             city.ValidateIntersections(true);
-            city.ValidateRoads();
+            city.ValidatePaths();
             city.ValidateIntersectionPaths();
         };
         var generator = city.CreateGenerator(options);
+        generator.City.Clear();
         generator.Start();
         generator.Grow();
         generator.City.ValidateIntersections(true);
         generator.City.ValidateIntersectionPaths();
-        generator.City.ValidateRoads();
+        generator.City.ValidatePaths();
 
         while (_city.GetAllPaths().Any()) {
             var path = _city.GetAllPaths().First();
             city.RemovePath(path);
             city.ValidateIntersections(true);
-            city.ValidateRoads();
+            city.ValidatePaths();
             city.ValidateIntersectionPaths();
         }
 
@@ -781,12 +782,13 @@ public class CityTests {
         city.OnUpdate = (_) => {
             generator.City.ValidateIntersections();
             generator.City.ValidateIntersectionPaths();
-            generator.City.ValidateRoads();
+            generator.City.ValidatePaths();
         };
 
         for (var i = 0; i < 10; i++) {
             options.Seed = i;
             Console.WriteLine(options.Seed);
+            generator.City.Clear();
             generator.Start();
             generator.Grow();
         }
@@ -824,11 +826,12 @@ public class CityTests {
             if (i % 100 == 0) {
                 Console.WriteLine(options.Seed);
             }
+            generator.City.Clear();
             generator.Start();
             generator.Grow();
             generator.City.ValidateIntersections(true);
             generator.City.ValidateIntersectionPaths();
-            generator.City.ValidateRoads();
+            generator.City.ValidatePaths();
         }
     }
 }

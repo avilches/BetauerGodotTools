@@ -54,6 +54,7 @@ public class MazeTemplateDemo {
             templateSet.ApplyTransformations(c => c is '#' or '.');
 
             var templates = zones.MazeGraph.ToArray2D((pos, node) => {
+                if (node == null) return null;
                 var templates = templateSet.FindTemplates(node.GetDirectionFlags()).ToArray();
                 return rng.Next(templates).Body;
             });
