@@ -167,12 +167,12 @@ public static class Vector2IExtensions {
         return direction.X == 0 && direction.Y != 0;
     }
 
-    public static bool IsPerpendicular(this Vector2I direction, Vector2I other) {
-        return direction.X * other.X + direction.Y * other.Y == 0;
+    public static bool IsPerpendicular(this Vector2I one, Vector2I other) {
+        return one.X * other.X + one.Y * other.Y == 0;
     }
 
-    public static bool IsParallel(this Vector2I direction, Vector2I other) {
-        return direction.X * other.Y == direction.Y * other.X;
+    public static bool IsParallel(this Vector2I one, Vector2I other) {
+        return one.X * other.Y == one.Y * other.X;
     }
 
     /// <summary>

@@ -388,8 +388,12 @@ public class MazeGraph {
 
         return string.Join(lineSeparator, grid.Select(row => new string(row)));
     }
-    
-    public Array2D<TCell> ToArray2D<TCell>(Func<Vector2I, MazeNode, TCell> transformer) {
+
+    public Array2D<MazeNode?> ToArray2D() {
+        return ToArray2D((_, node) => node);
+    }
+
+    public Array2D<TCell> ToArray2D<TCell>(Func<Vector2I, MazeNode?, TCell> transformer) {
         var graphOffset = GetOffset();
         var array2D = new Array2D<TCell>(GetSize());
         foreach (var arrayPos in array2D.GetPositions()) {
