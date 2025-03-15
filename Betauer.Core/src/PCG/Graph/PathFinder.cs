@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Betauer.Core.PCG.Maze;
 
-namespace Betauer.Core.PCG.Maze;
+namespace Betauer.Core.PCG.Graph;
 
 /// <summary>
 /// Used by the FindWeightedPath method to determine which weights to consider
@@ -14,36 +15,38 @@ public enum PathWeightMode {
     Both
 }
 
-public static class MazePathFinder {
-    public delegate float HeuristicFunction(MazeNode node, MazeNode target);
-
-    private static float ManhattanDistance(MazeNode node, MazeNode target) {
-        var dx = Math.Abs(node.Position.X - target.Position.X);
-        var dy = Math.Abs(node.Position.Y - target.Position.Y);
-        return dx + dy;
-    }
+public static class PathFinder {
+    public delegate float HeuristicFunction<in TNode>(TNode node, TNode target) where TNode : class;
 
     /// <summary>
     /// Finds the most efficient path considering node and/or connection weights.
-    /// Useful when different paths have varying costs or difficulties.
     /// </summary>
+    /// <typeparam name="TNode">The node type</typeparam>
+    /// <typeparam name="TEdge">The edge type</typeparam>
     /// <param name="start">Starting node</param>
     /// <param name="target">Destination node</param>
     /// <param name="mode">Weight calculation mode: nodes only, edges only, or both</param>
     /// <param name="canTraverse">Optional predicate that determines if a node can be traversed</param>
     /// <param name="heuristic">Optional heuristic function for A* algorithm</param>
-    /// <returns>Result containing the path and its total cost, or null if no path exists</returns>
-    public static PathResult FindShortestPath(MazeNode start, MazeNode target, PathWeightMode mode = PathWeightMode.Both, Func<MazeNode, bool>? canTraverse = null, HeuristicFunction? heuristic = null) {
+    /// <returns>Result containing the path and its total cost</returns>
+    public static PathResult<TNode, TEdge> FindShortestPath<TNode, TEdge>(
+        TNode start,
+        TNode target,
+        PathWeightMode mode = PathWeightMode.Both,
+        Func<TNode, bool>? canTraverse = null,
+        HeuristicFunction<TNode>? heuristic = null)
+        where TNode : class, IGraphNode<TNode, TEdge>
+        where TEdge : IGraphEdge<TNode> {
         if (start == target) {
-            return new PathResult([start], mode is PathWeightMode.None or PathWeightMode.EdgesOnly ? 0 : start.Weight);
+            return new PathResult<TNode, TEdge>([start], mode is PathWeightMode.None or PathWeightMode.EdgesOnly ? 0 : start.Weight);
         }
-        if (canTraverse != null && (!canTraverse(start) || !canTraverse(target))) return new PathResult([], -1);
+        if (canTraverse != null && (!canTraverse(start) || !canTraverse(target))) return new PathResult<TNode, TEdge>([], -1);
 
-        heuristic ??= ManhattanDistance;
+        heuristic ??= PathHeuristics.Manhattan<TNode, TEdge>;
 
-        var distances = new Dictionary<MazeNode, float>();
-        var previous = new Dictionary<MazeNode, MazeNode>();
-        var unvisited = new PriorityQueue<MazeNode, float>();
+        var distances = new Dictionary<TNode, float>();
+        var previous = new Dictionary<TNode, TNode>();
+        var unvisited = new PriorityQueue<TNode, float>();
 
         distances[start] = mode is PathWeightMode.None or PathWeightMode.EdgesOnly ? 0 : start.Weight;
         var initialCost = distances[start] + (heuristic?.Invoke(start, target) ?? 0);
@@ -53,7 +56,7 @@ public static class MazePathFinder {
             var current = unvisited.Dequeue();
 
             if (current == target) {
-                var path = new List<MazeNode>();
+                var path = new List<TNode>();
                 var node = current;
                 while (previous.ContainsKey(node)) {
                     path.Add(node);
@@ -61,7 +64,7 @@ public static class MazePathFinder {
                 }
                 path.Add(start);
                 path.Reverse();
-                return new PathResult(path, distances[target]);
+                return new PathResult<TNode, TEdge>(path, distances[target]);
             }
 
             foreach (var edge in current.GetOutEdges()) {
@@ -93,37 +96,42 @@ public static class MazePathFinder {
                 }
             }
         }
-        return new PathResult([], -1);
+        return new PathResult<TNode, TEdge>([], -1);
     }
 
     /// <summary>
-    /// Finds the shortest path to another node using direct connections (edges).
-    /// If a predicate is provided, only nodes that satisfy the predicate will be considered.
+    /// Finds the shortest path using breadth-first search.
     /// </summary>
+    /// <typeparam name="TNode">The node type</typeparam>
+    /// <typeparam name="TEdge">The edge type</typeparam>
     /// <param name="start">Starting node</param>
     /// <param name="target">Target node</param>
     /// <param name="canTraverse">Optional predicate that determines if a node can be traversed</param>
     /// <returns>List of nodes forming the shortest path, or empty list if no path exists</returns>
-    public static List<MazeNode> FindBfsPath(MazeNode start, MazeNode target, Func<MazeNode, bool>? canTraverse = null) {
+    public static List<TNode> FindBfsPath<TNode, TEdge>(
+        TNode start,
+        TNode target,
+        Func<TNode, bool>? canTraverse = null)
+        where TNode : class, IGraphNode<TNode, TEdge>
+        where TEdge : IGraphEdge<TNode> {
         if (start == target) return [start];
         if (canTraverse != null && (!canTraverse(start) || !canTraverse(target))) return [];
 
-        var previous = new Dictionary<MazeNode, MazeNode>();
-        var queue = new Queue<MazeNode>();
-        var visited = new HashSet<MazeNode>(); // Añadimos un HashSet para track de nodos visitados
+        var previous = new Dictionary<TNode, TNode>();
+        var queue = new Queue<TNode>();
+        var visited = new HashSet<TNode>();
 
         queue.Enqueue(start);
-        visited.Add(start); // Marcamos el nodo inicial como visitado
+        visited.Add(start);
 
         while (queue.Count > 0) {
             var current = queue.Dequeue();
 
             if (current == target) {
-                var path = new List<MazeNode>();
+                var path = new List<TNode>();
                 var node = current;
 
-                // Reconstruir el camino desde el target hasta el start
-                while (node != start) { // Cambiamos la condición del while
+                while (node != start) {
                     path.Add(node);
                     node = previous[node];
                 }
@@ -136,25 +144,30 @@ public static class MazePathFinder {
                 var neighbor = edge.To;
                 if (canTraverse != null && !canTraverse(neighbor)) continue;
 
-                if (visited.Add(neighbor)) { // Usamos visited en vez de previous
+                if (visited.Add(neighbor)) {
                     previous[neighbor] = current;
                     queue.Enqueue(neighbor);
                 }
             }
         }
-
         return [];
     }
 
     /// <summary>
-    /// Gets all nodes that can be reached from the start node using available connections.
+    /// Gets all nodes that can be reached from the start node.
     /// </summary>
+    /// <typeparam name="TNode">The node type</typeparam>
+    /// <typeparam name="TEdge">The edge type</typeparam>
     /// <param name="start">Starting node</param>
     /// <param name="canTraverse">Optional predicate that determines if a node can be traversed</param>
     /// <returns>Set of all reachable nodes, including the starting node</returns>
-    public static HashSet<MazeNode> GetReachableNodes(MazeNode start, Func<MazeNode, bool>? canTraverse = null) {
-        var nodes = new HashSet<MazeNode> { start };
-        var queue = new Queue<MazeNode>();
+    public static HashSet<TNode> GetReachableNodes<TNode, TEdge>(
+        TNode start,
+        Func<TNode, bool>? canTraverse = null)
+        where TNode : class, IGraphNode<TNode, TEdge>
+        where TEdge : IGraphEdge<TNode> {
+        var nodes = new HashSet<TNode> { start };
+        var queue = new Queue<TNode>();
         queue.Enqueue(start);
 
         while (queue.Count > 0) {
@@ -171,28 +184,43 @@ public static class MazePathFinder {
         return nodes;
     }
 
+    public static List<TNode> FindTreePathToRoot<TNode>(TNode start) where TNode : ITreeNode<TNode> {
+        var path = new List<TNode>();
+        var current = start;
+        while (current != null) {
+            path.Add(current);
+            current = current.Parent;
+        }
+        return path;
+    }
+
     /// <summary>
     /// Finds a path between two nodes using the parent-child hierarchy.
     /// </summary>
+    /// <typeparam name="TNode">The node type</typeparam>
+    /// <typeparam name="TEdge">The edge type</typeparam>
     /// <param name="start">Starting node</param>
     /// <param name="target">Target node</param>
-    /// <returns>List of nodes forming the path, or null if no path exists</returns>
-    public static IReadOnlyList<MazeNode> GetPathToNode(MazeNode start, MazeNode target) {
+    /// <returns>List of nodes forming the path, or an empty list if no path exists</returns>
+    public static IReadOnlyList<TNode> GetPathToNode<TNode, TEdge>(
+        TNode start,
+        TNode target)
+        where TNode : class, ITreeNode<TNode> {
         if (start == target) return [start];
 
         // Obtener el camino hasta la raíz para ambos nodos
-        var startPath = start.FindTreePathToRoot();
-        var targetPath = target.FindTreePathToRoot();
+        var startPath = FindTreePathToRoot(start);
+        var targetPath = FindTreePathToRoot(target);
 
         // Encontrar el ancestro común
-        MazeNode? commonAncestor = null;
+        TNode? commonAncestor = null;
         int startIndex = 0, targetIndex = 0;
 
         // Buscar el ancestro común buscando en todos los nodos del path
         for (var i = 0; i < startPath.Count; i++) {
             var nodeInStartPath = startPath[i];
             for (var j = 0; j < targetPath.Count; j++) {
-                if (nodeInStartPath == targetPath[j]) {
+                if (nodeInStartPath.Equals(targetPath[j])) {
                     commonAncestor = nodeInStartPath;
                     startIndex = i;
                     targetIndex = j;
@@ -203,10 +231,10 @@ public static class MazePathFinder {
 
         CommonAncestorFound:
 
-        if (commonAncestor == null) return ImmutableList<MazeNode>.Empty;
+        if (commonAncestor == null) return ImmutableList<TNode>.Empty;
 
         // Construir el camino: subir desde start hasta el ancestro común y bajar hasta target
-        var path = new List<MazeNode>();
+        var path = new List<TNode>();
 
         // Añadir el camino desde start hasta el ancestro común (en orden)
         for (var i = 0; i <= startIndex; i++) {

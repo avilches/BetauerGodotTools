@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Betauer.Core.PCG.Graph;
 using Betauer.Core.PCG.GridTemplate;
 using Godot;
 
@@ -10,7 +11,10 @@ namespace Betauer.Core.PCG.Maze;
 /// <summary>
 /// Represents a node in the maze graph, containing connections to adjacent nodes.
 /// </summary>
-public class MazeNode {
+public class MazeNode : 
+    IGraphNode<MazeNode, MazeEdge>, 
+    ITreeNode<MazeNode> {
+    
     /// <summary>
     /// Represents a node in the maze graph, containing connections to adjacent nodes.
     /// </summary>
@@ -67,7 +71,7 @@ public class MazeNode {
             InvalidateDepthCache();
         }
     }
-    
+
 
     /// <summary>
     /// Checks if setting the specified node as parent would create a circular reference.
@@ -201,9 +205,9 @@ public class MazeNode {
         return false;
     }
 
-    public ImmutableList<MazeEdge> GetOutEdges() => _outEdges.ToImmutableList();
-    public ImmutableList<MazeEdge> GetInEdges() => _inEdges.ToImmutableList();
-    public ImmutableList<MazeEdge> GetAllEdges() => _outEdges.Concat(_inEdges).ToImmutableList();
+    public IEnumerable<MazeEdge> GetOutEdges() => _outEdges;
+    public IEnumerable<MazeEdge> GetInEdges() => _inEdges;
+    public IEnumerable<MazeEdge> GetAllEdges() => _outEdges.Concat(_inEdges);
 
     public bool RemoveNode() {
         if (!Graph.InternalRemoveNode(this)) return false;
@@ -284,15 +288,8 @@ public class MazeNode {
     /// // path contains [currentNode, parentNode, grandparentNode, ..., rootNode]
     /// </summary>
     /// <returns>List of nodes from current to root, including both endpoints.</returns>
-    public List<MazeNode> FindTreePathToRoot() {
-        var path = new List<MazeNode>();
-        var current = this;
-        while (current != null) {
-            path.Add(current);
-            current = current.Parent;
-        }
-        return path;
-    }
+    public List<MazeNode> FindTreePathToRoot() 
+        => PathFinder.FindTreePathToRoot(this);
 
     /// <summary>
     /// Finds a path between two nodes using the parent-child hierarchy.
@@ -311,7 +308,7 @@ public class MazeNode {
     /// <param name="target">The target node</param>
     /// <returns>List of nodes forming the path, or null if no path exists</returns>
     public IReadOnlyList<MazeNode> FindTreePathToNode(MazeNode target)
-        => MazePathFinder.GetPathToNode(this, target);
+        => PathFinder.GetPathToNode<MazeNode, MazeEdge>(this, target);
 
     /// <summary>
     /// Calculates the distance to another node using parent references.
@@ -348,8 +345,8 @@ public class MazeNode {
     /// <param name="target">The target node</param>
     /// <returns>List of nodes forming the shortest path, or an empty list if no path exists. The path the start and the end node.</returns>
     /// <param name="canTraverse">Optional predicate that determines if a node can be traversed</param>
-    public List<MazeNode> FindShortestPath(MazeNode target, Func<MazeNode, bool>? canTraverse = null)
-        => MazePathFinder.FindShortestPath(this, target, PathWeightMode.None, canTraverse).Path;
+    public List<MazeNode> FindShortestPath(MazeNode target, PathWeightMode mode = PathWeightMode.Both, Func<MazeNode, bool>? canTraverse = null)
+        => PathFinder.FindShortestPath<MazeNode, MazeEdge>(this, target, mode, canTraverse).Path;
 
     /// <summary>
     /// Calculates the shortest distance to another node using direct connections.
@@ -366,8 +363,8 @@ public class MazeNode {
     /// <param name="target">The target node</param>
     /// <returns>Distance in number of connections or -1 if no path exists. 1 means start node and target node are the same.</returns>
     /// <param name="canTraverse">Optional predicate that determines if a node can be traversed</param>
-    public int GetGraphDistanceToNode(MazeNode target, Func<MazeNode, bool>? canTraverse = null) {
-        var path = FindShortestPath(target, canTraverse);
+    public int GetGraphDistanceToNode(MazeNode target, PathWeightMode mode = PathWeightMode.Both, Func<MazeNode, bool>? canTraverse = null) {
+        var path = FindShortestPath(target, mode, canTraverse);
         return path.Count - 1; // -1 if no path because the path contains the start node. If no path, the list is empty, so -1
     }
 
@@ -385,7 +382,7 @@ public class MazeNode {
     /// <param name="canTraverse">Optional predicate that determines if a node can be traversed</param>
     /// <returns>Set of all reachable nodes, including the current node</returns>
     public HashSet<MazeNode> GetReachableNodes(Func<MazeNode, bool>? canTraverse = null)
-        => MazePathFinder.GetReachableNodes(this, canTraverse);
+        => PathFinder.GetReachableNodes<MazeNode, MazeEdge>(this, canTraverse);
 
     /// <summary>
     /// Finds the most efficient path considering node and/or connection weights.
@@ -406,8 +403,8 @@ public class MazeNode {
     /// <param name="mode">Weight calculation mode: nodes only, edges only, or both</param>
     /// <param name="canTraverse">Optional predicate that determines if a node can be traversed</param>
     /// <returns>Result containing the path and its total cost, or null if no path exists</returns>
-    public PathResult FindWeightedPath(MazeNode target, PathWeightMode mode = PathWeightMode.Both, Func<MazeNode, bool>? canTraverse = null)
-        => MazePathFinder.FindShortestPath(this, target, mode, canTraverse);
+    public PathResult<MazeNode, MazeEdge> FindWeightedPath(MazeNode target, PathWeightMode mode = PathWeightMode.Both, Func<MazeNode, bool>? canTraverse = null)
+        => PathFinder.FindShortestPath<MazeNode, MazeEdge>(this, target, mode, canTraverse);
 
     public override string ToString() {
         return $"Id:{Id} {Position} Zone/Part: {ZoneId}/{PartId}";

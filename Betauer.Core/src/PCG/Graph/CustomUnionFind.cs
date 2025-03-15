@@ -4,8 +4,8 @@ using System.Linq;
 namespace Betauer.Core.PCG.Graph;
 
 public class CustomUnionFind {
-    private readonly Dictionary<int, int> _parent = new Dictionary<int, int>();
-    private readonly Dictionary<int, int> _size = new Dictionary<int, int>();
+    private readonly Dictionary<int, int> _parent = [];
+    private readonly Dictionary<int, int> _size = [];
     private int _numSets;
 
     // Método para añadir una región

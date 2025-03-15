@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Betauer.Core.PCG.Graph;
 using Betauer.Core.PCG.Maze;
 using Betauer.TestRunner;
 using Godot;
@@ -344,22 +345,22 @@ public class MazeNodeWeightedPathTests {
             const int iterations = 5;
             var bfsTimes = new List<long>();
             var astarTimes = new List<long>();
-            PathResult? bfsResult = null;
-            PathResult? astarResult = null;
+            PathResult<MazeNode, MazeEdge>? bfsResult = null;
+            PathResult<MazeNode, MazeEdge>? astarResult = null;
 
             for (var i = 0; i < iterations; i++) {
                 var sw = new System.Diagnostics.Stopwatch();
 
                 // Test BFS
                 sw.Start();
-                var findBfsPath = MazePathFinder.FindBfsPath(start, end);
-                bfsResult = new PathResult(findBfsPath, findBfsPath.Count - 1);
+                var findBfsPath = PathFinder.FindBfsPath<MazeNode, MazeEdge>(start, end);
+                bfsResult = new PathResult<MazeNode, MazeEdge>(findBfsPath, findBfsPath.Count - 1);
                 sw.Stop();
                 bfsTimes.Add(sw.ElapsedTicks);
 
                 // Test A* with Manhattan distance
                 sw.Restart();
-                astarResult = MazePathFinder.FindShortestPath(start, end, PathWeightMode.None,
+                astarResult = PathFinder.FindShortestPath<MazeNode, MazeEdge>(start, end, PathWeightMode.None,
                     heuristic: (node, target) => {
                         var dx = Math.Abs(node.Position.X - target.Position.X);
                         var dy = Math.Abs(node.Position.Y - target.Position.Y);

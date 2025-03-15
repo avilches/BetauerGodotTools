@@ -56,7 +56,7 @@ public class MazeZones(MazeGraph mazeGraph, MazeNode start, IMazeZonedConstraint
 
         // Find the maximum number of edges any node has in the graph
         // Example: In a grid maze, a center node might have 4 edges, while a corner node has 2
-        var maxGraphEdges = MazeGraph.GetNodes().Max(n => n.GetOutEdges().Count);
+        var maxGraphEdges = MazeGraph.GetNodes().Max(n => n.GetOutEdges().Count());
 
         foreach (var zone in Zones) {
             foreach (var part in zone.Parts) {
@@ -143,7 +143,7 @@ public class MazeZones(MazeGraph mazeGraph, MazeNode start, IMazeZonedConstraint
             // and therefore get maximum score
             return 1.0f;
         }
-        var edges = node.GetOutEdges().Count;
+        var edges = node.GetOutEdges().Count();
         var deadEndScore = 1.0f - (float)(edges - 1) / (maxEdges - 1);
         return deadEndScore;
     }

@@ -18,8 +18,12 @@ public readonly record struct GridGraphEdge(Vector2I From, Vector2I To, float We
 }
 
 /// <summary>
-/// The Array2DGraph class represents an edge-weighted directed graph based on a grid where vertices are Vector2I coordinates.
-/// The graph structure is implicit in the grid, where each cell can be connected to its orthogonal neighbors if they are walkable.
+/// The Array2DGraph class represents an edge-weighted directed graph based on a grid where vertices
+/// are Vector2I coordinates.
+/// The graph structure is implicit by the grid, where each cell is connected to its orthogonal
+/// neighbors if they are walkable. So, there is no concept of edge: if there are two non-blocked cells
+/// adjacent, they are connected.
+/// If you need adjacent cells non-connected, consider using MazeNode/MazeEdge
 /// Edge weights are determined by the cost function provided.
 /// </summary>
 public class GridGraph {

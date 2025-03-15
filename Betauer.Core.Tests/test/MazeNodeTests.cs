@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
+using Betauer.Core.PCG.Graph;
 using Betauer.Core.PCG.Maze;
-using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
 
@@ -509,7 +509,7 @@ public class MazeNodeTests {
 
         // Crear un predicado que no permite pasar por B
         var predicate = new Func<MazeNode, bool>(node => node != nodeB);
-        var path = nodeA.FindShortestPath(nodeC, predicate);
+        var path = nodeA.FindShortestPath(nodeC, PathWeightMode.Both, predicate);
 
         Assert.Multiple(() => {
             Assert.That(path, Has.Count.EqualTo(3));

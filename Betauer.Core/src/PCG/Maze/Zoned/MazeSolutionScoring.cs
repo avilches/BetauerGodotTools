@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
+using Betauer.Core.PCG.Graph;
 
 namespace Betauer.Core.PCG.Maze.Zoned;
 
@@ -106,7 +107,7 @@ public class MazeSolutionScoring {
             var pathStart = stops.Last();
             var pathEnd = KeyLocations[zoneId];
 
-            var path = pathStart.FindShortestPath(pathEnd, node => keys.Contains(node.ZoneId));
+            var path = pathStart.FindShortestPath(pathEnd, PathWeightMode.Both, node => keys.Contains(node.ZoneId));
             if (path.Count == 0) {
                 // This is impossible because keys are visited in order, and the maze is created with the zones in order. But, if this happens,
                 // it means the maze is not solvable with the current keys because the zones are not connected (e.g. zone 1 is not connected to zone 0).
@@ -126,7 +127,7 @@ public class MazeSolutionScoring {
         SolutionPath = solutionPath;
         // Calcular non-linearity: suma de todas las visitas adicionales
         // (cada habitación que se visita más de una vez suma sus visitas extras)
-        GoalPath = start.FindShortestPath(KeyLocations[^1], node => true);
+        GoalPath = start.FindShortestPath(KeyLocations[^1], PathWeightMode.Both, node => true);
 
         NodesByVisit = nodes.GroupBy(node => _traversalCount.GetValueOrDefault(node, 0))
             .OrderBy(i => i.Key)

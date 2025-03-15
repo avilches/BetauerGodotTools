@@ -1,3 +1,4 @@
+using Betauer.Core.PCG.Graph;
 using Betauer.Core.PCG.Maze;
 using Betauer.TestRunner;
 using Godot;
@@ -6,7 +7,7 @@ using NUnit.Framework;
 namespace Betauer.Core.Tests;
 
 [TestFixture]
-public class MazePathFinderTests {
+public class PathFinderTests {
     private MazeGraph graph;
     private MazeNode nodeA;
     private MazeNode nodeB;
@@ -52,7 +53,7 @@ public class MazePathFinderTests {
 
     [Test]
     public void FindWeightedPath_NoWeights_ShouldFindShortestPath() {
-        var result = MazePathFinder.FindShortestPath(nodeA, nodeF, PathWeightMode.None);
+        var result = PathFinder.FindShortestPath<MazeNode, MazeEdge>(nodeA, nodeF, PathWeightMode.None);
             
         Assert.That(result, Is.Not.Null);
         Assert.That(result!.Path, Has.Count.EqualTo(4));
@@ -62,7 +63,7 @@ public class MazePathFinderTests {
 
     [Test]
     public void FindWeightedPath_EdgesOnly_ShouldFindPathWithLowestEdgeWeights() {
-        var result = MazePathFinder.FindShortestPath(nodeA, nodeF, PathWeightMode.EdgesOnly);
+        var result = PathFinder.FindShortestPath<MazeNode, MazeEdge>(nodeA, nodeF, PathWeightMode.EdgesOnly);
             
         Assert.That(result, Is.Not.Null);
         Assert.That(result!.Path, Has.Count.EqualTo(4));
@@ -76,7 +77,7 @@ public class MazePathFinderTests {
         nodeB.Weight = 5;
         nodeE.Weight = 1;
             
-        var result = MazePathFinder.FindShortestPath(nodeA, nodeF, PathWeightMode.NodesOnly);
+        var result = PathFinder.FindShortestPath<MazeNode, MazeEdge>(nodeA, nodeF, PathWeightMode.NodesOnly);
             
         Assert.That(result, Is.Not.Null);
         Assert.That(result!.Path, Has.Count.EqualTo(4));
@@ -90,7 +91,7 @@ public class MazePathFinderTests {
         // Set weights to force path through D
         nodeB.Weight = 15; // Aumentamos el peso de B para que la ruta por D sea más favorable
     
-        var result = MazePathFinder.FindShortestPath(nodeA, nodeF, PathWeightMode.Both);
+        var result = PathFinder.FindShortestPath<MazeNode, MazeEdge>(nodeA, nodeF, PathWeightMode.Both);
     
         Assert.That(result, Is.Not.Null);
         Assert.That(result!.Path, Has.Count.EqualTo(4));
@@ -111,7 +112,7 @@ public class MazePathFinderTests {
 
     [Test]
     public void FindWeightedPath_SameStartAndEnd_ShouldReturnSingleNodePath() {
-        var result = MazePathFinder.FindShortestPath(nodeA, nodeA);
+        var result = PathFinder.FindShortestPath<MazeNode, MazeEdge>(nodeA, nodeA);
             
         Assert.That(result, Is.Not.Null);
         Assert.That(result!.Path, Has.Count.EqualTo(1));
@@ -121,7 +122,7 @@ public class MazePathFinderTests {
 
     [Test]
     public void FindWeightedPath_SameStartAndEndNone_ShouldReturnSingleNodePath() {
-        var result = MazePathFinder.FindShortestPath(nodeA, nodeA, PathWeightMode.None);
+        var result = PathFinder.FindShortestPath<MazeNode, MazeEdge>(nodeA, nodeA, PathWeightMode.None);
             
         Assert.That(result, Is.Not.Null);
         Assert.That(result!.Path, Has.Count.EqualTo(1));
@@ -131,7 +132,7 @@ public class MazePathFinderTests {
 
     [Test]
     public void FindWeightedPath_SameStartAndEndEdgesOnly_ShouldReturnSingleNodePath() {
-        var result = MazePathFinder.FindShortestPath(nodeA, nodeA, PathWeightMode.EdgesOnly);
+        var result = PathFinder.FindShortestPath<MazeNode, MazeEdge>(nodeA, nodeA, PathWeightMode.EdgesOnly);
             
         Assert.That(result, Is.Not.Null);
         Assert.That(result!.Path, Has.Count.EqualTo(1));
@@ -144,7 +145,7 @@ public class MazePathFinderTests {
         // Create an isolated node
         var isolatedNode = graph.CreateNode(new Vector2I(5, 5), weight: 1);
             
-        var result = MazePathFinder.FindShortestPath(nodeA, isolatedNode);
+        var result = PathFinder.FindShortestPath<MazeNode, MazeEdge>(nodeA, isolatedNode);
             
         Assert.That(result.Path, Is.Empty);
         Assert.That(result.TotalCost, Is.EqualTo(-1));
@@ -155,7 +156,7 @@ public class MazePathFinderTests {
         // Only allow traversal of nodes with even x coordinates
         bool CanTraverse(MazeNode node) => node.Position.X % 2 == 0;
             
-        var result = MazePathFinder.FindShortestPath(nodeA, nodeF, PathWeightMode.None, CanTraverse);
+        var result = PathFinder.FindShortestPath<MazeNode, MazeEdge>(nodeA, nodeF, PathWeightMode.None, CanTraverse);
             
         Assert.That(result.Path, Is.Empty);
         Assert.That(result.TotalCost, Is.EqualTo(-1));
