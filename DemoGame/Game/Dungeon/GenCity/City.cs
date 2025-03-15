@@ -215,20 +215,32 @@ public class City(int width, int height) {
         }
     }
 
+    /// <summary>
+    /// Returns all the paths in a section. It can return paths that start in this section but end in another
+    /// </summary>
+    /// <param name="sectionRect"></param>
+    /// <returns></returns>
     public IEnumerable<Path> FindPathsInSection(Rect2I sectionRect) {
+        var consumed = new HashSet<Path>();
         for (var y = sectionRect.Position.Y; y < sectionRect.Position.Y + sectionRect.Size.Y; y++) {
             for (var x = sectionRect.Position.X; x < sectionRect.Position.X + sectionRect.Size.X; x++) {
-                if (Data[y, x] is Path path) {
+                if (Data[y, x] is not Intersection intersection) continue;
+                foreach (var path in intersection.GetAllPaths().Where(path => consumed.Add(path))) {
                     yield return path;
-                } else if (Data[y, x] is Intersection intersection) {
-                    foreach (var ipath in intersection.GetAllPaths()) {
-                        yield return ipath;
-                    }
                 }
             }
         }
     }
 
+    public IEnumerable<Intersection> FindIntersectionsInSection(Rect2I sectionRect) {
+        for (var y = sectionRect.Position.Y; y < sectionRect.Position.Y + sectionRect.Size.Y; y++) {
+            for (var x = sectionRect.Position.X; x < sectionRect.Position.X + sectionRect.Size.X; x++) {
+                if (Data[y, x] is Intersection intersection) {
+                    yield return intersection;
+                }
+            }
+        }
+    }
 
     /// <summary>
     /// Adds a new intersection in the middle of a path, creating two paths.
@@ -281,7 +293,6 @@ public class City(int width, int height) {
         return count;
     }
 
-
     /// <summary>
     /// If the intersection has two paths in opposite directions, removes the intersection and creates a single path
     /// This "X----X----X" becomes "X---------X"
@@ -333,7 +344,7 @@ public class City(int width, int height) {
         }
         return true;
     }
-    
+
     private void DebugPathPositions(Path path) {
         Console.WriteLine($"Debugging path: {path}");
         Console.WriteLine($"Start: {path.Start.Position}, End: {path.End?.Position ?? path.GetCursor()}");

@@ -21,12 +21,34 @@ public class MazeNode {
     }
 
     public MazeGraph Graph { get; }
-
     public int Id { get; }
     public Vector2I Position { get; }
+    public int ZoneId { get; set; }
+    public int PartId { get; set; }
+    /// <summary>
+    /// Gets the depth of this node in the tree hierarchy.
+    /// The root node has depth 0, its children have depth 1, and so on.
+    /// </summary>
+    public int Depth => _cachedDepth ??= CalculateDepth();
+    public int OutDegree => _outEdges.Count;
+    public int InDegree => _inEdges.Count;
+    public int Degree => OutDegree + InDegree;
+    public float Weight { get; set; } = 0f;
+    public int OutEdgesCount => _outEdges.Count;
+    public int InEdgesCount => _inEdges.Count;
+    public MazeNode? Up => GetEdgeTowards(Vector2I.Up)?.To;
+    public MazeNode? UpRight => GetEdgeTowards(new Vector2I(1, -1))?.To;
+    public MazeNode? UpLeft => GetEdgeTowards(new Vector2I(-1, -1))?.To;
+    public MazeNode? Down => GetEdgeTowards(Vector2I.Down)?.To;
+    public MazeNode? DownRight => GetEdgeTowards(new Vector2I(1, 1))?.To;
+    public MazeNode? DownLeft => GetEdgeTowards(new Vector2I(-1, 1))?.To;
+    public MazeNode? Right => GetEdgeTowards(Vector2I.Right)?.To;
+    public MazeNode? Left => GetEdgeTowards(Vector2I.Left)?.To;
 
     private int? _cachedDepth;
     private MazeNode? _parent;
+    private readonly List<MazeEdge> _outEdges = [];
+    private readonly List<MazeEdge> _inEdges = [];
 
     public MazeNode? Parent {
         get => _parent;
@@ -45,6 +67,7 @@ public class MazeNode {
             InvalidateDepthCache();
         }
     }
+    
 
     /// <summary>
     /// Checks if setting the specified node as parent would create a circular reference.
@@ -72,12 +95,6 @@ public class MazeNode {
     }
 
     /// <summary>
-    /// Gets the depth of this node in the tree hierarchy.
-    /// The root node has depth 0, its children have depth 1, and so on.
-    /// </summary>
-    public int Depth => _cachedDepth ??= CalculateDepth();
-
-    /// <summary>
     /// Calculates the depth by counting parents up to the root
     /// </summary>
     private int CalculateDepth() {
@@ -94,21 +111,6 @@ public class MazeNode {
         return Graph.GetNodes().Where(n => n.Parent == this);
     }
 
-    private readonly List<MazeEdge> _outEdges = [];
-    private readonly List<MazeEdge> _inEdges = [];
-
-    public int ZoneId { get; set; }
-    public int PartId { get; set; }
-
-    public MazeNode? Up => GetEdgeTowards(Vector2I.Up)?.To;
-    public MazeNode? UpRight => GetEdgeTowards(new Vector2I(1, -1))?.To;
-    public MazeNode? UpLeft => GetEdgeTowards(new Vector2I(-1, -1))?.To;
-    public MazeNode? Down => GetEdgeTowards(Vector2I.Down)?.To;
-    public MazeNode? DownRight => GetEdgeTowards(new Vector2I(1, 1))?.To;
-    public MazeNode? DownLeft => GetEdgeTowards(new Vector2I(-1, 1))?.To;
-    public MazeNode? Right => GetEdgeTowards(Vector2I.Right)?.To;
-    public MazeNode? Left => GetEdgeTowards(Vector2I.Left)?.To;
-
     public byte GetDirectionFlags() {
         byte directions = 0;
         if (Up != null) directions |= (byte)DirectionFlag.Up;
@@ -121,15 +123,6 @@ public class MazeNode {
         if (UpLeft != null) directions |= (byte)DirectionFlag.UpLeft;
         return directions;
     }
-
-
-    public int OutDegree => _outEdges.Count;
-
-    public int InDegree => _inEdges.Count;
-
-    public int Degree => OutDegree + InDegree;
-
-    public float Weight { get; set; } = 0f;
 
     // Edges
     public MazeEdge? GetEdgeTo(int id) => _outEdges.FirstOrDefault(edge => edge.To.Id == id);
@@ -211,9 +204,6 @@ public class MazeNode {
     public ImmutableList<MazeEdge> GetOutEdges() => _outEdges.ToImmutableList();
     public ImmutableList<MazeEdge> GetInEdges() => _inEdges.ToImmutableList();
     public ImmutableList<MazeEdge> GetAllEdges() => _outEdges.Concat(_inEdges).ToImmutableList();
-
-    public int OutEdgesCount => _outEdges.Count;
-    public int InEdgesCount => _inEdges.Count;
 
     public bool RemoveNode() {
         if (!Graph.InternalRemoveNode(this)) return false;
@@ -420,6 +410,6 @@ public class MazeNode {
         => MazePathFinder.FindShortestPath(this, target, mode, canTraverse);
 
     public override string ToString() {
-        return $"Id:{Id} {Position}";
+        return $"Id:{Id} {Position} Zone/Part: {ZoneId}/{PartId}";
     }
 }

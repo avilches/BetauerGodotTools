@@ -9,6 +9,7 @@ using Betauer.Core.DataMath;
 using Betauer.Core.DataMath.Geometry;
 using Betauer.Core.Examples;
 using Betauer.Core.PCG.GridTemplate;
+using Betauer.Core.PCG.Maze;
 using Godot;
 
 namespace Veronenger.Game.Dungeon.GenCity;
@@ -256,10 +257,12 @@ public class GenCityDemo {
         buffer.AppendLine("└" + new string('─', width) + "┘");
 
         Console.Write(buffer.ToString());
-        Console.WriteLine($"Seed: {_generator.Seed}/{_generator.Options.SeedOffset} | J/K/L = Seed | F = Fill ({_city.GetDensity() * 100:0}%)f | Q = Quit");
+        Console.WriteLine($"Seed: {_generator.Seed}/{_generator.Options.SeedOffset} | {_cityMaze.CrossingPaths.Count} J/K/L = Seed | F = Fill ({_city.GetDensity() * 100:0}%)f | Q = Quit");
 
         var tile = _city.Data[_playerY, _playerX];
         Console.WriteLine($"Pos: {_playerX}, {_playerY} | {tile}");
+        var mazeNode = tile?.Attributes().GetAs<MazeNode>("mazeNode");
+        Console.WriteLine($"MazeNode {mazeNode} | {(tile is Path p && _cityMaze.CrossingPaths.Contains(p)?"Crossing":"")}");
     }
 
     private void HandleInput() {
