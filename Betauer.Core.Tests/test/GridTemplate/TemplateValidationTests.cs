@@ -8,12 +8,11 @@ using Godot;
 namespace Betauer.Core.Tests.GridTemplate;
 
 [TestFixture]
-[Ignore("Fails on CI")]
 public class TemplateValidationTests {
     private static readonly Func<char, bool> IsBlocked = (c) => c != '·' && c != 'd';
 
     [Test]
-    public void SingleExit_IsValid_DefaultSize() {
+    public void SingleExit() {
         var template = new Template {
             Body = Array2D.Parse(@"
                 #####
@@ -23,20 +22,22 @@ public class TemplateValidationTests {
                 ##·##"),
             DirectionFlags = (byte)DirectionFlag.Down
         };
+        template.SetAttribute(DirectionFlag.Down, "size", 1);
         Assert.That(template.IsValid(IsBlocked), Is.True);
     }
 
     [Test]
-    public void SingleExit_IsValid_DefaultSize_NotValid() {
+    public void SingleExit_NotValid() {
         var template = new Template {
             Body = Array2D.Parse(@"
                 #####
                 #####
                 #####
                 #####
-                ##··#"),
+                #####"),
             DirectionFlags = (byte)DirectionFlag.Down
         };
+        template.SetAttribute(DirectionFlag.Down, "size", 1);
         Assert.That(template.IsValid(IsBlocked), Is.False);
     }
 
@@ -68,6 +69,8 @@ public class TemplateValidationTests {
                 #####"),
             DirectionFlags = (byte)(DirectionFlag.Up | DirectionFlag.Right)
         };
+        template.SetAttribute(DirectionFlag.Up, "size", 1);
+        template.SetAttribute(DirectionFlag.Right, "size", 1);
         Assert.That(template.IsValid(IsBlocked), Is.True);
     }
 
@@ -82,6 +85,8 @@ public class TemplateValidationTests {
                 #####"),
             DirectionFlags = (byte)(DirectionFlag.Up | DirectionFlag.Right)
         };
+        template.SetAttribute(DirectionFlag.Up, "size", 1);
+        template.SetAttribute(DirectionFlag.Right, "size", 1);
         Assert.That(template.IsValid(IsBlocked), Is.False);
     }
 
@@ -96,6 +101,8 @@ public class TemplateValidationTests {
                 #·###"),
             DirectionFlags = (byte)(DirectionFlag.Up | DirectionFlag.Down)
         };
+        template.SetAttribute(DirectionFlag.Down, "size", 1);
+        template.SetAttribute(DirectionFlag.Up, "size", 1);
         Assert.That(template.IsValid(IsBlocked), Is.False);
     }
 
@@ -110,6 +117,9 @@ public class TemplateValidationTests {
                 ##·##"),
             DirectionFlags = (byte)(DirectionFlag.Up | DirectionFlag.Right | DirectionFlag.Down)
         };
+        template.SetAttribute(DirectionFlag.Down, "size", 1);
+        template.SetAttribute(DirectionFlag.Up, "size", 1);
+        template.SetAttribute(DirectionFlag.Right, "size", 1);
         Assert.That(template.IsValid(IsBlocked), Is.True);
     }
 
@@ -124,6 +134,9 @@ public class TemplateValidationTests {
                 #·###"),
             DirectionFlags = (byte)(DirectionFlag.Up | DirectionFlag.Right | DirectionFlag.Down)
         };
+        template.SetAttribute(DirectionFlag.Down, "size", 1);
+        template.SetAttribute(DirectionFlag.Up, "size", 1);
+        template.SetAttribute(DirectionFlag.Right, "size", 1);
         Assert.That(template.IsValid(IsBlocked), Is.False);
     }
 
@@ -152,6 +165,10 @@ public class TemplateValidationTests {
                 ##·##"),
             DirectionFlags = (byte)(DirectionFlag.Up | DirectionFlag.Right | DirectionFlag.Down | DirectionFlag.Left)
         };
+        template.SetAttribute(DirectionFlag.Down, "size", 1);
+        template.SetAttribute(DirectionFlag.Up, "size", 1);
+        template.SetAttribute(DirectionFlag.Left, "size", 1);
+        template.SetAttribute(DirectionFlag.Right, "size", 1);
         Assert.That(template.IsValid(IsBlocked), Is.True);
     }
 
@@ -166,6 +183,10 @@ public class TemplateValidationTests {
                 ##d##"),
             DirectionFlags = (byte)(DirectionFlag.Up | DirectionFlag.Right | DirectionFlag.Down | DirectionFlag.Left)
         };
+        template.SetAttribute(DirectionFlag.Down, "size", 1);
+        template.SetAttribute(DirectionFlag.Up, "size", 1);
+        template.SetAttribute(DirectionFlag.Left, "size", 1);
+        template.SetAttribute(DirectionFlag.Right, "size", 1);
         Assert.That(template.IsValid(IsBlocked), Is.True);
     }
 }
