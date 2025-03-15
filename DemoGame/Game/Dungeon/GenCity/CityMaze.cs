@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Betauer.Core;
 using Betauer.Core.DataMath;
 using Betauer.Core.Image;
 using Betauer.Core.PCG.Maze;
@@ -9,6 +10,12 @@ using Godot;
 
 namespace Veronenger.Game.Dungeon.GenCity;
 
+public class CityExit(Intersection intersection, MazeNode mazeFrom, MazeNode destination) {
+    public MazeNode From { get; }  = mazeFrom;
+    public MazeNode Destination { get; } = destination;
+    public Intersection Intersection { get; } = intersection;
+}
+
 public class CityMaze {
     public MazeZones MazeZones { get; }
     public MazeGraph MazeGraph => MazeZones.MazeGraph;
@@ -16,6 +23,8 @@ public class CityMaze {
     public Array2D<MazeNode?> NodesGrid { get; }
     public City City { get; }
     public CityGenerator Generator { get; }
+    
+    public List<CityExit> Exits { get; } = [];
 
     public CityMaze(MazeZones zones, int sectionSize) {
         MazeZones = zones;
@@ -69,12 +78,13 @@ public class CityMaze {
             }
         }
     }
-
+    
     /// <summary>
-    /// Loop over 
+    /// Loop over maze nodes and keep only one path between zones 
     /// </summary>
     public void ProcessSectionsWithMazeNodes() {
-        HashSet<Intersection> keep = [];
+        var ignored = new HashSet<Intersection>();
+        Exits.Clear();
         for (var gridY = 0; gridY < NodesGrid.Height; gridY++) {
             for (var gridX = 0; gridX < NodesGrid.Width; gridX++) {
                 var mazeNode = NodesGrid[gridY, gridX];
@@ -93,16 +103,27 @@ public class CityMaze {
                         var lineStart = new Vector2I(sectionRect.Position.X, sectionRect.Position.Y);
                         var lineEnd = new Vector2I(sectionRect.Position.X + sectionRect.Size.X - 1, sectionRect.Position.Y);
 
-                        if (mazeNode.Up != null && mazeNode.Up.ZoneId != mazeNode.ZoneId) {
-                            // Create intersections when there is a connection between different zones
-                            if (mazeNode.Up.ZoneId < mazeNode.ZoneId) {
-                                // The other node has the exit to this node, so move the line outside
-                                lineStart += Vector2I.Up;
-                                lineEnd += Vector2I.Up;
+                        if (mazeNode.Up != null) {
+                            if (mazeNode.Up.ZoneId != mazeNode.ZoneId) {
+                                // Create intersections when there is a connection between different zones
+                                var nodeIsEntry = mazeNode.Up.ZoneId < mazeNode.ZoneId;
+                                if (nodeIsEntry) {
+                                    // The other node has the exit to this node, so move the line outside
+                                    lineStart += Vector2I.Up;
+                                    lineEnd += Vector2I.Up;
+                                }
+                                var i = CreateIntersectionsOnLine(lineStart, lineEnd);
+                                ignored.Add(i);
+                                if (nodeIsEntry) {
+                                    Exits.Add(new CityExit(i, mazeNode, mazeNode.Up));
+                                } else {
+                                    Exits.Add(new CityExit(i, mazeNode.Up, mazeNode));
+                                }
+                            } else {
+                                // MazeNodes belongs to the same zone, keep all the connections
                             }
-                            var i = CreateIntersectionsOnLine(lineStart, lineEnd);
-                            keep.Add(i);
-                        } else if (mazeNode.Up == null) {
+
+                        } else  {
                             // Remove paths if there is a neighbour on the left but there is no connection bet
                             RemovePathsOnLine(lineStart, lineEnd);
                         }
@@ -113,23 +134,33 @@ public class CityMaze {
                         var lineStart = new Vector2I(sectionRect.Position.X, sectionRect.Position.Y);
                         var lineEnd = new Vector2I(sectionRect.Position.X, sectionRect.Position.Y + sectionRect.Size.Y - 1);
 
-                        if (mazeNode.Left != null && mazeNode.Left.ZoneId != mazeNode.ZoneId) {
-                            // Create intersections when there is a connection between different zones
-                            if (mazeNode.Left.ZoneId < mazeNode.ZoneId) {
-                                // The other node has the exit to this node, so move the line outside
-                                lineStart += Vector2I.Left;
-                                lineEnd += Vector2I.Left;
+                        if (mazeNode.Left != null) {
+                            if (mazeNode.Left.ZoneId != mazeNode.ZoneId) {
+                                // Create intersections when there is a connection between different zones
+                                var nodeIsEntry = mazeNode.Left.ZoneId < mazeNode.ZoneId;
+                                if (nodeIsEntry) {
+                                    // The other node has the exit to this node, so move the line outside
+                                    lineStart += Vector2I.Left;
+                                    lineEnd += Vector2I.Left;
+                                }
+                                var i = CreateIntersectionsOnLine(lineStart, lineEnd);
+                                ignored.Add(i);
+                                if (nodeIsEntry) {
+                                    Exits.Add(new CityExit(i, mazeNode, mazeNode.Left));
+                                } else {
+                                    Exits.Add(new CityExit(i, mazeNode.Left, mazeNode));
+                                }
+                            } else {
+                                // MazeNodes belongs to the same zone, keep all the connections
                             }
-                            var i = CreateIntersectionsOnLine(lineStart, lineEnd);
-                            keep.Add(i);
-                        } else if (mazeNode.Left == null) {
+                        } else {
                             // Remove paths if there is a neighbour on the left but there is no connection bet
                             RemovePathsOnLine(lineStart, lineEnd);
                         }
                     }
                 }
             }
-            City.FlatAllIntersections(i => !keep.Contains(i));
+            City.FlatAllIntersections(i => !ignored.Contains(i));
         }
         return;
 
@@ -153,7 +184,7 @@ public class CityMaze {
         Intersection CreateIntersectionsOnLine(Vector2I lineStart, Vector2I lineEnd) {
             var isHorizontal = lineStart.Y == lineEnd.Y;
             // Create intersections on paths crossing the line
-            List<(Path Path, Vector2I Position)> crossingPaths = [];
+            var crossingPaths = new List<(Path Path, Vector2I Position)>();
             Draw.Line(lineStart, lineEnd, 1, (x, y) => {
                 var pos = new Vector2I(x, y);
                 if (City.Data[pos] is Path path) {
