@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Betauer.Core;
 using Betauer.Core.DataMath;
+using Betauer.Core.DataMath.Geometry;
 using Godot;
 
 namespace Veronenger.Game.Dungeon.GenCity;
@@ -13,6 +14,7 @@ public interface ICityTile {
 
 public class Other(char c) : ICityTile {
     public char C = c;
+
     public byte GetDirectionFlags() {
         return 0;
     }
@@ -28,6 +30,7 @@ public class City(int width, int height) {
     public Action<Vector2I>? OnUpdate;
 
     private int _intersectionId = 0;
+    private int _buildingId = 0;
 
     public City(Vector2I size) : this(size.X, size.Y) {
     }
@@ -52,6 +55,7 @@ public class City(int width, int height) {
         Intersections.Clear();
         Buildings.Clear();
         _intersectionId = 0;
+        _buildingId = 0;
     }
 
     public void RemoveAllPaths() {
@@ -66,10 +70,17 @@ public class City(int width, int height) {
     }
 
     public void RemoveBuildings() {
-        Buildings.Clear();
-        foreach (var (p, e) in Data.GetIndexedValues()) {
-            if (e is Building) {
-                Data[p] = null;
+        foreach (var building in Buildings.ToList()) {
+            RemoveBuilding(building);
+        }
+        _buildingId = 0;
+    }
+
+    public void RemoveBuilding(Building building) {
+        if (!Buildings.Remove(building)) return;
+        foreach (var pos in building.GetPositions()) {
+            if (Data[pos] == building) {
+                Data[pos] = null;
             }
         }
     }
@@ -216,29 +227,42 @@ public class City(int width, int height) {
     }
 
     /// <summary>
-    /// Returns all the paths in a section. It can return paths that start in this section but end in another
+    /// Returns all the paths in a section. If Inner is true, the paths starts and end within the rect.
+    /// If false, the paths that start in the section but end outside of it (or vice-versa)
     /// </summary>
-    /// <param name="sectionRect"></param>
+    /// <param name="rect"></param>
     /// <returns></returns>
-    public IEnumerable<Path> FindPathsInSection(Rect2I sectionRect) {
+    public IEnumerable<(Path Path, bool Inner)> FindPaths(Rect2I rect) {
         var consumed = new HashSet<Path>();
-        for (var y = sectionRect.Position.Y; y < sectionRect.Position.Y + sectionRect.Size.Y; y++) {
-            for (var x = sectionRect.Position.X; x < sectionRect.Position.X + sectionRect.Size.X; x++) {
-                if (Data[y, x] is not Intersection intersection) continue;
-                foreach (var path in intersection.GetAllPaths().Where(path => consumed.Add(path))) {
-                    yield return path;
-                }
+        foreach (var intersection in FindIntersections(rect)) {
+            foreach (var (path, oppositeIntersection) in intersection
+                         .GetAllPathIntersections()
+                         .Where(path => consumed.Add(path.Path))) {
+                var inner = rect.HasPoint(oppositeIntersection.Position);
+                yield return (Path: path, Inner: inner);
             }
         }
     }
 
-    public IEnumerable<Intersection> FindIntersectionsInSection(Rect2I sectionRect) {
-        for (var y = sectionRect.Position.Y; y < sectionRect.Position.Y + sectionRect.Size.Y; y++) {
-            for (var x = sectionRect.Position.X; x < sectionRect.Position.X + sectionRect.Size.X; x++) {
-                if (Data[y, x] is Intersection intersection) {
-                    yield return intersection;
-                }
-            }
+    /// <summary>
+    /// Returns all the buildings in a section. If Inner is true, the whole building is in the rect.
+    /// If false, part of the building is inside the rect, and part of the budiling is outside
+    /// </summary>
+    /// <param name="rect"></param>
+    /// <returns></returns>
+    public IEnumerable<(Building Building, bool Inner)> FindBuildings(Rect2I rect) {
+        var consumed = new HashSet<Building>();
+        foreach (var (x, y) in rect.GetPositions()) {
+            if (Data[y, x] is not Building building) continue;
+            var inner = rect.Encloses(building.Bounds);
+            yield return (Building: building, Inner: inner);
+        }
+    }
+
+    public IEnumerable<Intersection> FindIntersections(Rect2I rect) {
+        foreach (var (x, y) in rect.GetPositions()) {
+            if (Data[y, x] is not Intersection intersection) continue;
+            yield return intersection;
         }
     }
 
@@ -353,6 +377,16 @@ public class City(int width, int height) {
         foreach (var pos in path.GetPositions()) {
             var dataEntry = Data[pos];
             Console.WriteLine($"  Position: {pos}, Data entry: {dataEntry}");
+        }
+    }
+
+    public void CreateBuilding(Path path, Rect2I buildingRect) {
+        var building = new Building(_buildingId++, path, buildingRect);
+        Buildings.Add(building);
+
+        foreach (Vector2I pos in buildingRect.GetPositions()) {
+            Data[pos] = building;
+            OnUpdate?.Invoke(pos);
         }
     }
 }

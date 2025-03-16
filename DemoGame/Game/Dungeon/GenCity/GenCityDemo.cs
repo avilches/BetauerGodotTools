@@ -298,7 +298,7 @@ public class GenCityDemo {
         var tile = _city.Data[_playerY, _playerX];
         Console.WriteLine($"Pos: {_playerX}, {_playerY} | {tile}");
         var mazeNode = tile?.Attributes().GetAs<MazeNode>("mazeNode");
-        Console.WriteLine($"MazeNode {mazeNode} | {(tile is Path p && _cityMaze.CrossingPaths.Contains(p)?"Crossing":"")}");
+        Console.WriteLine($"MazeNode {mazeNode} | {(tile is Path p && _cityMaze.CrossingPaths.ContainsKey(p)?"Crossing":"")}");
     }
 
     private void HandleInput() {
@@ -385,6 +385,11 @@ public class GenCityDemo {
 
                 case ConsoleKey.X:
                     _city.RemoveBuildings();
+                    Render();
+                    return;
+                
+                case ConsoleKey.C:
+                    _cityMaze.FixBuilding();
                     Render();
                     return;
             }

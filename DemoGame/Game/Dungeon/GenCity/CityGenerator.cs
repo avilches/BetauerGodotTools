@@ -235,9 +235,9 @@ public class CityGenerator(City city) {
         return;
 
         void ProcessingBuilding(Path path, Vector2I position, int[] size, List<Vector2I> directions) {
-            List<Vector2I> tiles = [];
-            List<Vector2I> vertices = [];
+            var tiles = new List<Vector2I>();
 
+            // Primero recopilamos todas las posiciones para verificar que el edificio se puede colocar
             for (var i = 0; i < size[0]; i++) {
                 var shiftParallel = directions[0] * i;
                 var startFromPathPosition = position + shiftParallel;
@@ -248,22 +248,28 @@ public class CityGenerator(City city) {
 
                     if (City.Data.IsInBounds(tilePosition) && City.Data[tilePosition] == null) {
                         tiles.Add(tilePosition);
-                        if ((i == 0 || i == size[0] - 1) && (j == 0 || j == size[1] - 1)) {
-                            vertices.Add(tilePosition);
-                        }
                     } else {
                         return;
                     }
                 }
             }
 
-            var building = new Building(path, vertices);
-            City.Buildings.Add(building);
+            // Calcular los límites del edificio (min/max coordinates)
+            var minX = int.MaxValue;
+            var minY = int.MaxValue;
+            var maxX = int.MinValue;
+            var maxY = int.MinValue;
 
-            foreach (Vector2I tilePosition in tiles) {
-                City.Data[tilePosition] = building;
-                City.OnUpdate?.Invoke(tilePosition);
+            foreach (var pos in tiles) {
+                minX = Math.Min(minX, pos.X);
+                minY = Math.Min(minY, pos.Y);
+                maxX = Math.Max(maxX, pos.X);
+                maxY = Math.Max(maxY, pos.Y);
             }
+
+            // Crear el Rect2I y el edificio
+            var buildingRect = new Rect2I(minX, minY, maxX - minX + 1, maxY - minY + 1);
+            City.CreateBuilding(path, buildingRect);
         }
     }
 

@@ -29,9 +29,14 @@ public class Intersection(int id, Vector2I position) : ICityTile {
 
     public List<Path> GetAllPaths() => [.._outputPaths, .._inputPaths];
 
-    public List<Intersection> GetAllPathIntersections() => [
-        .._outputPaths.Where(p=> p.IsCompleted()).Select(p => p.End!), 
-        .._inputPaths.Select(p => p.Start)
+    /// <summary>
+    /// Returns all the paths and the opposite intersection. That means, the start for input paths and
+    /// the end of the output paths
+    /// </summary>
+    /// <returns></returns>
+    public List<(Path Path, Intersection Opposite)> GetAllPathIntersections() => [
+        .._outputPaths.Where(p=> p.IsCompleted()).Select(p => (p, p.End!)), 
+        .._inputPaths.Select(p => (p, p.Start))
     ];
 
     public Path? Up => FindPathTo(Vector2I.Up);
