@@ -127,12 +127,13 @@ public class MazeGraphCatalog {
     /// <param name="config"></param>
     /// <returns></returns>
     public static MazeZones City(Random rng, Action<MazeGraph>? config = null) {
-        var constraintsBig = new MazePerZoneConstraints()
+        var constraints = new MazePerZoneConstraints()
             .Zone(nodes: 1, corridor: true)
             .Zone(nodes: 3, parts: 1, corridor: true)
+            .Zone(nodes: 4, parts: 2, corridor: true)
             .Zone(nodes: 2, parts: 2, corridor: false)
             .Zone(nodes: 2, parts: 1, corridor: true, flexibleParts: false);
-        var constraints = new MazePerZoneConstraints()
+        var constraintsSmall = new MazePerZoneConstraints()
             .Zone(nodes: 1, corridor: true)
             .Zone(nodes: 1, corridor: true)
             .Zone(nodes: 1, parts: 1, corridor: true);

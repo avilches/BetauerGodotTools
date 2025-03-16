@@ -37,11 +37,6 @@ public interface IGraphNode<TNode, out TEdge>
 /// </summary>
 public interface IGraphEdge<out TNode> where TNode : class {
     /// <summary>
-    /// The node this edge starts from
-    /// </summary>
-    TNode From { get; }
-
-    /// <summary>
     /// The node this edge goes to
     /// </summary>
     TNode To { get; }

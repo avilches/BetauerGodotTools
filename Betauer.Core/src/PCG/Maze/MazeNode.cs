@@ -11,10 +11,7 @@ namespace Betauer.Core.PCG.Maze;
 /// <summary>
 /// Represents a node in the maze graph, containing connections to adjacent nodes.
 /// </summary>
-public class MazeNode : 
-    IGraphNode<MazeNode, MazeEdge>, 
-    ITreeNode<MazeNode> {
-    
+public class MazeNode : IGraphNode<MazeNode, MazeEdge>, ITreeNode<MazeNode> {
     /// <summary>
     /// Represents a node in the maze graph, containing connections to adjacent nodes.
     /// </summary>
@@ -29,11 +26,13 @@ public class MazeNode :
     public Vector2I Position { get; }
     public int ZoneId { get; set; }
     public int PartId { get; set; }
+
     /// <summary>
     /// Gets the depth of this node in the tree hierarchy.
     /// The root node has depth 0, its children have depth 1, and so on.
     /// </summary>
     public int Depth => _cachedDepth ??= CalculateDepth();
+
     public int OutDegree => _outEdges.Count;
     public int InDegree => _inEdges.Count;
     public int Degree => OutDegree + InDegree;
@@ -288,7 +287,7 @@ public class MazeNode :
     /// // path contains [currentNode, parentNode, grandparentNode, ..., rootNode]
     /// </summary>
     /// <returns>List of nodes from current to root, including both endpoints.</returns>
-    public List<MazeNode> FindTreePathToRoot() 
+    public List<MazeNode> FindTreePathToRoot()
         => PathFinder.FindTreePathToRoot(this);
 
     /// <summary>

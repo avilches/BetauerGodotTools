@@ -14,8 +14,16 @@ public class CityExit(Intersection intersection, MazeNode mazeFrom, MazeNode des
     public MazeNode From { get; } = mazeFrom;
     public MazeNode Destination { get; } = destination;
     public Intersection Intersection { get; } = intersection;
-    public Path FromPath { get; set; }
-    public Path DestinationPath { get; set; }
+
+    public List<Path> PathsToNextZone() => [
+        ..Intersection.GetOutputPaths().Where(p => p.End!.GetMazeNode() == Destination),
+        ..Intersection.GetInputPaths().Where(p => p.Start.GetMazeNode() == Destination)
+    ];
+
+    public List<Path> PathsToTakeTheExit() => [
+        ..Intersection.GetOutputPaths().Where(p => p.End!.GetMazeNode() == From),
+        ..Intersection.GetInputPaths().Where(p => p.Start.GetMazeNode() == From)
+    ];
 }
 
 public static class CityMazeExtensions {
@@ -134,10 +142,6 @@ public class CityMaze {
                     City.RemovePath(path);
                 }
             } else {
-                foreach (var i in City.FindIntersectionsInSection(sectionRect).ToList()) {
-                    i.SetMazeNode(mazeNode);
-                }
-
                 // Check for upward border
                 if (gridY > 0 && NodesGrid[gridY - 1, gridX] != null) {
                     var lineStart = new Vector2I(sectionRect.Position.X, sectionRect.Position.Y);
@@ -154,30 +158,18 @@ public class CityMaze {
                                 lineStart += Vector2I.Up;
                                 lineEnd += Vector2I.Up;
                             }
-                            var i = CreateIntersectionsOnLine(lineStart, lineEnd, direction);
-                            ignored.Add(i);
-
-                            // Find the paths connecting to this intersection
-                            var upPath = i.FindPathTo(Vector2I.Up)!;
-                            var downPath = i.FindPathTo(Vector2I.Down)!;
-                            upPath.SetMazeNode(mazeNode.Up);
-                            downPath.SetMazeNode(mazeNode);
+                            var intersection = CreateIntersectionsOnLine(lineStart, lineEnd, direction);
+                            ignored.Add(intersection);
 
                             if (upLowerZone) {
                                 // up is the exit to this node, so the new intersection belongs to the up node
-                                i.SetMazeNode(mazeNode.Up);
-                                var cityExit = new CityExit(i, mazeNode.Up, mazeNode) {
-                                    FromPath = upPath,
-                                    DestinationPath = downPath
-                                };
+                                intersection.SetMazeNode(mazeNode.Up);
+                                var cityExit = new CityExit(intersection, mazeNode.Up, mazeNode);
                                 Exits.Add(cityExit);
                             } else {
                                 // This node is the exit, so the new intersection belongs to this node
-                                i.SetMazeNode(mazeNode);
-                                var cityExit = new CityExit(i, mazeNode, mazeNode.Up) {
-                                    FromPath = downPath,
-                                    DestinationPath = upPath
-                                };
+                                intersection.SetMazeNode(mazeNode);
+                                var cityExit = new CityExit(intersection, mazeNode, mazeNode.Up);
                                 Exits.Add(cityExit);
                             }
                         } else {
@@ -205,30 +197,18 @@ public class CityMaze {
                                 lineStart += Vector2I.Left;
                                 lineEnd += Vector2I.Left;
                             }
-                            var i = CreateIntersectionsOnLine(lineStart, lineEnd, direction);
-                            ignored.Add(i);
-
-                            // Find the paths connecting to this intersection
-                            var leftPath = i.FindPathTo(Vector2I.Left)!;
-                            var rightPath = i.FindPathTo(Vector2I.Right)!;
-                            leftPath.SetMazeNode(mazeNode.Left);
-                            rightPath.SetMazeNode(mazeNode);
-
+                            var intersection = CreateIntersectionsOnLine(lineStart, lineEnd, direction);
+                            ignored.Add(intersection);
+                            
                             if (leftLowerZone) {
-                                // left is the exit to this node, so the new intersection belongs to the up node
-                                i.SetMazeNode(mazeNode.Left);
-                                var cityExit = new CityExit(i, mazeNode.Left, mazeNode) {
-                                    FromPath = leftPath,
-                                    DestinationPath = rightPath
-                                };
+                                // left is the exit to this node, so the new intersection belongs to the left node
+                                intersection.SetMazeNode(mazeNode.Left);
+                                var cityExit = new CityExit(intersection, mazeNode.Left, mazeNode);
                                 Exits.Add(cityExit);
                             } else {
                                 // This node is the exit, so the new intersection belongs to this node
-                                i.SetMazeNode(mazeNode);
-                                var cityExit = new CityExit(i, mazeNode, mazeNode.Left) {
-                                    FromPath = rightPath,
-                                    DestinationPath = leftPath
-                                };
+                                intersection.SetMazeNode(mazeNode);
+                                var cityExit = new CityExit(intersection, mazeNode, mazeNode.Left);
                                 Exits.Add(cityExit);
                             }
                         } else {
@@ -239,6 +219,10 @@ public class CityMaze {
                         RemovePathsOnLine(lineStart, lineEnd);
                     }
                 }
+                
+                foreach (var i in City.FindIntersectionsInSection(sectionRect).ToList()) {
+                    i.SetMazeNode(mazeNode);
+                }
             }
         }
         City.FlatAllIntersections(i => !ignored.Contains(i));
@@ -246,27 +230,33 @@ public class CityMaze {
         var crossingPaths = new HashSet<Path>();
         foreach (var ((gridX, gridY), sectionRect) in City.Data.GetRects(SectionSize, SectionSize)) {
             var mazeNode = NodesGrid[gridY, gridX];
-
-            // Sections with no maze, remove all paths
-            if (mazeNode != null) {
-                foreach (var path in City.FindPathsInSection(sectionRect).ToList()) {
-                    var node = path.Start.GetMazeNode();
-                    var nodeEnd = path.End!.GetMazeNode();
-                    if (node == null || nodeEnd == null) {
-                        throw new Exception("Bug: all intersections should have a mazeNode");
-                    }
-                    if (node == nodeEnd) {
-                        path.SetMazeNode(node);
-                        node.AddPath(path);
-                    } else {
-                        crossingPaths.Add(path);
-                        // Console.WriteLine("Crossing path start: "+path.Start.Position+" to "+path.End.Position);
-                    }
+            if (mazeNode == null) continue;
+            
+            foreach (var path in City.FindPathsInSection(sectionRect).ToList()) {
+                var node = path.Start.GetMazeNode();
+                var nodeEnd = path.End!.GetMazeNode();
+                if (node == null || nodeEnd == null) {
+                    throw new Exception("Bug: all intersections should have a mazeNode");
+                }
+                if (node == nodeEnd) {
+                    path.SetMazeNode(node);
+                    node.AddPath(path);
+                } else {
+                    crossingPaths.Add(path);
+                    // Console.WriteLine("Crossing path start: "+path.Start.Position+" to "+path.End.Position);
                 }
             }
         }
         CrossingPaths.Clear();
         CrossingPaths.AddRange(crossingPaths);
+
+
+        foreach (var e in Exits) {
+            var paths = e.PathsToNextZone().Count + e.PathsToTakeTheExit().Count;
+            if (paths != e.Intersection.GetAllPaths().Count) {
+                throw new Exception("Bug: Exits should have the same number of paths");
+            }
+        }
 
         return;
 
@@ -315,7 +305,7 @@ public class CityMaze {
             }
 
             // pseudo random without random
-            var hash = HashCode.Combine(lineStart.X, lineStart.Y, lineEnd.X, lineEnd.Y, isHorizontal, crossingPaths.Count);
+            var hash = DeterministicHashCode.Combine(lineStart.X, lineStart.Y, lineEnd.X, lineEnd.Y, isHorizontal, crossingPaths.Count);
             var candidate = crossingPaths[Math.Abs(hash) % crossingPaths.Count];
 
             foreach (var pathPos in crossingPaths.Where(pathPos => pathPos != candidate)) {
@@ -328,6 +318,12 @@ public class CityMaze {
             }
             intersection = City.SplitPath(candidate.Path, candidate.Position);
             return intersection;
+        }
+    }
+
+    public void FixBuilding() {
+        foreach (var ((gridX, gridY), rect) in City.Data.GetRects(SectionSize, SectionSize)) {
+            var mazeNode = NodesGrid[gridY, gridX];
         }
     }
 

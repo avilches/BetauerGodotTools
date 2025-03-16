@@ -36,17 +36,20 @@ public class GenCityDemo {
     public const int Height = 25;
     public const int Seed = 0;
 
+    public static GenCityDemo Instance;
+
     public static void Show() {
         Console.OutputEncoding = Encoding.UTF8; // Para caracteres especiales
-        new GenCityDemo().Start();
+        Instance = new GenCityDemo();
+        Instance.Start();
     }
 
     public static void Validate() {
         Console.OutputEncoding = Encoding.UTF8; // Para caracteres especiales
-        new GenCityDemo().ValidateStart();
+        new GenCityDemo().ValidateGenerateCityMaze();
     }
 
-    public void ValidateStart() {
+    public void ValidateAndFindDensity() {
         _city = new City(Width, Height);
         _generator = _city.CreateGenerator(CreateOptions());
         _render = new CityRender(_city);
@@ -72,7 +75,7 @@ public class GenCityDemo {
                 }
                 */
 
-                var density = _city.GetDensity();
+                var density = _city.GetPathDensity();
                 accDensity += density;
                 minDensity = Math.Min(minDensity, density);
                 maxDensity = Math.Max(maxDensity, density);
@@ -92,8 +95,42 @@ public class GenCityDemo {
         Console.WriteLine($"Max density {maxDensity * 100:0.00}%");
     }
 
+    public void ValidateGenerateCityMaze() {
+
+        const int count = 1000;
+        for (var i = Seed; i < count; i++) {
+            _cityMaze = new CityMaze(MazeGraphCatalog.City(new Random(i)), SectionSize);
+            _city = _cityMaze.City;
+            _render = new CityRender(_city);
+            _generator = _cityMaze.Generator;
+            _generator.Options.Seed = i;
+            // if (i % 10 == 0) {
+                Console.WriteLine($"Seed:{_generator.Options.Seed}");
+            // }
+            try {
+                _cityMaze.AddLimits(new Other('#'));
+
+                _generator.Options = CreateOptions();
+                _generator.Options.StartPosition = _cityMaze.GetStartPosition();
+                _generator.Options.Seed = Seed;
+                _generator.Options.SeedOffset = 0;
+                
+                _generator.Generate(() => _cityMaze.Validate(), 0.22f);
+
+                _city.ValidateIntersections(true);
+                _city.ValidatePaths();
+                _city.ValidateIntersectionPaths();
+            } catch (Exception e) {
+                Render();
+                Console.WriteLine($"Seed:{_generator.Options.Seed}");
+                Console.WriteLine(e);
+                throw;
+            }
+        }
+    }
+
     public void Start() {
-        GenerateCity(Seed, 0);
+        GenerateCityMaze(Seed, 0);
         InitializePlayer();
         Render();
         while (_running) {
@@ -118,7 +155,7 @@ public class GenCityDemo {
         _city.ValidatePaths();
     }
 
-    private void GenerateCity(int seed, int seedOffset) {
+    private void GenerateCityMaze(int seed, int seedOffset) {
         _cityMaze = new CityMaze(MazeGraphCatalog.City(new Random(seed)), SectionSize);
         _city = _cityMaze.City;
         _render = new CityRender(_city);
@@ -135,7 +172,6 @@ public class GenCityDemo {
 
         _generator.Start();
         _generator.Grow();
-        _generator.FillGaps(0.2f);
 
         /*
         zones.MazeGraph.ToArray2D<bool>((nodePos, node) => {
@@ -257,7 +293,7 @@ public class GenCityDemo {
         buffer.AppendLine("└" + new string('─', width) + "┘");
 
         Console.Write(buffer.ToString());
-        Console.WriteLine($"Seed: {_generator.Seed}/{_generator.Options.SeedOffset} | {_cityMaze.CrossingPaths.Count} J/K/L = Seed | F = Fill ({_city.GetDensity() * 100:0}%)f | Q = Quit");
+        Console.WriteLine($"Seed: {_generator.Seed}/{_generator.Options.SeedOffset} | {_cityMaze.CrossingPaths.Count} J/K/L = Seed | F = Fill ({_city.GetPathDensity() * 100:0}%)f | Q = Quit");
 
         var tile = _city.Data[_playerY, _playerX];
         Console.WriteLine($"Pos: {_playerX}, {_playerY} | {tile}");
@@ -303,41 +339,41 @@ public class GenCityDemo {
                     Render();
                     return;
                 case ConsoleKey.S:
-                    GenerateCity(_generator.Seed, _generator.Options.SeedOffset);
+                    GenerateCityMaze(_generator.Seed, _generator.Options.SeedOffset);
                     _generator.FillGaps(0.15f);
                     Render();
                     return;
                 case ConsoleKey.D:
-                    GenerateCity(_generator.Seed, _generator.Options.SeedOffset);
+                    GenerateCityMaze(_generator.Seed, _generator.Options.SeedOffset);
                     _generator.FillGaps(0.18f);
                     Render();
                     return;
                 case ConsoleKey.F:
-                    GenerateCity(_generator.Seed, _generator.Options.SeedOffset);
+                    GenerateCityMaze(_generator.Seed, _generator.Options.SeedOffset);
                     _generator.FillGaps(0.25f);
                     Render();
                     return;
                 case ConsoleKey.G:
-                    GenerateCity(_generator.Seed, _generator.Options.SeedOffset);
+                    GenerateCityMaze(_generator.Seed, _generator.Options.SeedOffset);
                     _generator.FillGaps(0.35f);
                     Render();
                     return;
                 case ConsoleKey.H:
-                    _generator.Generate(() => _cityMaze.Validate(), 0.22f);
+                    _generator.Generate(() => _cityMaze.Validate(), 0.13f);
                     Render();
                     return;
                 case ConsoleKey.J:
-                    GenerateCity(_generator.Seed - 1, _generator.Options.SeedOffset);
+                    GenerateCityMaze(_generator.Seed - 1, 0);
                     InitializePlayer();
                     Render();
                     return;
                 case ConsoleKey.K:
-                    GenerateCity(_generator.Seed, 0);
+                    GenerateCityMaze(_generator.Seed, 0);
                     InitializePlayer();
                     Render();
                     return;
                 case ConsoleKey.L:
-                    GenerateCity(_generator.Seed + 1, _generator.Options.SeedOffset);
+                    GenerateCityMaze(_generator.Seed + 1, 0);
                     InitializePlayer();
                     Render();
                     return;

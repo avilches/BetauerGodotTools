@@ -29,6 +29,11 @@ public class Intersection(int id, Vector2I position) : ICityTile {
 
     public List<Path> GetAllPaths() => [.._outputPaths, .._inputPaths];
 
+    public List<Intersection> GetAllPathIntersections() => [
+        .._outputPaths.Where(p=> p.IsCompleted()).Select(p => p.End!), 
+        .._inputPaths.Select(p => p.Start)
+    ];
+
     public Path? Up => FindPathTo(Vector2I.Up);
     public Path? Down => FindPathTo(Vector2I.Down);
     public Path? Right => FindPathTo(Vector2I.Right);
@@ -145,4 +150,5 @@ public class Intersection(int id, Vector2I position) : ICityTile {
     public override string ToString() {
         return $"Intersection \"{Id}\" {Position} - ({IntersectionType})";
     }
+
 }

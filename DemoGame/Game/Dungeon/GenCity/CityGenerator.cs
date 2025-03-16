@@ -61,24 +61,20 @@ public class CityGenerator(City city) {
             if (!City.Data.IsInBounds(nextPos)) {
                 // The path is heading to the border, close it
                 CreateDeadEnd(path);
-                
             } else {
                 var tile = City.Data[nextPos];
 
                 if (tile is Intersection intersection) {
                     // The path collides with an intersection, join to it
                     JoinPathToIntersection(path, intersection);
-                    
                 } else if (tile is Path perpendicularPath && path.IsPerpendicular(perpendicularPath)) {
                     // The other path is perpendicular, split the path creating a new intersection in the middle and joint to it
                     JoinPathToPerpendicularPath(path, perpendicularPath, nextPos);
-                    
                 } else if (tile is Path otherPath && path.GetLength() == 0) {
                     // (since now, colliding paths ARE NOT PERPENDICULAR)
                     // There is other path coming from the same direction
                     // - And the current path is just starting, so remove it
                     RemovePath(path);
-                    
                 } else if (tile is Path sameLinePath) {
                     // (since now, colliding paths ARE NOT PERPENDICULAR and HAVE A LENGTH > 0)
 
@@ -86,14 +82,11 @@ public class CityGenerator(City city) {
                     // - We use the current position (not new position, which is already used by the other path)
                     // to create a new intersection
                     JoinSameLinePaths(path, sameLinePath);
-                    
                 } else if (tile != null) {
                     CreateDeadEnd(path);
-                    
                 } else if (random.NextBool(Options.ProbabilityStreetEnd) || StopPathHeadingToBorder(path)) {
                     path.SetCursor(nextPos);
                     CreateDeadEnd(path);
-                    
                 } else {
                     path.SetCursor(nextPos);
                     City.Data[nextPos] = path;
@@ -283,26 +276,58 @@ public class CityGenerator(City city) {
         return [direction, direction.Rotate90Left(), direction.Rotate90Right()];
     }
 
-    public IEnumerable<Rect2I> FindGaps() {
-        var visited = new bool[City.Height, City.Width];
-        for (var y = 0; y < City.Height; y++) {
-            for (var x = 0; x < City.Width; x++) {
-                if (!visited[y, x] && City.Data[y, x] == null) {
-                    var gap = FillRect(new Vector2I(x, y), visited);
-                    yield return gap;
-                }
-            }
-        }
-    }
+    /// <summary>
+    /// Generates a valid city and tries to make it have the desired density. If it does not achieve the desired density, it will keep
+    /// the one with the highest density that it has achieved during all the retries.
+    /// Returns true if it achieves the desired density. In any case, it will always generate a valid city, no matter how many tries
+    ///
+    /// Una desiredDensity de 0 significa que se quedará con la primera ciudad generada que sea valida, sin necesidad de intentar añadir mas caminos.
+    /// Una desiredDensity de 1 significa que consumirá todos los tries y se quedará con la que tenga mayor densidad. 
+    /// </summary>
+    /// <param name="desiredDensity"></param>
+    /// <param name="validate"></param>
+    /// <param name="tries"></param>
+    /// <param name="timeout"></param>
+    /// <returns></returns>
+    public bool Generate(Func<bool> validate, float desiredDensity = 0, int tries = 20, float timeout = 10f) {
+        var best = (Offset: -1, Density: 0f);
+        var count = 0;
 
-    public Dictionary<Vector2I, Rect2I> GetGaps(IEnumerable<Vector2I> positions) {
-        var visited = new bool[City.Height, City.Width];
-        Dictionary<Vector2I, Rect2I> result = [];
-        foreach (var pos in positions) {
-            var gap = FillRect(pos, visited);
-            result[pos] = gap;
+        Options.SeedOffset = 0;
+        var startTime = DateTime.Now;
+        while (count < tries || best.Offset == -1) {
+            City.RemoveAllPaths();
+            Start();
+            Grow();
+            FillGaps(desiredDensity);
+            if (validate()) {
+                var density = City.GetPathDensity();
+                if (density >= desiredDensity) {
+                    // Console.WriteLine(":) Dense enough! Offset: "+Options.SeedOffset);
+                    return true;
+                }
+                if (density > best.Density) {
+                    // Console.WriteLine($"  No dense enough: {density} Offset : "+Options.SeedOffset+ " has more density "+density+" than the best one "+best.Density);
+                    best = (Offset: Options.SeedOffset, Density: density);
+                } else {
+                    // Console.WriteLine($"  No dense enough: {density} Offset : "+Options.SeedOffset);
+                }
+                count++;
+            } else {
+                Console.WriteLine("Invalid Offset: " + Options.SeedOffset);
+            }
+            if ((DateTime.Now - startTime).TotalSeconds > timeout) {
+                return false;
+            }
+            Options.SeedOffset++;
         }
-        return result;
+
+        Options.SeedOffset = best.Offset;
+        City.RemoveAllPaths();
+        Start();
+        Grow();
+        FillGaps(desiredDensity);
+        return false;
     }
 
     /// <summary>
@@ -310,7 +335,7 @@ public class CityGenerator(City city) {
     /// </summary>
     /// <param name="minDensity"></param>
     public bool FillGaps(float minDensity = 1f) {
-        var density = City.GetDensity();
+        var density = City.GetPathDensity();
         while (density < minDensity) {
             var gaps = FindGaps().ToList();
             if (gaps.Count == 0) {
@@ -331,60 +356,31 @@ public class CityGenerator(City city) {
                 return false;
             }
             Grow();
-            density = City.GetDensity();
+            density = City.GetPathDensity();
         }
         return true;
     }
 
-    /// <summary>
-    /// Generates a valid city and tries to make it have the desired density. If it does not achieve the desired density, it will keep
-    /// the one with the highest density that it has achieved during all the retries.
-    /// Returns true if it achieves the desired density. In any case, it will always generate a valid city, no matter how many tries
-    ///
-    /// Una desiredDensity de 0 significa que se quedará con la primera ciudad generada que sea valida, sin necesidad de intentar añadir mas caminos.
-    /// Una desiredDensity de 1 significa que consumirá todos los tries y se quedará con la que tenga mayor densidad. 
-    /// </summary>
-    /// <param name="desiredDensity"></param>
-    /// <param name="validate"></param>
-    /// <param name="tries"></param>
-    /// <returns></returns>
-    public bool Generate(Func<bool> validate, float desiredDensity = 0, int tries = 20) {
-        var best = (Offset: -1, Density: 0f);
-        var count = 0;
-
-        Options.SeedOffset = 0;
-        while (count < tries || best.Offset == -1) {
-            City.RemoveAllPaths();
-            Start();
-            Grow();
-            FillGaps(desiredDensity);
-            if (validate()) {
-                var density = City.GetDensity();
-                if (density >= desiredDensity) {
-                    // Console.WriteLine(":) Dense enough! Offset: "+Options.SeedOffset);
-                    return true;
-                }
-                if (density > best.Density) {
-                    // Console.WriteLine($"  No dense enough: {density} Offset : "+Options.SeedOffset+ " has more density "+density+" than the best one "+best.Density);
-                    best = (Offset: Options.SeedOffset, Density: density);
-                } else {
-                    // Console.WriteLine($"  No dense enough: {density} Offset : "+Options.SeedOffset);
-                }
-                count++;
-            } else {
-                // Console.WriteLine("Invalid Offset: "+Options.SeedOffset);
+    public IEnumerable<Rect2I> FindGaps() {
+        var visited = new bool[City.Height, City.Width];
+        foreach (var ((x, y), item) in City.Data.GetIndexedValues()) {
+            if (!visited[y, x] && item is null) {
+                var gap = FillRect(new Vector2I(x, y), visited);
+                yield return gap;
             }
-            Options.SeedOffset++;
         }
-        
-        Options.SeedOffset = best.Offset;
-        City.RemoveAllPaths();
-        Start();
-        Grow();
-        FillGaps(desiredDensity);
-        return false;
     }
-    
+
+    public Dictionary<Vector2I, Rect2I> GetGaps(IEnumerable<Vector2I> positions) {
+        var visited = new bool[City.Height, City.Width];
+        Dictionary<Vector2I, Rect2I> result = [];
+        foreach (var pos in positions) {
+            var gap = FillRect(pos, visited);
+            result[pos] = gap;
+        }
+        return result;
+    }
+
     private Rect2I FillRect(Vector2I start, bool[,] visited) {
         // Buscar los límites del área vacía en las cuatro direcciones
         var minX = start.X;

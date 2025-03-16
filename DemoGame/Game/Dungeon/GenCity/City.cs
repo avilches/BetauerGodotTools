@@ -74,10 +74,10 @@ public class City(int width, int height) {
         }
     }
 
-    public float GetDensity() {
+    public float GetPathDensity(Rect2I? bounds = null) {
         var totalCells = Data.Width * Data.Height;
         var occupied = 0;
-        foreach (var tile in Data.GetValues()) {
+        foreach (var tile in Data.GetValues(bounds ?? Data.Bounds)) {
             if (tile is Intersection or Path) {
                 occupied++;
             }
