@@ -86,6 +86,7 @@ public class CityMaze {
         Generator.Options.StartPosition = GetStartPosition();
         Generator.Generate(Validate, desiredDensity, tries);
         ProcessSectionsWithMazeNodes();
+        Generator.GenerateBuildings();
     }
 
     public Vector2I GetStartPosition() {
@@ -244,7 +245,6 @@ public class CityMaze {
                 var pathsInRect = City.FindPaths(sectionRect).ToList();
                 foreach (var (path, inner) in pathsInRect) {
                     if (path.Id == "65-1") {
-                    
                     }
                     if (inner) {
                         path.SetMazeNode(mazeNode);
@@ -338,27 +338,9 @@ public class CityMaze {
                 if (!inner) {
                     // el building tiene parte en el rect de este mazenode, y parte en otro
                     City.RemoveBuilding(building);
-                } else {
-                    // el building entero esta dentro del rect de este mazenode
-                    // Validamos si el path tambien lo esta
-                    var pathMazeNode = building.Path.GetMazeNode();
-                    if (pathMazeNode == mazeNode) {
-                        // El path tiene mazenode = no está partido, y si coincide con el actual, entonces
-                        // el path y building son del mismo mazenode :)
-                        building.SetMazeNode(mazeNode);
-                        mazeNode.AddBuilding(building);
-                    } else {
-                        // Si pathMazeNode es null, el building está en un path que pertenece a dos mazenodes
-                        if (pathMazeNode == null) {
-                            if (!CrossingPaths.ContainsKey(building.Path)) {
-                                throw new Exception("Bug: if the path doesn't have mazenode, it should be in CrossingPaths");
-                            }
-                        }
-                        // Si no es null, es porque el maze node del path es distinto al mazenode del building
-                        
-                        // En cualquier caso, lo borramos
-                        City.RemoveBuilding(building);
-                    }
+                } else if (!rect.HasPoint(building.PathEntrance)) {
+                    // la entrada al building está en otro rect, lo borramos
+                    City.RemoveBuilding(building);
                 }
             }
         }

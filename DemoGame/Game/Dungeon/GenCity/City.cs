@@ -380,7 +380,7 @@ public class City(int width, int height) {
         }
     }
 
-    public void CreateBuilding(Path path, Rect2I buildingRect) {
+    public Building CreateBuilding(Path path, Rect2I buildingRect) {
         var building = new Building(_buildingId++, path, buildingRect);
         Buildings.Add(building);
 
@@ -388,5 +388,6 @@ public class City(int width, int height) {
             Data[pos] = building;
             OnUpdate?.Invoke(pos);
         }
+        return building;
     }
 }

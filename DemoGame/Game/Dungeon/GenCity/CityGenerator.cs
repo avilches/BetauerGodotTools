@@ -269,7 +269,36 @@ public class CityGenerator(City city) {
 
             // Crear el Rect2I y el edificio
             var buildingRect = new Rect2I(minX, minY, maxX - minX + 1, maxY - minY + 1);
-            City.CreateBuilding(path, buildingRect);
+            var building = City.CreateBuilding(path, buildingRect);
+
+            // Determinar las celdas del borde del edificio que están adyacentes al camino
+            var potentialPortals = new List<(Vector2I buildingCell, Vector2I pathCell)>();
+
+            // La dirección del camino es directions[0], y directions[1] es perpendicular al camino
+            // La dirección hacia el camino es -directions[1] (opuesta a la perpendicular)
+            var directionToPath = -directions[1];
+
+            // Buscar todas las celdas del edificio que están en el borde adyacente al camino
+            foreach (var buildingCell in building.GetPositions()) {
+                // Comprobar si esta celda está en el borde del edificio adyacente al camino
+                var adjacentCell = buildingCell + directionToPath;
+
+                // Verificar si la celda adyacente es parte del camino
+                if (City.Data.IsInBounds(adjacentCell) && City.Data[adjacentCell] is Path) {
+                    potentialPortals.Add((buildingCell, adjacentCell));
+                }
+            }
+
+            // Si encontramos potenciales portales, elegir uno aleatoriamente
+            if (potentialPortals.Count > 0) {
+                var selectedPortal = random.Next(potentialPortals.Count);
+                var (portalCell, pathCell) = potentialPortals[selectedPortal];
+
+                // Asignar los valores al edificio
+                building.Entrance = portalCell;
+                building.PathEntrance = pathCell;
+                building.PathDirection = directionToPath;
+            }
         }
     }
 
