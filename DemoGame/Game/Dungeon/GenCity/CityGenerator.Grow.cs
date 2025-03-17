@@ -180,7 +180,7 @@ public partial class CityGenerator(City city) {
         }
 
         void CreateTurnPath(Path path) {
-            var direction = random.Next(TurnDirection(path.Direction));
+            var direction = random.Next(BothTurnDirections(path.Direction));
             var intersection = CreateDeadEnd(path);
             intersection.CreatePathTo(direction);
             City.OnUpdate?.Invoke(intersection.Position);
@@ -204,7 +204,7 @@ public partial class CityGenerator(City city) {
         }
     }
 
-    public static IList<Vector2I> TurnDirection(Vector2I direction) {
+    public static IList<Vector2I> BothTurnDirections(Vector2I direction) {
         return [direction.Rotate90Left(), direction.Rotate90Right()];
     }
 
@@ -408,7 +408,7 @@ public partial class CityGenerator(City city) {
 
         // Intentar diferentes posibles direcciones para nuevos caminos
         foreach (var sourcePath in nearbyPaths) {
-            foreach (var direction in TurnDirection(sourcePath.Direction)) {
+            foreach (var direction in BothTurnDirections(sourcePath.Direction)) {
                 // Verificar si podemos añadir un camino perpendicular desde este camino existente
                 if (!CanAddPathInDirection(sourcePath, direction, gap)) continue;
 
@@ -463,7 +463,7 @@ public partial class CityGenerator(City city) {
 
         bool CanAddPathInDirection(Path sourcePath, Vector2I direction, Rect2I gap) {
             // Verificar si podemos añadir un camino en la dirección dada
-            foreach (var pathPos in sourcePath.GetPositions()) {
+            foreach (var pathPos in sourcePath.GetAllPositions()) {
                 // El punto de inicio de la nueva carretera sería desde el camino existente
                 // Verificamos si desde este punto es posible crear un camino perpendicular
                 if (City.Data.IsInBounds(pathPos)) {
@@ -489,7 +489,7 @@ public partial class CityGenerator(City city) {
         Vector2I? FindSuitableStartPoint(Path sourcePath, Vector2I direction, Rect2I gap) {
             List<Vector2I> candidates = [];
 
-            foreach (var pos in sourcePath.GetPositions()) {
+            foreach (var pos in sourcePath.GetAllPositions()) {
                 // Verificar si es posible empezar un camino desde aquí
                 var nextPos = pos + direction;
 

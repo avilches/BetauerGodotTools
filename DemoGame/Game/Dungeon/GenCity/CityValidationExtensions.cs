@@ -47,7 +47,7 @@ public static class CityValidationExtensions {
             var start = path.Start.Position;
             var end = path.End?.Position ?? path.GetCursor();
 
-            foreach (var pos in path.GetPositions()) {
+            foreach (var pos in path.GetAllPositions()) {
                 var tile = city.Data[pos];
                 if (pos == start) {
                     if (tile != path.Start) {

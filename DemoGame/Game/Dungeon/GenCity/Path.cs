@@ -51,11 +51,22 @@ public class Path(string id, Intersection start, Vector2I direction) : ICityTile
         End?.RemoveInputPath(this);
     }
 
-    public IEnumerable<Vector2I> GetPositions() {
+    public IEnumerable<Vector2I> GetAllPositions() {
         var length = GetLength();
         var position = Start.Position;
         for (var i = 0; i <= length; i++) {
             yield return position;
+            position += Direction;
+        }
+    }
+
+    public IEnumerable<Vector2I> GetPathOnlyPositions() {
+        var length = GetLength();
+        var position = Start.Position;
+        for (var i = 0; i <= length; i++) {
+            if (position != start.Position && position != End?.Position) {
+                yield return position;
+            }
             position += Direction;
         }
     }

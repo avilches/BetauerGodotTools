@@ -27,4 +27,8 @@ public class Building(int id, Path path, Rect2I bounds) : ICityTile {
     public IEnumerable<Vector2I> GetPositions() {
         return Bounds.GetPositions();
     }
+
+    public override string ToString() {
+        return $"Building {Id.ToString()} (Path {Path.Id}";
+    }
 }

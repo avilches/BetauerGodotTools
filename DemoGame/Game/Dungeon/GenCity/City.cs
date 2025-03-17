@@ -60,7 +60,7 @@ public class City(int width, int height) {
 
     public void RemoveAllPaths() {
         foreach (var path in GetAllPaths()) {
-            foreach (var position in path.GetPositions()) {
+            foreach (var position in path.GetAllPositions()) {
                 Data[position] = null;
             }
         }
@@ -205,10 +205,8 @@ public class City(int width, int height) {
         endIntersection?.RemoveInputPath(path);
 
         // Clear the path positions in the data matrix
-        foreach (var tilePosition in path.GetPositions()) {
-            if (Data[tilePosition] is Path p && p == path) {
-                Data[tilePosition] = null;
-            }
+        foreach (var tilePosition in path.GetPathOnlyPositions()) { //
+            Data[tilePosition] = null;
         }
 
         // Check if the start intersection should be removed
@@ -290,10 +288,8 @@ public class City(int width, int height) {
         }
 
         // Refill matrix with new path
-        foreach (var tilePosition in continuePath.GetPositions()) {
-            if (Data[tilePosition] is Path) {
-                Data[tilePosition] = continuePath;
-            }
+        foreach (var tilePosition in continuePath.GetPathOnlyPositions()) {
+            Data[tilePosition] = continuePath;
         }
         path.SetEnd(newIntersection);
         return newIntersection;
@@ -360,11 +356,8 @@ public class City(int width, int height) {
         newPath.SetEnd(end);
 
         // Update the grid with the new path
-        foreach (var pos in newPath.GetPositions()) {
-            // Skip the start and end positions which should be intersections
-            if (pos != start.Position && pos != end.Position) {
-                Data[pos] = newPath;
-            }
+        foreach (var pos in newPath.GetPathOnlyPositions()) {
+            Data[pos] = newPath;
         }
         return true;
     }
@@ -374,7 +367,7 @@ public class City(int width, int height) {
         Console.WriteLine($"Start: {path.Start.Position}, End: {path.End?.Position ?? path.GetCursor()}");
         Console.WriteLine("Path positions and corresponding Data entries:");
 
-        foreach (var pos in path.GetPositions()) {
+        foreach (var pos in path.GetAllPositions()) {
             var dataEntry = Data[pos];
             Console.WriteLine($"  Position: {pos}, Data entry: {dataEntry}");
         }

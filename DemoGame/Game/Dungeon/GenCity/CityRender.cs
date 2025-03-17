@@ -48,7 +48,7 @@ public class CityRender(City city) {
         foreach (var path in City.GetAllPaths()) {
             var isHorizontal = path.Direction.IsHorizontal();
             var roadChar = isHorizontal ? ROAD_H : ROAD_V;
-            foreach (var position in path.GetPositions()) {
+            foreach (var position in path.GetPathOnlyPositions()) {
                 AsciiMap[position] = roadChar;
             }
         }

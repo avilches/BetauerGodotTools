@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 
 namespace Veronenger.Game.Dungeon.GenCity;
@@ -10,21 +11,23 @@ public partial class CityGenerator {
         foreach (var path in City.GetAllPaths()) {
             var nextPos = path.Start.Position + path.Direction;
 
-            foreach (var facing in TurnDirection(path.Direction)) {
-                var stepOffset = Options.BuildingOffset;
+            foreach (var side in BothTurnDirections(path.Direction)) {
+                // Validación: comprobar si hay espacio suficiente a lo largo del camino
+                if (!SidewalkIsEmpty(path, side)) continue;
+                var stepOffset = Options.BuildingSidewalk;
 
                 while (stepOffset < path.GetLength()) {
                     var stepShift = path.Direction * stepOffset;
-                    var shiftFromPath = facing * (Options.BuildingOffset + 1);
+                    var shiftFromPath = side * (Options.BuildingSidewalk + 1);
                     var startPosition = nextPos + stepShift + shiftFromPath;
 
                     var buildingWidth = random.Next(Options.BuildingMinSize, Options.BuildingMaxSize + 1);
                     var buildingHeight = random.Next(Options.BuildingMinSize, Options.BuildingMaxSize + 1);
 
-                    if (stepOffset + buildingWidth + Options.BuildingOffset > path.GetLength()) {
+                    if (stepOffset + buildingWidth + Options.BuildingSidewalk > path.GetLength()) {
                         break;
                     }
-                    ProcessingBuilding(path, startPosition, buildingWidth, buildingHeight, path.Direction, facing);
+                    ProcessingBuilding(path, startPosition, buildingWidth, buildingHeight, side);
 
                     var spaceBetweenBuildings = random.Next(Options.BuildingMinSpace, Options.BuildingMaxSpace + 1);
                     stepOffset += buildingWidth + spaceBetweenBuildings;
@@ -33,12 +36,26 @@ public partial class CityGenerator {
         }
         return;
 
-        void ProcessingBuilding(Path path, Vector2I position, int buildingWidth, int buildingHeight, Vector2I pathDirection, Vector2I facing) {
+        bool SidewalkIsEmpty(Path path, Vector2I side) {
+            if (Options.BuildingSidewalk == 0) return true;
+            foreach (var pathPos in path.GetPathOnlyPositions()) {
+                var checkPos = pathPos;
+                for (var i = 1; i <= Options.BuildingSidewalk; i++) {
+                    checkPos += side;
+                    if (!City.Data.IsInBounds(checkPos) || City.Data[checkPos] != null) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        Building? ProcessingBuilding(Path path, Vector2I position, int buildingWidth, int buildingHeight, Vector2I facing) {
             var tiles = new List<Vector2I>();
 
             // Primero recopilamos todas las posiciones para verificar que el edificio se puede colocar
             for (var i = 0; i < buildingWidth; i++) {
-                var shiftParallel = pathDirection * i;
+                var shiftParallel = path.Direction * i;
                 var startFromPathPosition = position + shiftParallel;
 
                 for (var j = 0; j < buildingHeight; j++) {
@@ -48,20 +65,15 @@ public partial class CityGenerator {
                     if (City.Data.IsInBounds(tilePosition) && City.Data[tilePosition] == null) {
                         tiles.Add(tilePosition);
                     } else {
-                        return;
+                        return null;
                     }
                 }
             }
-            // Calcular los límites del edificio (min/max coordinates)
-            var (minX, minY, maxX, maxY) = (int.MaxValue, int.MaxValue, int.MinValue, int.MinValue);
-            foreach (var pos in tiles) {
-                minX = Math.Min(minX, pos.X);
-                minY = Math.Min(minY, pos.Y);
-                maxX = Math.Max(maxX, pos.X);
-                maxY = Math.Max(maxY, pos.Y);
-            }
-
-            // Crear el Rect2I y el edificio
+            var minX = tiles.Min(pos => pos.X);
+            var minY = tiles.Min(pos => pos.Y);
+            var maxX = tiles.Max(pos => pos.X);
+            var maxY = tiles.Max(pos => pos.Y);
+            
             var buildingRect = new Rect2I(minX, minY, maxX - minX + 1, maxY - minY + 1);
             var building = City.CreateBuilding(path, buildingRect);
 
@@ -69,16 +81,16 @@ public partial class CityGenerator {
             var potentialPortals = new List<(Vector2I buildingCell, Vector2I pathEntrance)>();
 
             // Buscar todas las celdas del edificio que están en el borde adyacente al camino
-            foreach (var buildingCell in building.GetPositions()) {
-                // Comprobar si esta celda está en el borde del edificio adyacente al camino
-                var adjacentCell = buildingCell - facing;
-
-                // Verificar si la celda adyacente es parte del camino
-                if (City.Data.IsInBounds(adjacentCell) && City.Data[adjacentCell] is Path) {
-                    potentialPortals.Add((buildingCell, adjacentCell));
+            // Iterar sobre las posiciones del camino para encontrar celdas del edificio adyacentes
+            var pathPositions = path.GetPathOnlyPositions();
+            foreach (var pathPos in pathPositions) {
+                var buildingCell = pathPos + (facing * (Options.BuildingSidewalk + 1));
+                
+                // Verificar si la celda es parte del edificio
+                if (building.Bounds.HasPoint(buildingCell)) {
+                    potentialPortals.Add((buildingCell, pathPos));
                 }
             }
-
             // Si encontramos potenciales portales, elegir uno aleatoriamente
             if (potentialPortals.Count > 0) {
                 // Si hay 4 o mas candidates, descartar los laterales
@@ -92,8 +104,9 @@ public partial class CityGenerator {
                 // Asignar los valores al edificio
                 building.Entrance = entrance;
                 building.PathEntrance = pathEntrance;
-                building.PathDirection = pathDirection;
+                building.PathDirection = path.Direction;
             }
+            return building;
         }
     }
 }
