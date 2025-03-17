@@ -16,11 +16,10 @@ public static class CityGrowExtension {
     }
 }
 
-public partial class CityGenerator(City city) {
+public class CityGenerator(City city) {
     public City City { get; } = city;
     const float HeadingBorderPathLimit = 3;
     const float HeadingBorderPathProbability = 0.3f;
-
 
     public CityGenerationOptions Options { get; set; } = new();
     public int Seed => Options.Seed;
@@ -232,7 +231,7 @@ public partial class CityGenerator(City city) {
         Options.SeedOffset = 0;
         var startTime = DateTime.Now;
         while (count < tries || best.Offset == -1) {
-            City.RemoveAllPaths();
+            City.RemovePathsAndBuildings();
             Start();
             Grow();
             FillGaps(desiredDensity);
@@ -259,7 +258,7 @@ public partial class CityGenerator(City city) {
         }
 
         Options.SeedOffset = best.Offset;
-        City.RemoveAllPaths();
+        City.RemovePathsAndBuildings();
         Start();
         Grow();
         FillGaps(desiredDensity);

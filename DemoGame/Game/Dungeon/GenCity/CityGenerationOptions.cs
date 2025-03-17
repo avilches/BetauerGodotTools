@@ -65,34 +65,4 @@ public class CityGenerationOptions {
     /// Default: 12%
     /// </summary>
     public float ProbabilityTurn { get; set; } = 0.12f;
-
-    /// <summary>
-    /// Minimum size of building size.
-    /// Default: 3
-    /// </summary>
-    public int BuildingMinSize { get; set; } = 3;
-
-    /// <summary>
-    /// Maximum size of building size.
-    /// Default: 6
-    /// </summary>
-    public int BuildingMaxSize { get; set; } = 6;
-
-    /// <summary>
-    /// Minimum distance between buildings.
-    /// Default: 1
-    /// </summary>
-    public int BuildingMinSpace { get; set; } = 1;
-
-    /// <summary>
-    /// Maximum distance between buildings.
-    /// Default: 3
-    /// </summary>
-    public int BuildingMaxSpace { get; set; } = 3;
-
-    /// <summary>
-    /// Distance between building and path.
-    /// Default: 0
-    /// </summary>
-    public int BuildingSidewalk { get; set; } = 1;
 }

@@ -86,7 +86,6 @@ public class CityMaze {
         Generator.Options.StartPosition = GetStartPosition();
         Generator.Generate(Validate, desiredDensity, tries);
         ProcessSectionsWithMazeNodes();
-        Generator.GenerateBuildings();
     }
 
     public Vector2I GetStartPosition() {
@@ -121,6 +120,14 @@ public class CityMaze {
             }
         }
     }
+    
+    public Rect2I GetRect(MazeNode mazeNode) {
+        return new Rect2I(mazeNode.Position * SectionSize - MazeGraph.GetOffset() * SectionSize, SectionSize, SectionSize) ;
+    }
+
+    public IEnumerable<Rect2I> GetRects(int zone) {
+        return MazeZones.Zones[zone].GetNodes().Select(GetRect);
+    }
 
     /// <summary>
     /// Loop over maze nodes and keep only one path between zones.
@@ -136,7 +143,6 @@ public class CityMaze {
     /// The path that belongs to two maze zone don't have path.GetMazeZone() and are stored in CrossingPaths
     /// </summary>
     public void ProcessSectionsWithMazeNodes() {
-        var ignored = new HashSet<Intersection>();
         Exits.Clear();
         foreach (var ((gridX, gridY), rect) in City.Data.GetRects(SectionSize, SectionSize)) {
             var mazeNode = NodesGrid[gridY, gridX];
@@ -165,7 +171,6 @@ public class CityMaze {
                                 lineEnd += Vector2I.Up;
                             }
                             var intersection = CreateIntersectionsOnLine(lineStart, lineEnd, direction);
-                            ignored.Add(intersection);
 
                             if (upLowerZone) {
                                 // up is the exit to this node, so the new intersection belongs to the up node
@@ -204,7 +209,6 @@ public class CityMaze {
                                 lineEnd += Vector2I.Left;
                             }
                             var intersection = CreateIntersectionsOnLine(lineStart, lineEnd, direction);
-                            ignored.Add(intersection);
 
                             if (leftLowerZone) {
                                 // left is the exit to this node, so the new intersection belongs to the left node
@@ -231,21 +235,17 @@ public class CityMaze {
                 }
             }
         }
-        City.FlatAllIntersections(i => !ignored.Contains(i));
-        LoadCrossingPaths();
+        City.FlatAllIntersections(i => Exits.FirstOrDefault(e => e.Intersection == i) == null);
+        SetMazeNodeToPaths();
         ValidateExits();
         return;
 
-        void LoadCrossingPaths() {
+        void SetMazeNodeToPaths() {
             CrossingPaths.Clear();
-            foreach (var ((gridX, gridY), sectionRect) in City.Data.GetRects(SectionSize, SectionSize)) {
-                var mazeNode = NodesGrid[gridY, gridX];
-                if (mazeNode == null) continue;
+            foreach (var mazeNode in MazeGraph.GetNodes()) {
 
-                var pathsInRect = City.FindPaths(sectionRect).ToList();
+                var pathsInRect = City.FindPaths(GetRect(mazeNode)).ToList();
                 foreach (var (path, inner) in pathsInRect) {
-                    if (path.Id == "65-1") {
-                    }
                     if (inner) {
                         path.SetMazeNode(mazeNode);
                         mazeNode.AddPath(path);
@@ -331,9 +331,8 @@ public class CityMaze {
     }
 
     public void FixBuilding() {
-        foreach (var ((gridX, gridY), rect) in City.Data.GetRects(SectionSize, SectionSize)) {
-            var mazeNode = NodesGrid[gridY, gridX];
-            if (mazeNode == null) continue;
+        foreach (var mazeNode in MazeGraph.GetNodes()) {
+            var rect = GetRect(mazeNode);
             foreach (var (building, inner) in City.FindBuildings(rect)) {
                 if (!inner) {
                     // el building tiene parte en el rect de este mazenode, y parte en otro
@@ -343,31 +342,6 @@ public class CityMaze {
                     City.RemoveBuilding(building);
                 }
             }
-        }
-
-        return;
-
-        bool ShouldRemoveBuilding(Building building, Vector2I position, Rect2I sectionRect, MazeNode mazeNode) {
-            // Check if building is outside the section rect
-            if (!sectionRect.HasPoint(position)) {
-                return true;
-            }
-
-            // Check if building is touching a path that doesn't belong to the current maze node
-            foreach (var direction in new[] { Vector2I.Up, Vector2I.Down, Vector2I.Left, Vector2I.Right }) {
-                var adjacentPos = position + direction;
-                if (!City.Data.IsInBounds(adjacentPos)) continue;
-
-                var adjacentTile = City.Data[adjacentPos];
-                if (adjacentTile is Path path) {
-                    var pathMazeNode = path.GetMazeNode();
-                    if (pathMazeNode != mazeNode) {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
         }
     }
 

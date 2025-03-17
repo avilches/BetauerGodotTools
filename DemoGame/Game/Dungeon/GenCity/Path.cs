@@ -9,8 +9,9 @@ namespace Veronenger.Game.Dungeon.GenCity;
 public class Path(string id, Intersection start, Vector2I direction) : ICityTile {
     public string Id { get; } = id;
     public Vector2I Direction { get; } = direction;
-    public Intersection? End = null;
-    public Intersection Start = start;
+    public Intersection? End { get; private set; } = null;
+    public Intersection Start { get; } = start;
+    public List<Building> Buildings { get; }= [];
 
     private Vector2I _cursor = start.Position;
 
@@ -64,16 +65,11 @@ public class Path(string id, Intersection start, Vector2I direction) : ICityTile
         var length = GetLength();
         var position = Start.Position;
         for (var i = 0; i <= length; i++) {
-            if (position != start.Position && position != End?.Position) {
+            if (position != Start.Position && position != End?.Position) {
                 yield return position;
             }
             position += Direction;
         }
-    }
-
-    public override string ToString() {
-        var endText = End != null ? $"To Id:'{End.Id}' {End.Position}" : $" To {_cursor} (incomplete)";
-        return $"Path \"{Id}\" - Length: {GetLength()} - Start Id:\"{Start.Id}\" {Start.Position} - {Direction.ToDirectionString()} - {endText}";
     }
 
     public byte GetDirectionFlags() {
@@ -93,5 +89,10 @@ public class Path(string id, Intersection start, Vector2I direction) : ICityTile
 
     public bool IsSameLine(Path other) {
         return Start.Position.IsSameLine(Direction, other.Start.Position, other.Direction);
+    }
+
+    public override string ToString() {
+        var endText = End != null ? $"To Id:'{End.Id}' {End.Position}" : $" To {_cursor} (incomplete)";
+        return $"Path \"{Id}\" - Length: {GetLength()} - Start Id:\"{Start.Id}\" {Start.Position} - {Direction.ToDirectionString()} - {endText}";
     }
 }

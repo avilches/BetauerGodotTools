@@ -1,48 +1,59 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Betauer.Core;
 using Godot;
 
 namespace Veronenger.Game.Dungeon.GenCity;
 
-public partial class CityGenerator {
-    public void GenerateBuildings() {
-        var random = new Random(Options.Seed);
-        foreach (var path in City.GetAllPaths()) {
+public class BuildingGenerator {
+    public static List<Building> GenerateBuildings(City city, List<Path> paths, BuildingGenerationOptions options) {
+        if (options.Total == 0) return [];
+        var random = new Random(options.Seed);
+        var buildings = new List<Building>();
+        foreach (var path in paths) {
             var nextPos = path.Start.Position + path.Direction;
 
-            foreach (var side in BothTurnDirections(path.Direction)) {
-                // Validación: comprobar si hay espacio suficiente a lo largo del camino
-                if (!SidewalkIsEmpty(path, side)) continue;
-                var stepOffset = Options.BuildingSidewalk;
-
+            foreach (var facing in CityGenerator.BothTurnDirections(path.Direction)) {
+                if (!SidewalkIsEmpty(path, facing)) {
+                    continue;
+                }
+                
+                var stepOffset = options.Sidewalk;
                 while (stepOffset < path.GetLength()) {
                     var stepShift = path.Direction * stepOffset;
-                    var shiftFromPath = side * (Options.BuildingSidewalk + 1);
+                    var shiftFromPath = facing * (options.Sidewalk + 1);
                     var startPosition = nextPos + stepShift + shiftFromPath;
 
-                    var buildingWidth = random.Next(Options.BuildingMinSize, Options.BuildingMaxSize + 1);
-                    var buildingHeight = random.Next(Options.BuildingMinSize, Options.BuildingMaxSize + 1);
+                    var buildingWidth = random.Next(options.MinSize, options.MaxSize + 1);
+                    var buildingHeight = random.Next(options.MinSize, options.MaxSize + 1);
 
-                    if (stepOffset + buildingWidth + Options.BuildingSidewalk > path.GetLength()) {
+                    if (stepOffset + buildingWidth + options.Sidewalk > path.GetLength()) {
                         break;
                     }
-                    ProcessingBuilding(path, startPosition, buildingWidth, buildingHeight, side);
+                    
+                    var building = CreateBuilding(path, startPosition, buildingWidth, buildingHeight, facing);
+                    if (building != null) {
+                        buildings.Add(building);
+                        if (options.Total > 0 && buildings.Count >= options.Total) {
+                            return buildings;
+                        }
+                    }
 
-                    var spaceBetweenBuildings = random.Next(Options.BuildingMinSpace, Options.BuildingMaxSpace + 1);
+                    var spaceBetweenBuildings = random.Next(options.MinSpace, options.MaxSpace + 1);
                     stepOffset += buildingWidth + spaceBetweenBuildings;
                 }
             }
         }
-        return;
+        return buildings; 
 
-        bool SidewalkIsEmpty(Path path, Vector2I side) {
-            if (Options.BuildingSidewalk == 0) return true;
+        bool SidewalkIsEmpty(Path path, Vector2I facing) {
+            if (options.Sidewalk == 0) return true;
             foreach (var pathPos in path.GetPathOnlyPositions()) {
                 var checkPos = pathPos;
-                for (var i = 1; i <= Options.BuildingSidewalk; i++) {
-                    checkPos += side;
-                    if (!City.Data.IsInBounds(checkPos) || City.Data[checkPos] != null) {
+                for (var i = 1; i <= options.Sidewalk; i++) {
+                    checkPos += facing;
+                    if (!city.Data.IsInBounds(checkPos) || city.Data[checkPos] != null) {
                         return false;
                     }
                 }
@@ -50,7 +61,7 @@ public partial class CityGenerator {
             return true;
         }
 
-        Building? ProcessingBuilding(Path path, Vector2I position, int buildingWidth, int buildingHeight, Vector2I facing) {
+        Building? CreateBuilding(Path path, Vector2I position, int buildingWidth, int buildingHeight, Vector2I facing) {
             var (minX, minY, maxX, maxY) = (int.MaxValue, int.MaxValue, int.MinValue, int.MinValue);
             // Primero recopilamos todas las posiciones para verificar que el edificio se puede colocar
             for (var i = 0; i < buildingWidth; i++) {
@@ -61,7 +72,7 @@ public partial class CityGenerator {
                     var shiftPerpendicular = facing * j;
                     var tilePosition = startFromPathPosition + shiftPerpendicular;
 
-                    if (City.Data.IsInBounds(tilePosition) && City.Data[tilePosition] == null) {
+                    if (city.Data.IsInBounds(tilePosition) && city.Data[tilePosition] == null) {
                         (minX, minY) = (Math.Min(minX, tilePosition.X), Math.Min(minY, tilePosition.Y));
                         (maxX, maxY) = (Math.Max(maxX, tilePosition.X), Math.Max(maxY, tilePosition.Y));
                     } else {
@@ -69,9 +80,9 @@ public partial class CityGenerator {
                     }
                 }
             }
-            
+
             var buildingRect = new Rect2I(minX, minY, maxX - minX + 1, maxY - minY + 1);
-            var building = City.CreateBuilding(path, buildingRect);
+            var building = city.CreateBuilding(path, buildingRect);
 
             // Determinar las celdas del borde del edificio que están adyacentes al camino
             var potentialPortals = new List<(Vector2I buildingCell, Vector2I pathEntrance)>();
@@ -80,8 +91,8 @@ public partial class CityGenerator {
             // Iterar sobre las posiciones del camino para encontrar celdas del edificio adyacentes
             var pathPositions = path.GetPathOnlyPositions();
             foreach (var pathPos in pathPositions) {
-                var buildingCell = pathPos + (facing * (Options.BuildingSidewalk + 1));
-                
+                var buildingCell = pathPos + (facing * (options.Sidewalk + 1));
+
                 // Verificar si la celda es parte del edificio
                 if (building.Bounds.HasPoint(buildingCell)) {
                     potentialPortals.Add((buildingCell, pathPos));

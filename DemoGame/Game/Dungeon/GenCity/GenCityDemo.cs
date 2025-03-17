@@ -64,7 +64,7 @@ public class GenCityDemo {
                 Console.WriteLine(_generator.Options.Seed);
             }
             try {
-                _generator.City.RemoveAllPaths();
+                _generator.City.RemovePathsAndBuildings();
                 _generator.Start();
                 _generator.Grow();
                 _generator.FillGaps();
@@ -193,13 +193,50 @@ public class GenCityDemo {
         _city.ValidatePaths();
     }
 
+    public void GenerateBuildings() {
+        var paths = _city.GetAllPaths().ToList();
+        var big = BuildingGenerator.GenerateBuildings(_city, paths, new BuildingGenerationOptions {
+            Total = 6,
+            MinSize = 5, //2,
+            MaxSize = 12, //3,
+            MinSpace = 2,
+            MaxSpace = 2, // 2
+            Sidewalk = 2 
+        });
+        var med = BuildingGenerator.GenerateBuildings(_city, paths, new BuildingGenerationOptions {
+            MinSize = 4, //2,
+            MaxSize = 5, //3,
+            MinSpace = 1,
+            MaxSpace = 2, // 2
+            Sidewalk = 2 
+        });
+        var sm = BuildingGenerator.GenerateBuildings(_city, paths, new BuildingGenerationOptions {
+            MinSize = 2, //2,
+            MaxSize = 3, //3,
+            MinSpace = 0,
+            MaxSpace = 0, // 2
+            Sidewalk = 1
+        });
+        Console.WriteLine($"Big: {big.Count} med: {med.Count} small: {sm.Count}");
+        
+        
+        foreach (var path in _city.GetAllPaths().Where(p => p.Buildings.Count > 0)) {
+            foreach (var p in _city.GetPathSidewalk(path, true).Concat(_city.GetPathSidewalk(path, false))) {
+                if (_city.Data[p] == null) {
+                    _city.Data[p] = new Other('·');
+                }
+            }
+            
+        }
+    }
+
     private static CityGenerationOptions CreateOptions() {
         List<Vector2I> startDirections = [Vector2I.Right, Vector2I.Down, Vector2I.Left, Vector2I.Up];
 
         var options = new CityGenerationOptions {
             StartDirections = startDirections,
 
-            StreetMinLength = 6,
+            StreetMinLength = 8,
 
             ProbabilityIntersection = 0.20f,
 
@@ -208,11 +245,6 @@ public class GenCityDemo {
             ProbabilityTurn = 0.12f,
 
             ProbabilityStreetEnd = 0.001f,
-
-            BuildingMinSize = 2, //2,
-            BuildingMaxSize = 5, //3,
-            BuildingMinSpace = 1,
-            BuildingMaxSpace = 2, // 2
         };
         return options;
     }
@@ -295,7 +327,7 @@ public class GenCityDemo {
         buffer.AppendLine("└" + new string('─', width) + "┘");
 
         Console.Write(buffer.ToString());
-        Console.WriteLine($"Seed: {_generator.Seed}/{_generator.Options.SeedOffset} | {_cityMaze.CrossingPaths.Count} J/K/L = Seed | F = Fill ({_city.GetPathDensity() * 100:0}%)f | Q = Quit");
+        Console.WriteLine($"Seed: {_generator.Seed}/{_generator.Options.SeedOffset} | {_cityMaze.CrossingPaths.Count} J/K/L = Seed | F = Fill ({_city.GetPathDensity() * 100:0}% paths) ({_city.Buildings.Count} buildings) | Q = Quit");
 
         var tile = _city.Data[_playerY, _playerX];
         Console.WriteLine($"Pos: {_playerX}, {_playerY} | {tile}");
@@ -361,6 +393,7 @@ public class GenCityDemo {
                     Render();
                     return;
                 case ConsoleKey.H:
+                    _city.RemoveAllBuildings();
                     _generator.Generate(() => _cityMaze.Validate(), 0.13f);
                     Render();
                     return;
@@ -381,12 +414,12 @@ public class GenCityDemo {
                     return;
 
                 case ConsoleKey.Z:
-                    _generator.GenerateBuildings();
+                    GenerateBuildings();
                     Render();
                     return;
 
                 case ConsoleKey.X:
-                    _city.RemoveBuildings();
+                    _city.RemoveAllBuildings();
                     Render();
                     return;
                 

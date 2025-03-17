@@ -58,18 +58,19 @@ public class City(int width, int height) {
         _buildingId = 0;
     }
 
-    public void RemoveAllPaths() {
-        foreach (var path in GetAllPaths()) {
-            foreach (var position in path.GetAllPositions()) {
-                Data[position] = null;
+    public void RemovePathsAndBuildings() {
+        foreach (var pos in Data.GetPositions()) {
+            if (Data[pos] is Building or Path or Intersection) {
+                Data[pos] = null;
             }
         }
         Intersections.Clear();
         Buildings.Clear();
         _intersectionId = 0;
+        _buildingId = 0;
     }
 
-    public void RemoveBuildings() {
+    public void RemoveAllBuildings() {
         foreach (var building in Buildings.ToList()) {
             RemoveBuilding(building);
         }
@@ -77,7 +78,8 @@ public class City(int width, int height) {
     }
 
     public void RemoveBuilding(Building building) {
-        if (!Buildings.Remove(building)) return;
+        building.Path.Buildings.Remove(building);
+        Buildings.Remove(building);
         foreach (var pos in building.GetPositions()) {
             if (Data[pos] == building) {
                 Data[pos] = null;
@@ -222,6 +224,10 @@ public class City(int width, int height) {
                 Data[endIntersection.Position] = null;
             }
         }
+
+        foreach (var building in path.Buildings.ToArray()) {
+            RemoveBuilding(building);
+        }
     }
 
     /// <summary>
@@ -238,6 +244,20 @@ public class City(int width, int height) {
                          .Where(path => consumed.Add(path.Path))) {
                 var inner = rect.HasPoint(oppositeIntersection.Position);
                 yield return (Path: path, Inner: inner);
+            }
+        }
+    }
+
+    public IEnumerable<Vector2I> GetPathSidewalk(Path path, bool right, int offset = 1) {
+        // Get perpendicular directions to the path
+        var facing = right ? path.Direction.Rotate90Left() : path.Direction.Rotate90Right();
+
+        // Iterate through all positions in the path
+        foreach (Vector2I position in path.GetPathOnlyPositions()) {
+            // Get left sidewalk position
+            var sidewalkPos = position + facing * offset;
+            if (Data.IsInBounds(sidewalkPos)) {
+                yield return sidewalkPos;
             }
         }
     }
@@ -376,6 +396,7 @@ public class City(int width, int height) {
     public Building CreateBuilding(Path path, Rect2I buildingRect) {
         var building = new Building(_buildingId++, path, buildingRect);
         Buildings.Add(building);
+        path.Buildings.Add(building);
 
         foreach (Vector2I pos in buildingRect.GetPositions()) {
             Data[pos] = building;
