@@ -51,8 +51,7 @@ public partial class CityGenerator {
         }
 
         Building? ProcessingBuilding(Path path, Vector2I position, int buildingWidth, int buildingHeight, Vector2I facing) {
-            var tiles = new List<Vector2I>();
-
+            var (minX, minY, maxX, maxY) = (int.MaxValue, int.MaxValue, int.MinValue, int.MinValue);
             // Primero recopilamos todas las posiciones para verificar que el edificio se puede colocar
             for (var i = 0; i < buildingWidth; i++) {
                 var shiftParallel = path.Direction * i;
@@ -63,16 +62,13 @@ public partial class CityGenerator {
                     var tilePosition = startFromPathPosition + shiftPerpendicular;
 
                     if (City.Data.IsInBounds(tilePosition) && City.Data[tilePosition] == null) {
-                        tiles.Add(tilePosition);
+                        (minX, minY) = (Math.Min(minX, tilePosition.X), Math.Min(minY, tilePosition.Y));
+                        (maxX, maxY) = (Math.Max(maxX, tilePosition.X), Math.Max(maxY, tilePosition.Y));
                     } else {
                         return null;
                     }
                 }
             }
-            var minX = tiles.Min(pos => pos.X);
-            var minY = tiles.Min(pos => pos.Y);
-            var maxX = tiles.Max(pos => pos.X);
-            var maxY = tiles.Max(pos => pos.Y);
             
             var buildingRect = new Rect2I(minX, minY, maxX - minX + 1, maxY - minY + 1);
             var building = City.CreateBuilding(path, buildingRect);

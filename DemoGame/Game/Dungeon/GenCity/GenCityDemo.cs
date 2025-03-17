@@ -250,7 +250,7 @@ public class GenCityDemo {
             foreach (var position in building.GetPositions()) {
                 _render.AsciiMap[position] = buildingChar;
             }
-            _render.AsciiMap[building.Entrance] = '+';
+            _render.AsciiMap[building.Entrance] = '#';
             _render.AsciiMap[building.PathEntrance] = '*';
             buildingIndex++;
         }
