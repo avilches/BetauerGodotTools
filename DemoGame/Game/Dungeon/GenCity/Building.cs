@@ -1,4 +1,3 @@
-// Building.cs
 using System;
 using System.Collections.Generic;
 using Betauer.Core.DataMath.Geometry;

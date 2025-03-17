@@ -94,5 +94,5 @@ public class CityGenerationOptions {
     /// Distance between building and path.
     /// Default: 0
     /// </summary>
-    public int BuildingOffset { get; set; } = 0;
+    public int BuildingOffset { get; set; } = 1;
 }

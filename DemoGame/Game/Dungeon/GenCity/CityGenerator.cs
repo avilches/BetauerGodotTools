@@ -209,41 +209,39 @@ public class CityGenerator(City city) {
         foreach (var path in City.GetAllPaths()) {
             var nextPos = path.Start.Position + path.Direction;
 
-            foreach (var direction in TurnDirection(path.Direction)) {
+            foreach (var facing in TurnDirection(path.Direction)) {
                 var stepOffset = Options.BuildingOffset;
 
                 while (path.GetLength() > stepOffset) {
                     var stepShift = path.Direction * stepOffset;
-                    var shiftFromPath = direction * (Options.BuildingOffset + 1);
+                    var shiftFromPath = facing * (Options.BuildingOffset + 1);
                     var startPosition = nextPos + stepShift + shiftFromPath;
 
-                    int[] size = [
-                        random.Next(Options.BuildingMinSize, Options.BuildingMaxSize + 1),
-                        random.Next(Options.BuildingMinSize, Options.BuildingMaxSize + 1)
-                    ];
+                    var buildingWidth = random.Next(Options.BuildingMinSize, Options.BuildingMaxSize + 1);
+                    var buildingHeight = random.Next(Options.BuildingMinSize, Options.BuildingMaxSize + 1);
 
-                    if (stepOffset + size[0] + Options.BuildingOffset > path.GetLength()) {
+                    if (stepOffset + buildingWidth + Options.BuildingOffset > path.GetLength()) {
                         break;
                     }
-                    ProcessingBuilding(path, startPosition, size, [path.Direction, direction]);
+                    ProcessingBuilding(path, startPosition, buildingWidth, buildingHeight, path.Direction, facing);
 
                     var spaceBetweenBuildings = random.Next(Options.BuildingMinSpace, Options.BuildingMaxSpace + 1);
-                    stepOffset += size[0] + spaceBetweenBuildings;
+                    stepOffset += buildingWidth + spaceBetweenBuildings;
                 }
             }
         }
         return;
 
-        void ProcessingBuilding(Path path, Vector2I position, int[] size, List<Vector2I> directions) {
+        void ProcessingBuilding(Path path, Vector2I position, int buildingWidth, int buildingHeight, Vector2I pathDirection, Vector2I facing) {
             var tiles = new List<Vector2I>();
 
             // Primero recopilamos todas las posiciones para verificar que el edificio se puede colocar
-            for (var i = 0; i < size[0]; i++) {
-                var shiftParallel = directions[0] * i;
+            for (var i = 0; i < buildingWidth; i++) {
+                var shiftParallel = pathDirection * i;
                 var startFromPathPosition = position + shiftParallel;
 
-                for (var j = 0; j < size[1]; j++) {
-                    var shiftPerpendicular = directions[1] * j;
+                for (var j = 0; j < buildingHeight; j++) {
+                    var shiftPerpendicular = facing * j;
                     var tilePosition = startFromPathPosition + shiftPerpendicular;
 
                     if (City.Data.IsInBounds(tilePosition) && City.Data[tilePosition] == null) {
@@ -253,13 +251,8 @@ public class CityGenerator(City city) {
                     }
                 }
             }
-
             // Calcular los límites del edificio (min/max coordinates)
-            var minX = int.MaxValue;
-            var minY = int.MaxValue;
-            var maxX = int.MinValue;
-            var maxY = int.MinValue;
-
+            var (minX, minY, maxX, maxY) = (int.MaxValue, int.MaxValue, int.MinValue, int.MinValue);
             foreach (var pos in tiles) {
                 minX = Math.Min(minX, pos.X);
                 minY = Math.Min(minY, pos.Y);
@@ -272,16 +265,12 @@ public class CityGenerator(City city) {
             var building = City.CreateBuilding(path, buildingRect);
 
             // Determinar las celdas del borde del edificio que están adyacentes al camino
-            var potentialPortals = new List<(Vector2I buildingCell, Vector2I pathCell)>();
-
-            // La dirección del camino es directions[0], y directions[1] es perpendicular al camino
-            // La dirección hacia el camino es -directions[1] (opuesta a la perpendicular)
-            var directionToPath = -directions[1];
+            var potentialPortals = new List<(Vector2I buildingCell, Vector2I pathEntrance)>();
 
             // Buscar todas las celdas del edificio que están en el borde adyacente al camino
             foreach (var buildingCell in building.GetPositions()) {
                 // Comprobar si esta celda está en el borde del edificio adyacente al camino
-                var adjacentCell = buildingCell + directionToPath;
+                var adjacentCell = buildingCell - facing;
 
                 // Verificar si la celda adyacente es parte del camino
                 if (City.Data.IsInBounds(adjacentCell) && City.Data[adjacentCell] is Path) {
@@ -291,17 +280,21 @@ public class CityGenerator(City city) {
 
             // Si encontramos potenciales portales, elegir uno aleatoriamente
             if (potentialPortals.Count > 0) {
+                // Si hay 4 o mas candidates, descartar los laterales
+                if (potentialPortals.Count > 3) {
+                    potentialPortals.RemoveAt(0);
+                    potentialPortals.RemoveAt(potentialPortals.Count - 1);
+                }
                 var selectedPortal = random.Next(potentialPortals.Count);
-                var (portalCell, pathCell) = potentialPortals[selectedPortal];
+                var (entrance, pathEntrance) = potentialPortals[selectedPortal];
 
                 // Asignar los valores al edificio
-                building.Entrance = portalCell;
-                building.PathEntrance = pathCell;
-                building.PathDirection = directionToPath;
+                building.Entrance = entrance;
+                building.PathEntrance = pathEntrance;
+                building.PathDirection = pathDirection;
             }
         }
     }
-
 
     public static IList<Vector2I> TurnDirection(Vector2I direction) {
         return [direction.Rotate90Left(), direction.Rotate90Right()];
